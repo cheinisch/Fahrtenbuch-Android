@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -115,7 +115,7 @@ fun FahrtenbuchApp(
 @Composable
 private fun FirstStartNavigation(viewModel: AppViewModel) {
     val navController = rememberNavController()
-    var pendingPairPayload by remember { mutableStateOf<PairQrPayload?>(null) }
+    var pendingPairPayloadJson by rememberSaveable { mutableStateOf<String?>(null) }
 
     NavHost(navController = navController, startDestination = "welcome") {
         composable("welcome") {
@@ -141,14 +141,14 @@ private fun FirstStartNavigation(viewModel: AppViewModel) {
                 loading = state.loading,
                 apiError = state.error,
                 onPairCode = { payload ->
-                    pendingPairPayload = payload
+                    pendingPairPayloadJson = payload.toSavedJson()
                     navController.navigate("pair-confirm")
                 }
             )
         }
         composable("pair-confirm") {
             val state by viewModel.state.collectAsState()
-            val payload = pendingPairPayload
+            val payload = pendingPairPayloadJson?.let(::pairPayloadFromSavedJson)
             if (payload == null) {
                 navController.popBackStack()
             } else {
@@ -158,7 +158,7 @@ private fun FirstStartNavigation(viewModel: AppViewModel) {
                     apiError = state.error,
                     onBack = {
                         if (!state.loading) {
-                            pendingPairPayload = null
+                            pendingPairPayloadJson = null
                             navController.popBackStack()
                         }
                     },
@@ -167,4 +167,29 @@ private fun FirstStartNavigation(viewModel: AppViewModel) {
             }
         }
     }
+}
+
+private fun PairQrPayload.toSavedJson(): String = org.json.JSONObject().apply {
+    put("version", version)
+    put("type", type)
+    put("server", server)
+    put("pairId", pairId)
+    put("pairToken", pairToken)
+    username?.let { put("username", it) }
+    email?.let { put("email", it) }
+    expiresAt?.let { put("expiresAt", it) }
+}.toString()
+
+private fun pairPayloadFromSavedJson(raw: String): PairQrPayload {
+    val json = org.json.JSONObject(raw)
+    return PairQrPayload(
+        version = json.optInt("version", 1),
+        type = json.optString("type", "pair"),
+        server = json.getString("server"),
+        pairId = json.getString("pairId"),
+        pairToken = json.getString("pairToken"),
+        username = json.optString("username").ifBlank { null },
+        email = json.optString("email").ifBlank { null },
+        expiresAt = json.optString("expiresAt").ifBlank { null }
+    )
 }
