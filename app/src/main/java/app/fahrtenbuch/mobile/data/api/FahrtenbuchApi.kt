@@ -14,8 +14,6 @@ import app.fahrtenbuch.mobile.data.model.PairOptionsRequest
 import app.fahrtenbuch.mobile.data.model.PairOptionsResponse
 import app.fahrtenbuch.mobile.data.model.PairStatusResponse
 import app.fahrtenbuch.mobile.data.model.PasskeyInfo
-import app.fahrtenbuch.mobile.data.model.PasskeyOptionsRequest
-import app.fahrtenbuch.mobile.data.model.PasskeyVerifyRequest
 import app.fahrtenbuch.mobile.data.model.RefreshRequest
 import app.fahrtenbuch.mobile.data.model.RefreshResponse
 import app.fahrtenbuch.mobile.data.model.ResetPasswordRequest
@@ -35,6 +33,7 @@ import app.fahrtenbuch.mobile.data.model.UpdateVehicleRequest
 import app.fahrtenbuch.mobile.data.model.User
 import app.fahrtenbuch.mobile.data.model.Uuid
 import app.fahrtenbuch.mobile.data.model.Vehicle
+import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -55,14 +54,12 @@ interface FahrtenbuchApi {
         @Body request: LoginRequest
     ): LoginResponse
 
-    @POST("auth/passkey/options")
-    suspend fun passkeyOptions(
-        @Body request: PasskeyOptionsRequest
-    ): Map<String, Any?>
+    @POST("auth/passkeys/login/options")
+    suspend fun passkeyLoginOptions(): ResponseBody
 
-    @POST("auth/passkey/verify")
-    suspend fun passkeyVerify(
-        @Body request: PasskeyVerifyRequest
+    @POST("auth/passkeys/login/verify")
+    suspend fun passkeyLoginVerify(
+        @Body request: RequestBody
     ): LoginResponse
 
     @POST("auth/refresh")
@@ -75,12 +72,12 @@ interface FahrtenbuchApi {
         @Body request: LogoutRequest
     ): ResponseBody
 
-    @POST("auth/forgot-password")
+    @POST("auth/password/forgot")
     suspend fun forgotPassword(
         @Body request: ForgotPasswordRequest
     ): ApiMessage
 
-    @POST("auth/reset-password")
+    @POST("auth/password/reset")
     suspend fun resetPassword(
         @Body request: ResetPasswordRequest
     ): ApiMessage
