@@ -40,6 +40,12 @@ class SessionStore(context: Context) {
     val hasAuthenticatedSession: Boolean
         get() = serverConfigured && !refreshToken.isNullOrBlank()
 
+    fun completeLogin(accessToken: String, refreshToken: String): Boolean =
+        prefs.edit()
+            .putString("access_token", accessToken)
+            .putString("refresh_token", refreshToken)
+            .commit()
+
     fun completePairing(serverUrl: String, accessToken: String, refreshToken: String): Boolean =
         prefs.edit()
             .putString("base_url", normalize(serverUrl))
