@@ -7,6 +7,12 @@ typealias Uuid = String
 data class User(val id: Uuid, val displayName: String, val role: String)
 data class LoginRequest(val email: String, val password: String, val totpCode: String? = null, val deviceName: String)
 data class LoginResponse(val accessToken: String, val refreshToken: String, val expiresIn: Long, val user: User)
+data class TokenPair(
+    val accessToken: String,
+    val refreshToken: String,
+    val expiresIn: Long,
+    val tokenType: String? = "Bearer"
+)
 data class RefreshRequest(val refreshToken: String)
 data class RefreshResponse(val accessToken: String, val refreshToken: String? = null, val expiresIn: Long)
 data class LogoutRequest(val refreshToken: String? = null)

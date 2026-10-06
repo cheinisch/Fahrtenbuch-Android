@@ -36,13 +36,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             loading = false,
             serverConfigured = store.serverConfigured,
             serverUrl = store.baseUrl,
-            loggedIn = store.accessToken != null
+            loggedIn = store.refreshToken != null
         )
     )
     val state: StateFlow<AppUiState> = _state.asStateFlow()
 
     init {
-        if (store.serverConfigured && store.accessToken != null) refresh()
+        if (store.serverConfigured && store.refreshToken != null) refresh()
     }
 
     fun configureServer(url: String) {
@@ -137,7 +137,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refresh() {
-        if (!store.serverConfigured || store.accessToken == null) return
+        if (!store.serverConfigured || store.refreshToken == null) return
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
             runCatching { repository.vehicles() to repository.trips() }

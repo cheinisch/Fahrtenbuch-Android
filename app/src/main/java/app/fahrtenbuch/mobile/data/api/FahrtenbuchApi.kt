@@ -26,6 +26,7 @@ import app.fahrtenbuch.mobile.data.model.SyncResponse
 import app.fahrtenbuch.mobile.data.model.Tag
 import app.fahrtenbuch.mobile.data.model.TagRequest
 import app.fahrtenbuch.mobile.data.model.TotpStatus
+import app.fahrtenbuch.mobile.data.model.TokenPair
 import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.data.model.TrackingPointsRequest
 import app.fahrtenbuch.mobile.data.model.Trip
@@ -96,7 +97,7 @@ interface FahrtenbuchApi {
     @POST("auth/pair")
     suspend fun pair(
         @Body request: PairLoginRequest
-    ): LoginResponse
+    ): TokenPair
 
     @GET("auth/pair/{pairId}/status")
     suspend fun pairStatus(

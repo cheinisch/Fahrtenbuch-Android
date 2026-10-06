@@ -33,12 +33,22 @@ class FahrtenbuchRepository(
         return response.user
     }
 
-    suspend fun pairLogin(payload: PairQrPayload, deviceName: String): User {
-        val response = api.pair(PairLoginRequest(payload.pairId, payload.pairToken, deviceName, store.deviceId, appVersion = BuildConfig.VERSION_NAME))
+    suspend fun pairLogin(payload: PairQrPayload, deviceName: String) {
+        val response = api.pair(
+            PairLoginRequest(
+                pairId = payload.pairId,
+                pairToken = payload.pairToken,
+                deviceName = deviceName,
+                deviceId = store.deviceId,
+                appVersion = BuildConfig.VERSION_NAME
+            )
+        )
+
+        // /auth/pair returns tokens only. Persist them immediately: from this
+        // point on the device is paired and must survive app restarts.
         store.accessToken = response.accessToken
         store.refreshToken = response.refreshToken
         SyncScheduler.enqueue(context)
-        return response.user
     }
 
     suspend fun devices(): List<DeviceInfo> = api.devices()
