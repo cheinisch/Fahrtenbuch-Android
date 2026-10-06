@@ -161,7 +161,7 @@ fun QrPairingScreen(
                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                 .setPrompt("Anmelde-QR-Code scannen")
                 .setBeepEnabled(false)
-                .setOrientationLocked(false)
+                .setOrientationLocked(true)
         )
     }
 
