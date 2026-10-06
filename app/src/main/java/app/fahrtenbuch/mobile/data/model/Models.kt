@@ -5,7 +5,15 @@ import com.squareup.moshi.Json
 typealias Uuid = String
 
 data class User(val id: Uuid, val displayName: String, val role: String)
-data class LoginRequest(val email: String, val password: String, val totpCode: String? = null, val deviceName: String)
+data class LoginRequest(
+    val email: String,
+    val password: String,
+    val totpCode: String? = null,
+    val deviceName: String,
+    val deviceId: String? = null,
+    val platform: String = "android",
+    val appVersion: String? = null
+)
 data class LoginResponse(val accessToken: String, val refreshToken: String, val expiresIn: Long, val user: User)
 data class TokenPair(
     val accessToken: String,
@@ -18,8 +26,6 @@ data class RefreshResponse(val accessToken: String, val refreshToken: String? = 
 data class LogoutRequest(val refreshToken: String? = null)
 data class ForgotPasswordRequest(val email: String)
 data class ResetPasswordRequest(val token: String, val password: String)
-data class PasskeyOptionsRequest(val email: String? = null)
-data class PasskeyVerifyRequest(val credential: Map<String, Any?>, val deviceName: String)
 
 /**
  * QR payload expected by the Android app. The server URL is the public root URL;
