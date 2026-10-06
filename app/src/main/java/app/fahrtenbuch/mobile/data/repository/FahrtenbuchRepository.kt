@@ -13,6 +13,9 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.time.Instant
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.util.UUID
 
 class FahrtenbuchRepository(
@@ -26,9 +29,19 @@ class FahrtenbuchRepository(
     private val tripAdapter = moshi.adapter<List<Trip>>(Types.newParameterizedType(List::class.java, Trip::class.java))
 
     suspend fun login(email: String, password: String, totpCode: String?, deviceName: String): User {
-        val response = api.login(LoginRequest(email, password, totpCode?.takeIf { it.isNotBlank() }, deviceName))
-        store.accessToken = response.accessToken
-        store.refreshToken = response.refreshToken
+        val response = api.login(
+            LoginRequest(
+                email = email,
+                password = password,
+                totpCode = totpCode?.takeIf { it.isNotBlank() },
+                deviceName = deviceName,
+                deviceId = store.deviceId,
+                appVersion = BuildConfig.VERSION_NAME
+            )
+        )
+        check(store.completeLogin(response.accessToken, response.refreshToken)) {
+            "Die Anmeldung konnte nicht lokal gespeichert werden."
+        }
         SyncScheduler.enqueue(context)
         return response.user
     }
@@ -55,6 +68,32 @@ class FahrtenbuchRepository(
             )
         ) { "Die Pairing-Sitzung konnte nicht lokal gespeichert werden." }
         SyncScheduler.enqueue(context)
+    }
+
+    suspend fun passkeyLoginOptions(): String = api.passkeyLoginOptions().string()
+
+    suspend fun passkeyLogin(authenticationResponseJson: String, deviceName: String): User {
+        val body = JSONObject(authenticationResponseJson).apply {
+            put("deviceName", deviceName)
+            put("deviceId", store.deviceId)
+            put("platform", "android")
+            put("appVersion", BuildConfig.VERSION_NAME)
+        }.toString().toRequestBody("application/json".toMediaType())
+
+        val response = api.passkeyLoginVerify(body)
+        check(store.completeLogin(response.accessToken, response.refreshToken)) {
+            "Die Passkey-Anmeldung konnte nicht lokal gespeichert werden."
+        }
+        SyncScheduler.enqueue(context)
+        return response.user
+    }
+
+    suspend fun forgotPassword(email: String) {
+        api.forgotPassword(ForgotPasswordRequest(email))
+    }
+
+    suspend fun resetPassword(token: String, password: String) {
+        api.resetPassword(ResetPasswordRequest(token, password))
     }
 
     suspend fun devices(): List<DeviceInfo> = api.devices()
