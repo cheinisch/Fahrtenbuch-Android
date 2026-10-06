@@ -107,12 +107,81 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    suspend fun passkeyOptions(): Result<String> {
+        _state.value = _state.value.copy(loading = true, error = null)
+        val result = runCatching { repository.passkeyLoginOptions() }
+        if (result.isFailure) {
+            _state.value = _state.value.copy(
+                loading = false,
+                error = result.exceptionOrNull()?.message ?: "Passkey-Anmeldung konnte nicht gestartet werden."
+            )
+        }
+        return result
+    }
+
+    fun passkeyLogin(authenticationResponseJson: String, deviceName: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.passkeyLogin(authenticationResponseJson, deviceName) }
+                .onSuccess {
+                    _state.value = _state.value.copy(loggedIn = true, loading = false, error = null)
+                    refresh()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        loggedIn = false,
+                        error = it.message ?: "Passkey-Anmeldung fehlgeschlagen."
+                    )
+                }
+        }
+    }
+
+    fun cancelAuthLoading(message: String? = null) {
+        _state.value = _state.value.copy(loading = false, error = message)
+    }
+
+    fun forgotPassword(email: String, onAccepted: () -> Unit) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.forgotPassword(email) }
+                .onSuccess {
+                    _state.value = _state.value.copy(loading = false, error = null)
+                    onAccepted()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.message ?: "Passwort-Reset konnte nicht angefordert werden."
+                    )
+                }
+        }
+    }
+
+    fun resetPassword(token: String, password: String, onChanged: () -> Unit) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.resetPassword(token, password) }
+                .onSuccess {
+                    store.clearTokens()
+                    _state.value = _state.value.copy(loading = false, loggedIn = false, error = null)
+                    onChanged()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.message ?: "Passwort konnte nicht geändert werden."
+                    )
+                }
+        }
+    }
+
     fun login(email: String, password: String, totpCode: String?, deviceName: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
             runCatching { repository.login(email, password, totpCode, deviceName) }
                 .onSuccess {
-                    _state.value = _state.value.copy(loggedIn = true, loading = false)
+                    _state.value = _state.value.copy(loggedIn = true, loading = false, error = null)
                     refresh()
                 }
                 .onFailure {
@@ -142,6 +211,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(loading = true, error = null)
             runCatching { repository.vehicles() to repository.trips() }
                 .onSuccess { (vehicles, trips) ->
+                    if (!store.hasAuthenticatedSession) {
+                        _state.value = _state.value.copy(
+                            loading = false,
+                            loggedIn = false,
+                            vehicles = emptyList(),
+                            trips = emptyList(),
+                            error = "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+                        )
+                        return@onSuccess
+                    }
                     _state.value = _state.value.copy(
                         loading = false,
                         vehicles = vehicles,
@@ -150,11 +229,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         selectedVehicleId = _state.value.selectedVehicleId ?: vehicles.firstOrNull()?.id
                     )
                 }
-                .onFailure { e ->
-                    _state.value = _state.value.copy(
-                        loading = false,
-                        error = "Offline-Modus: Lokale Daten werden angezeigt."
-                    )
+                .onFailure {
+                    if (!store.hasAuthenticatedSession) {
+                        _state.value = _state.value.copy(
+                            loading = false,
+                            loggedIn = false,
+                            vehicles = emptyList(),
+                            trips = emptyList(),
+                            error = "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+                        )
+                    } else {
+                        _state.value = _state.value.copy(
+                            loading = false,
+                            error = "Offline-Modus: Lokale Daten werden angezeigt."
+                        )
+                    }
                 }
         }
     }
