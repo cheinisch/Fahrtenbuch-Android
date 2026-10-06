@@ -37,6 +37,17 @@ class SessionStore(context: Context) {
             return generated
         }
 
+    val hasAuthenticatedSession: Boolean
+        get() = serverConfigured && !refreshToken.isNullOrBlank()
+
+    fun completePairing(serverUrl: String, accessToken: String, refreshToken: String): Boolean =
+        prefs.edit()
+            .putString("base_url", normalize(serverUrl))
+            .putBoolean("server_configured", true)
+            .putString("access_token", accessToken)
+            .putString("refresh_token", refreshToken)
+            .commit()
+
     var activeTripId: String?
         get() = prefs.getString("active_trip_id", null)
         set(value) { prefs.edit().putString("active_trip_id", value).apply() }
