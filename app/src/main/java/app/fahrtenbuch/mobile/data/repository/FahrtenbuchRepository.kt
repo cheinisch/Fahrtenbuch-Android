@@ -44,10 +44,16 @@ class FahrtenbuchRepository(
             )
         )
 
-        // /auth/pair returns tokens only. Persist them immediately: from this
-        // point on the device is paired and must survive app restarts.
-        store.accessToken = response.accessToken
-        store.refreshToken = response.refreshToken
+        // Persist server and both tokens in one synchronous transaction. Once
+        // /auth/pair returned successfully the paired session must survive an
+        // Activity/process recreation before the next screen is rendered.
+        check(
+            store.completePairing(
+                serverUrl = payload.server,
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken
+            )
+        ) { "Die Pairing-Sitzung konnte nicht lokal gespeichert werden." }
         SyncScheduler.enqueue(context)
     }
 
