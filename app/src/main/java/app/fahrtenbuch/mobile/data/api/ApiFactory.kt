@@ -14,6 +14,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 object ApiFactory {
+    private val refreshLock = Any()
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
     fun create(store: SessionStore): FahrtenbuchApi {
@@ -22,12 +23,37 @@ object ApiFactory {
 
         val authenticator = Authenticator { _: Route?, response: Response ->
             if (responseCount(response) >= 2) return@Authenticator null
-            val refreshToken = store.refreshToken ?: return@Authenticator null
-            val refreshed = runCatching { runBlocking { refreshApi.refresh(RefreshRequest(refreshToken)) } }.getOrNull()
-                ?: run { store.clearTokens(); return@Authenticator null }
-            store.accessToken = refreshed.accessToken
-            refreshed.refreshToken?.let { store.refreshToken = it }
-            response.request.newBuilder().header("Authorization", "Bearer ${refreshed.accessToken}").build()
+
+            synchronized(refreshLock) {
+                val currentAccessToken = store.accessToken
+                val requestToken = response.request.header("Authorization")?.removePrefix("Bearer ")
+
+                // Another request may already have rotated the refresh token while
+                // this request was waiting for the lock. Reuse the newer access token.
+                if (!currentAccessToken.isNullOrBlank() && requestToken != currentAccessToken) {
+                    return@synchronized response.request.newBuilder()
+                        .header("Authorization", "Bearer $currentAccessToken")
+                        .build()
+                }
+
+                val refreshToken = store.refreshToken ?: return@synchronized null
+                val refreshed = runCatching {
+                    runBlocking { refreshApi.refresh(RefreshRequest(refreshToken)) }
+                }.getOrNull() ?: run {
+                    store.clearTokens()
+                    return@synchronized null
+                }
+
+                val nextRefreshToken = refreshed.refreshToken ?: refreshToken
+                if (!store.completeLogin(refreshed.accessToken, nextRefreshToken)) {
+                    store.clearTokens()
+                    return@synchronized null
+                }
+
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer ${refreshed.accessToken}")
+                    .build()
+            }
         }
 
         val client = OkHttpClient.Builder()
