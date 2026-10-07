@@ -212,13 +212,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         displayName: String?,
         username: String?,
         email: String?,
+        serverUrl: String,
         onSaved: () -> Unit = {}
     ) {
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
-            runCatching { repository.updateProfile(displayName, username, email) }
+            runCatching {
+                val requestedServer = serverUrl.trim()
+                require(requestedServer.startsWith("https://") || requestedServer.startsWith("http://")) {
+                    "Die Serveradresse muss mit https:// oder http:// beginnen."
+                }
+                store.baseUrl = requestedServer
+                repository = FahrtenbuchRepository(getApplication(), ApiFactory.create(store), store)
+                repository.updateProfile(displayName, username, email)
+            }
                 .onSuccess { user ->
-                    _state.value = _state.value.copy(loading = false, user = user, error = null)
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        user = user,
+                        serverUrl = store.baseUrl,
+                        error = null
+                    )
                     onSaved()
                 }
                 .onFailure { error ->
