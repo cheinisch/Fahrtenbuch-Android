@@ -12,6 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -212,6 +214,7 @@ private fun BluetoothAssignmentDialog(
     val macRegex = remember { Regex("^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$") }
     val normalizedManual = manualMac.trim().uppercase()
     val manualValid = normalizedManual.isBlank() || macRegex.matches(normalizedManual)
+    val deviceListState = rememberLazyListState()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -224,18 +227,25 @@ private fun BluetoothAssignmentDialog(
                 if (devices.isEmpty()) {
                     Text("Keine gekoppelten Geräte gefunden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
-                    devices.forEach { device ->
-                        Row(Modifier.fillMaxWidth()) {
-                            RadioButton(
-                                selected = selectedMac.equals(device.address, ignoreCase = true),
-                                onClick = {
-                                    selectedMac = device.address
-                                    manualMac = device.address
+                    LazyColumn(
+                        state = deviceListState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 280.dp)
+                    ) {
+                        items(devices, key = { it.address }) { device ->
+                            Row(Modifier.fillMaxWidth()) {
+                                RadioButton(
+                                    selected = selectedMac.equals(device.address, ignoreCase = true),
+                                    onClick = {
+                                        selectedMac = device.address
+                                        manualMac = device.address
+                                    }
+                                )
+                                Column {
+                                    Text(device.name)
+                                    Text(device.address, style = MaterialTheme.typography.bodySmall)
                                 }
-                            )
-                            Column {
-                                Text(device.name)
-                                Text(device.address, style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
