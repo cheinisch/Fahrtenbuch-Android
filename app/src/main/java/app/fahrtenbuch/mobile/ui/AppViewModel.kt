@@ -310,10 +310,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         vehiclesLoadedFromServer = false,
                         error = if (local.isEmpty()) {
                             "Fahrzeuge konnten nicht vom Server geladen werden: " +
-                                (error.message ?: error.javaClass.simpleName)
+                                ApiFactory.readableError(error)
                         } else {
                             "Offline-Modus: Lokale Fahrzeuge werden angezeigt. Serverfehler: " +
-                                (error.message ?: error.javaClass.simpleName)
+                                ApiFactory.readableError(error)
                         }
                     )
                 }
