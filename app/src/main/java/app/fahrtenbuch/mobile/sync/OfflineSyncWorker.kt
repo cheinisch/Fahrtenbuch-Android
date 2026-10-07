@@ -1,8 +1,10 @@
 package app.fahrtenbuch.mobile.sync
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import retrofit2.HttpException
 import app.fahrtenbuch.mobile.data.api.ApiFactory
 import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.local.OfflineDatabase
@@ -12,29 +14,61 @@ import app.fahrtenbuch.mobile.data.local.TagEntity
 import app.fahrtenbuch.mobile.data.model.*
 
 class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+    companion object {
+        const val TAG = "FahrtenbuchSync"
+    }
     override suspend fun doWork(): Result {
         val store = SessionStore(applicationContext)
-        if (!store.serverConfigured || store.refreshToken == null) return Result.success()
+        if (!store.serverConfigured || store.refreshToken == null) {
+            Log.i(TAG, "Sync skipped: serverConfigured=${store.serverConfigured} authenticated=${store.refreshToken != null}")
+            return Result.success()
+        }
+        Log.i(TAG, "Sync started: runAttemptCount=$runAttemptCount")
         val api = ApiFactory.create(store)
         val dao = OfflineDatabase.get(applicationContext).dao()
         return try {
             // Push locally recorded tracking sessions first.
-            dao.pendingTrips().forEach { local ->
+            val pendingTrips = dao.pendingTrips()
+            Log.i(TAG, "Pending local trips: ${pendingTrips.size}")
+            pendingTrips.forEach { local ->
                 var remoteId = local.remoteId
+                Log.i(
+                    TAG,
+                    "Sync trip: localId=${local.localId} remoteId=${local.remoteId ?: "-"} " +
+                        "vehicleId=${local.vehicleId} startedAt=${local.startedAt} endedAt=${local.endedAt ?: "-"} " +
+                        "state=${local.state} pendingStop=${local.pendingStop}"
+                )
                 if (remoteId == null) {
+                    Log.i(TAG, "POST tracking/start: localId=${local.localId} vehicleId=${local.vehicleId} startedAt=${local.startedAt}")
                     val remote = api.startTracking(StartTrackingRequest(local.vehicleId, local.startedAt))
+                    Log.i(TAG, "tracking/start OK: localId=${local.localId} remoteId=${remote.id}")
                     remoteId = remote.id
                     dao.setRemoteId(local.localId, remoteId)
                 }
                 while (true) {
                     val points = dao.pendingPoints(local.localId)
-                    if (points.isEmpty()) break
+                    if (points.isEmpty()) {
+                        Log.d(TAG, "No pending points: localId=${local.localId} remoteId=$remoteId")
+                        break
+                    }
+                    Log.i(
+                        TAG,
+                        "POST tracking/points: localId=${local.localId} remoteId=$remoteId count=${points.size} " +
+                            "first=${points.first().recordedAt} last=${points.last().recordedAt}"
+                    )
                     api.uploadPoints(TrackingPointsRequest(remoteId, points.map { it.toApi() }))
                     dao.markPointsUploaded(points.map { it.id })
+                    Log.i(TAG, "tracking/points OK: localId=${local.localId} uploaded=${points.size}")
                 }
                 if (local.pendingStop && local.endedAt != null) {
-                    api.stopTracking(StopTrackingRequest(remoteId, local.endedAt))
+                    Log.i(TAG, "POST tracking/stop: localId=${local.localId} remoteId=$remoteId endedAt=${local.endedAt}")
+                    val completed = api.stopTracking(StopTrackingRequest(remoteId, local.endedAt))
                     dao.markTripSynced(local.localId)
+                    Log.i(
+                        TAG,
+                        "tracking/stop OK: localId=${local.localId} remoteId=$remoteId " +
+                            "distanceKm=${completed.distanceKm} durationSeconds=${completed.durationSeconds}"
+                    )
                 }
             }
 
@@ -48,8 +82,30 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             dao.replaceTrips(trips.map { it.toEntity() })
             dao.replaceTags(tags.map { TagEntity(it.id, it.name) })
 
+            Log.i(TAG, "Sync completed successfully")
             Result.success()
-        } catch (_: Exception) { Result.retry() }
+        } catch (error: HttpException) {
+            val responseBody = runCatching { error.response()?.errorBody()?.string() }.getOrNull()
+            Log.e(
+                TAG,
+                "HTTP sync failure: status=${error.code()} message=${error.message()} " +
+                    "body=${responseBody ?: "<empty>"} attempt=$runAttemptCount",
+                error
+            )
+            if (error.code() in 400..499 && error.code() !in listOf(408, 429)) {
+                Log.e(TAG, "Permanent client error ${error.code()}; not retrying unchanged request")
+                Result.failure()
+            } else {
+                Result.retry()
+            }
+        } catch (error: Exception) {
+            Log.e(
+                TAG,
+                "Sync failure: type=${error::class.java.simpleName} message=${error.message} attempt=$runAttemptCount",
+                error
+            )
+            Result.retry()
+        }
     }
 }
 
