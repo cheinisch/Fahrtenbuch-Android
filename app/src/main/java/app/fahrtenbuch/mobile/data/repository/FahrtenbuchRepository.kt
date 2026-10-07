@@ -112,6 +112,19 @@ class FahrtenbuchRepository(
         return dao.cache("vehicles")?.json?.let(vehicleAdapter::fromJson).orEmpty()
     }
 
+    suspend fun setVehicleBluetooth(vehicleId: Uuid, bluetoothMac: String?): Vehicle {
+        val normalized = bluetoothMac
+            ?.trim()
+            ?.uppercase()
+            ?.takeIf { it.isNotBlank() }
+        val updated = api.setBluetooth(vehicleId, BluetoothMacRequest(normalized))
+        val current = vehicles(forceNetwork = false).toMutableList()
+        val index = current.indexOfFirst { it.id == updated.id }
+        if (index >= 0) current[index] = updated else current.add(updated)
+        dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(current), Instant.now().toString()))
+        return updated
+    }
+
     suspend fun trips(forceNetwork: Boolean = true): List<Trip> {
         if (forceNetwork) runCatching { api.getTrips(limit = 500) }.onSuccess { values ->
             dao.putCache(CacheEntity("trips", tripAdapter.toJson(values), Instant.now().toString()))
