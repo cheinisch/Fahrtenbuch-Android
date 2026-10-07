@@ -308,5 +308,6 @@ private fun TripEntity.toModel() = Trip(
     tags = runCatching {
         val array = org.json.JSONArray(tagsJson)
         List(array.length()) { array.getString(it) }
-    }.getOrDefault(emptyList())
+    }.getOrDefault(emptyList()),
+    syncState = syncState
 )
