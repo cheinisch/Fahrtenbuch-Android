@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "app.fahrtenbuch.mobile"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "app.fahrtenbuch.mobile"
