@@ -11,6 +11,7 @@ import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.Vehicle
 import app.fahrtenbuch.mobile.data.repository.FahrtenbuchRepository
+import app.fahrtenbuch.mobile.sync.SyncScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -337,6 +338,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             tracking = store.activeTripId != null,
             selectedVehicleId = selected
         )
+    }
+
+    fun syncNow() {
+        if (!store.hasAuthenticatedSession) return
+        SyncScheduler.pushIfOnline(getApplication())
+        refresh()
     }
 
     fun loadVehicles() {
