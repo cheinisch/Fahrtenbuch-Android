@@ -210,8 +210,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (!store.serverConfigured || store.refreshToken == null) return
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
-            runCatching { repository.vehicles() to repository.trips() }
-                .onSuccess { (vehicles, trips) ->
+
+            // Room is the primary source: render cached data immediately.
+            val localVehicles = repository.vehicles(forceNetwork = false)
+            val localTrips = repository.trips(forceNetwork = false)
+            applyLocalData(localVehicles, localTrips, loading = true)
+
+            runCatching { repository.syncFromServer() }
+                .onSuccess {
                     if (!store.hasAuthenticatedSession) {
                         _state.value = _state.value.copy(
                             loading = false,
@@ -222,13 +228,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         )
                         return@onSuccess
                     }
+                    val vehicles = repository.vehicles(forceNetwork = false)
+                    val trips = repository.trips(forceNetwork = false)
+                    applyLocalData(vehicles, trips, loading = false)
                     _state.value = _state.value.copy(
-                        loading = false,
-                        vehicles = vehicles,
-                        trips = trips,
-                        tracking = store.activeTripId != null,
-                        selectedVehicleId = _state.value.selectedVehicleId ?: vehicles.firstOrNull()?.id,
-                        vehiclesLoadedFromServer = true
+                        vehiclesLoadedFromServer = true,
+                        error = null
                     )
                 }
                 .onFailure {
@@ -243,37 +248,69 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     } else {
                         _state.value = _state.value.copy(
                             loading = false,
-                            error = "Offline-Modus: Lokale Daten werden angezeigt."
+                            vehiclesLoadedFromServer = false,
+                            error = if (localVehicles.isEmpty() && localTrips.isEmpty()) {
+                                "Server nicht erreichbar und noch keine lokalen Daten vorhanden."
+                            } else {
+                                "Offline-Modus: Lokale Daten werden angezeigt."
+                            }
                         )
                     }
                 }
         }
     }
 
+    private fun applyLocalData(vehicles: List<Vehicle>, trips: List<Trip>, loading: Boolean) {
+        val selected = _state.value.selectedVehicleId
+            ?.takeIf { id -> vehicles.any { it.id == id } }
+            ?: vehicles.firstOrNull()?.id
+        _state.value = _state.value.copy(
+            loading = loading,
+            vehicles = vehicles,
+            trips = trips,
+            tracking = store.activeTripId != null,
+            selectedVehicleId = selected
+        )
+    }
+
     fun loadVehicles() {
         if (!store.hasAuthenticatedSession) return
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
-            runCatching { repository.vehicles(forceNetwork = true) }
-                .onSuccess { vehicles ->
-                    val selected = _state.value.selectedVehicleId
-                        ?.takeIf { id -> vehicles.any { it.id == id } }
-                        ?: vehicles.firstOrNull()?.id
-                    _state.value = _state.value.copy(
-                        loading = false,
-                        vehicles = vehicles,
-                        selectedVehicleId = selected,
-                        error = null,
-                        vehiclesLoadedFromServer = true
-                    )
-                }
-                .onFailure {
-                    _state.value = _state.value.copy(
-                        loading = false,
-                        vehiclesLoadedFromServer = false,
-                        error = it.message ?: "Fahrzeuge konnten nicht geladen werden."
-                    )
-                }
+
+            val local = repository.vehicles(forceNetwork = false)
+            _state.value = _state.value.copy(
+                vehicles = local,
+                selectedVehicleId = _state.value.selectedVehicleId
+                    ?.takeIf { id -> local.any { it.id == id } }
+                    ?: local.firstOrNull()?.id
+            )
+
+            runCatching {
+                repository.syncFromServer()
+                repository.vehicles(forceNetwork = false)
+            }.onSuccess { vehicles ->
+                val selected = _state.value.selectedVehicleId
+                    ?.takeIf { id -> vehicles.any { it.id == id } }
+                    ?: vehicles.firstOrNull()?.id
+                _state.value = _state.value.copy(
+                    loading = false,
+                    vehicles = vehicles,
+                    selectedVehicleId = selected,
+                    vehiclesLoadedFromServer = true,
+                    error = null
+                )
+            }.onFailure {
+                _state.value = _state.value.copy(
+                    loading = false,
+                    vehiclesLoadedFromServer = false,
+                    error = if (local.isEmpty()) {
+                        "Fahrzeuge konnten nicht geladen werden."
+                    } else {
+                        "Offline-Modus: Lokale Fahrzeuge werden angezeigt."
+                    }
+                )
+            }
         }
     }
 
@@ -283,7 +320,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(loading = true, error = null)
             runCatching { repository.createVehicle(name, licensePlate) }
                 .onSuccess { created ->
-                    val vehicles = (_state.value.vehicles + created).distinctBy { it.id }
+                    val vehicles = repository.vehicles(forceNetwork = false)
                     _state.value = _state.value.copy(
                         loading = false,
                         vehicles = vehicles,
