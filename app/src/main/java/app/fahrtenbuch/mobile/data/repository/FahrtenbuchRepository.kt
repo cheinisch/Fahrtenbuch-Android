@@ -167,6 +167,26 @@ class FahrtenbuchRepository(
         return dao.tags().map { Tag(it.id, it.name) }
     }
 
+    /**
+     * Pulls the complete server snapshots into Room. UI code reads Room first;
+     * this method only refreshes the local source of truth.
+     */
+    suspend fun syncFromServer() {
+        val remoteVehicles = api.getVehicles()
+        val remoteTrips = api.getTrips(limit = 500)
+        val remoteTags = api.tags()
+
+        dao.replaceVehicles(remoteVehicles.map(Vehicle::toEntity))
+        dao.replaceTrips(remoteTrips.map(Trip::toEntity))
+        dao.replaceTags(remoteTags.map { TagEntity(it.id, it.name) })
+
+        // Legacy cache is retained only so existing v1 installations can still
+        // migrate cleanly during the transition.
+        val now = Instant.now().toString()
+        dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(remoteVehicles), now))
+        dao.putCache(CacheEntity("trips", tripAdapter.toJson(remoteTrips), now))
+    }
+
     suspend fun dashboard(): Dashboard = api.dashboard()
 
     /** Starts immediately without requiring a network connection. */
