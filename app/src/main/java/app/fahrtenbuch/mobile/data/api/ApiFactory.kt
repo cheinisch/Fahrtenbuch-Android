@@ -3,6 +3,7 @@ package app.fahrtenbuch.mobile.data.api
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import app.fahrtenbuch.mobile.data.model.RefreshRequest
+import app.fahrtenbuch.mobile.data.model.ApiError
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.OkHttpClient
@@ -11,11 +12,33 @@ import okhttp3.Response
 import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.HttpException
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 object ApiFactory {
     private val refreshLock = Any()
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    private val apiErrorAdapter = moshi.adapter(ApiError::class.java)
+
+    fun readableError(error: Throwable): String {
+        if (error !is HttpException) return error.message ?: error.javaClass.simpleName
+        val parsed = runCatching {
+            error.response()?.errorBody()?.string()?.let(apiErrorAdapter::fromJson)
+        }.getOrNull()
+        val code = parsed?.code
+        val message = parsed?.message
+        return when (code) {
+            "UNAUTHORIZED" -> "Anmeldung erforderlich (UNAUTHORIZED)."
+            "INVALID_ACCESS_TOKEN" -> "Access-Token ungültig oder abgelaufen (INVALID_ACCESS_TOKEN)."
+            "SESSION_INVALID" -> "Sitzung ungültig oder abgelaufen (SESSION_INVALID)."
+            "INVALID_REFRESH_TOKEN" -> "Refresh-Token ungültig oder abgelaufen (INVALID_REFRESH_TOKEN)."
+            else -> listOfNotNull(
+                message?.takeIf { it.isNotBlank() },
+                code?.takeIf { it.isNotBlank() }?.let { "($it)" },
+                "HTTP ${error.code()}"
+            ).joinToString(" ").ifBlank { "HTTP ${error.code()}" }
+        }
+    }
 
     fun create(store: SessionStore): FahrtenbuchApi {
         val refreshClient = OkHttpClient.Builder().build()
@@ -37,10 +60,15 @@ object ApiFactory {
                 }
 
                 val refreshToken = store.refreshToken ?: return@synchronized null
-                val refreshed = runCatching {
+                val refreshed = try {
                     runBlocking { refreshApi.refresh(RefreshRequest(refreshToken)) }
-                }.getOrNull() ?: run {
-                    store.clearTokens()
+                } catch (error: HttpException) {
+                    // Only destroy the local session when the refresh endpoint itself
+                    // confirms that the refresh token is invalid. A transient/proxy
+                    // 401/5xx must not silently log the user out.
+                    if (error.code() == 401) store.clearTokens()
+                    return@synchronized null
+                } catch (_: Exception) {
                     return@synchronized null
                 }
 
