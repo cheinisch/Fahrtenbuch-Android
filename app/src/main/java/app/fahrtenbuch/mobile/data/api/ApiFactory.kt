@@ -15,6 +15,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.HttpException
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 object ApiFactory {
     private const val AUTH_LOG_TAG = "FahrtenbuchAuth"
@@ -43,7 +47,7 @@ object ApiFactory {
     }
 
     fun create(store: SessionStore): FahrtenbuchApi {
-        val refreshClient = OkHttpClient.Builder().build()
+        val refreshClient = clientBuilder(store).build()
         val refreshApi = retrofit(store.baseUrl, refreshClient)
 
         val authenticator = Authenticator { _: Route?, response: Response ->
@@ -103,7 +107,7 @@ object ApiFactory {
             }
         }
 
-        val client = OkHttpClient.Builder()
+        val client = clientBuilder(store)
             .addInterceptor { chain ->
                 val original = chain.request()
                 val builder: Request.Builder = original.newBuilder()
@@ -145,6 +149,24 @@ object ApiFactory {
             .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
             .build()
         return retrofit(store.baseUrl, client)
+    }
+
+    private fun clientBuilder(store: SessionStore): OkHttpClient.Builder {
+        val builder = OkHttpClient.Builder()
+        if (store.allowInvalidCertificates && store.baseUrl.startsWith("https://", ignoreCase = true)) {
+            val trustAll = object : X509TrustManager {
+                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
+                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
+                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+            }
+            val sslContext = SSLContext.getInstance("TLS").apply {
+                init(null, arrayOf(trustAll), SecureRandom())
+            }
+            builder.sslSocketFactory(sslContext.socketFactory, trustAll)
+            builder.hostnameVerifier { _, _ -> true }
+            Log.w(AUTH_LOG_TAG, "TLS certificate validation is DISABLED for the configured server")
+        }
+        return builder
     }
 
     private fun retrofit(baseUrl: String, client: OkHttpClient): FahrtenbuchApi = Retrofit.Builder()
