@@ -54,6 +54,10 @@ class SessionStore(context: Context) {
             .putString("refresh_token", refreshToken)
             .commit()
 
+    var trackingIntervalSeconds: Int
+        get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
+        set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }
+
     var activeVehicleId: String?
         get() = prefs.getString("active_vehicle_id", null)
         set(value) { prefs.edit().putString("active_vehicle_id", value).apply() }
