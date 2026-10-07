@@ -100,6 +100,6 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
             Intent(context, TripTrackingService::class.java)
                 .setAction(TripTrackingService.ACTION_STOP)
         )
-        SyncScheduler.enqueue(context)
+        SyncScheduler.pushIfOnline(context)
     }
 }
