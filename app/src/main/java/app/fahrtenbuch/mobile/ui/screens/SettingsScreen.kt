@@ -48,6 +48,7 @@ fun SettingsScreen(
     var displayName by rememberSaveable { mutableStateOf("") }
     var username by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
+    var serverUrl by rememberSaveable { mutableStateOf(appState.serverUrl) }
     val context = LocalContext.current
     val sessionStore = remember { SessionStore(context) }
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
@@ -58,6 +59,7 @@ fun SettingsScreen(
             displayName = appState.user?.displayName.orEmpty()
             username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
             email = appState.user?.email.orEmpty()
+            serverUrl = appState.serverUrl
         }
     }
 
@@ -185,6 +187,14 @@ fun SettingsScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                     )
+                    OutlinedTextField(
+                        value = serverUrl,
+                        onValueChange = { serverUrl = it },
+                        label = { Text("Serveradresse") },
+                        supportingText = { Text("HTTP wird beim Speichern automatisch auf HTTPS umgestellt.") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    )
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -195,13 +205,14 @@ fun SettingsScreen(
                                 displayName = appState.user?.displayName.orEmpty()
                                 username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
                                 email = appState.user?.email.orEmpty()
+                                serverUrl = appState.serverUrl
                             }
                         ) { Text("Abbrechen") }
                         Spacer(Modifier.weight(1f))
                         TextButton(
                             enabled = !appState.loading && username.isNotBlank() && email.isNotBlank(),
                             onClick = {
-                                viewModel.updateAccount(displayName, username, email) {
+                                viewModel.updateAccount(displayName, username, email, serverUrl) {
                                     editingAccount = false
                                 }
                             }
@@ -215,6 +226,7 @@ fun SettingsScreen(
                     )
                     AccountInfoRow("E-Mail", appState.user?.email ?: "–")
                     AccountInfoRow("Rolle", appState.user?.role ?: "–")
+                    AccountInfoRow("Server", appState.serverUrl)
                     appState.user?.lastLoginAt?.let { AccountInfoRow("Letzte Anmeldung", it) }
                     OutlinedButton(
                         onClick = { editingAccount = true },
