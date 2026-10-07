@@ -51,8 +51,19 @@ fun LoginScreen(viewModel: AppViewModel) {
     var resetRequested by rememberSaveable { mutableStateOf(false) }
     var resetChanged by rememberSaveable { mutableStateOf(false) }
 
-    Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-        Card(Modifier.fillMaxWidth()) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
             Column(
                 Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
