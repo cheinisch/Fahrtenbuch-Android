@@ -23,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.fahrtenbuch.mobile.BuildConfig
+import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
@@ -37,6 +39,9 @@ fun SettingsScreen(
     onOpenVehicles: () -> Unit = {}
 ) {
     var apiUrl by remember { mutableStateOf(BuildConfig.DEFAULT_API_URL) }
+    val context = LocalContext.current
+    val sessionStore = remember { SessionStore(context) }
+    var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
 
     Column(
         Modifier
@@ -92,6 +97,38 @@ fun SettingsScreen(
                 )
                 OutlinedButton(onClick = onOpenVehicles) {
                     Text("Fahrzeuge verwalten")
+                }
+            }
+        }
+
+        Text(
+            "Tracking",
+            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
+            fontWeight = FontWeight.SemiBold
+        )
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text("GPS-Intervall", fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Nach dem ersten GPS-Fix wird die Position in diesem Intervall gespeichert.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                )
+                listOf(5, 10, 15, 30, 60).forEach { seconds ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = trackingInterval == seconds,
+                            onClick = {
+                                trackingInterval = seconds
+                                sessionStore.trackingIntervalSeconds = seconds
+                            }
+                        )
+                        Text(if (seconds < 60) "$seconds Sekunden" else "60 Sekunden")
+                    }
                 }
             }
         }
