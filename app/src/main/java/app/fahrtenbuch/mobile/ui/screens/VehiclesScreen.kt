@@ -16,8 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +37,8 @@ fun VehiclesScreen(viewModel: AppViewModel) {
     var editVehicle by remember { mutableStateOf<Vehicle?>(null) }
     var pairedDevices by remember { mutableStateOf<List<PairedBluetoothDevice>>(emptyList()) }
     var bluetoothError by remember { mutableStateOf<String?>(null) }
+    var showVehicleWizard by rememberSaveable { mutableStateOf(false) }
+    var autoWizardShown by rememberSaveable { mutableStateOf(false) }
 
     fun readBluetoothDevices() {
         runCatching { pairedBluetoothDevices(context) }
@@ -58,6 +62,13 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         viewModel.loadVehicles()
     }
 
+    LaunchedEffect(state.loading, state.vehiclesLoadedFromServer, state.vehicles.size) {
+        if (!state.loading && state.vehiclesLoadedFromServer && state.vehicles.isEmpty() && !autoWizardShown) {
+            autoWizardShown = true
+            showVehicleWizard = true
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -68,8 +79,13 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                     Text("Fahrzeuge", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Text("Fahrzeuge laden und Bluetooth zuweisen", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                IconButton(onClick = viewModel::loadVehicles, enabled = !state.loading) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Fahrzeuge neu laden")
+                Row {
+                    IconButton(onClick = { showVehicleWizard = true }, enabled = !state.loading) {
+                        Icon(Icons.Default.Add, contentDescription = "Fahrzeug anlegen")
+                    }
+                    IconButton(onClick = viewModel::loadVehicles, enabled = !state.loading) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Fahrzeuge neu laden")
+                    }
                 }
             }
         }
@@ -85,7 +101,14 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         if (!state.loading && state.vehicles.isEmpty()) {
             item {
                 Card(Modifier.fillMaxWidth()) {
-                    Text("Auf dem Server sind keine Fahrzeuge vorhanden.", Modifier.padding(16.dp))
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Auf dem Server sind keine Fahrzeuge vorhanden.")
+                        Button(onClick = { showVehicleWizard = true }) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Erstes Fahrzeug einrichten")
+                        }
+                    }
                 }
             }
         }
@@ -125,6 +148,28 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                 }
             }
         }
+    }
+
+    if (showVehicleWizard) {
+        VehicleSetupWizard(
+            loading = state.loading,
+            error = state.error,
+            onDismiss = { if (!state.loading) showVehicleWizard = false },
+            onCreate = { name, licensePlate ->
+                viewModel.createVehicle(name, licensePlate) { created ->
+                    showVehicleWizard = false
+                    editVehicle = created
+                    bluetoothError = null
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        bluetoothPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
+                    } else {
+                        readBluetoothDevices()
+                    }
+                }
+            }
+        )
     }
 
     editVehicle?.let { vehicle ->
@@ -250,4 +295,62 @@ private fun pairedBluetoothDevices(context: Context): List<PairedBluetoothDevice
             )
         }
         .sortedBy { it.name.lowercase() }
+}
+
+
+@Composable
+private fun VehicleSetupWizard(
+    loading: Boolean,
+    error: String?,
+    onDismiss: () -> Unit,
+    onCreate: (String, String?) -> Unit
+) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var licensePlate by rememberSaveable { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Fahrzeug einrichten") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Lege dein Fahrzeug an. Anschließend kannst du direkt das Bluetooth-Gerät des Fahrzeugs zuweisen.")
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Fahrzeugname") },
+                    placeholder = { Text("z. B. Škoda Karoq") },
+                    singleLine = true,
+                    enabled = !loading,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = licensePlate,
+                    onValueChange = { licensePlate = it.uppercase() },
+                    label = { Text("Kennzeichen (optional)") },
+                    placeholder = { Text("RÜD-AB 123") },
+                    singleLine = true,
+                    enabled = !loading,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                Text(
+                    "Schritt 1 von 2 · Fahrzeugdaten",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onCreate(name.trim(), licensePlate.trim().ifBlank { null }) },
+                enabled = name.isNotBlank() && !loading
+            ) {
+                if (loading) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                else Text("Fahrzeug anlegen")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !loading) { Text("Abbrechen") }
+        }
+    )
 }
