@@ -16,6 +16,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +52,9 @@ fun SettingsScreen(
     var serverUrl by rememberSaveable { mutableStateOf(appState.serverUrl) }
     val context = LocalContext.current
     val sessionStore = remember { SessionStore(context) }
+    var allowInvalidCertificates by rememberSaveable {
+        mutableStateOf(sessionStore.allowInvalidCertificates)
+    }
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
 
     LaunchedEffect(Unit) { viewModel.loadAccount() }
@@ -191,10 +195,30 @@ fun SettingsScreen(
                         value = serverUrl,
                         onValueChange = { serverUrl = it },
                         label = { Text("Serveradresse") },
-                        supportingText = { Text("HTTP wird beim Speichern automatisch auf HTTPS umgestellt.") },
+                        supportingText = { Text("Das angegebene Protokoll wird unverändert verwendet.") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                     )
+                    if (serverUrl.trim().startsWith("https://", ignoreCase = true)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Zertifikatsprüfung deaktivieren", fontWeight = FontWeight.Medium)
+                                Text(
+                                    "Nur für Server mit selbstsigniertem oder ungültigem Zertifikat. " +
+                                        "Die HTTPS-Verbindung kann dann nicht sicher authentifiziert werden.",
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            Switch(
+                                checked = allowInvalidCertificates,
+                                onCheckedChange = { allowInvalidCertificates = it }
+                            )
+                        }
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -206,13 +230,14 @@ fun SettingsScreen(
                                 username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
                                 email = appState.user?.email.orEmpty()
                                 serverUrl = appState.serverUrl
+                                allowInvalidCertificates = sessionStore.allowInvalidCertificates
                             }
                         ) { Text("Abbrechen") }
                         Spacer(Modifier.weight(1f))
                         TextButton(
                             enabled = !appState.loading && username.isNotBlank() && email.isNotBlank(),
                             onClick = {
-                                viewModel.updateAccount(displayName, username, email, serverUrl) {
+                                viewModel.updateAccount(displayName, username, email, serverUrl, allowInvalidCertificates) {
                                     editingAccount = false
                                 }
                             }
@@ -227,6 +252,12 @@ fun SettingsScreen(
                     AccountInfoRow("E-Mail", appState.user?.email ?: "–")
                     AccountInfoRow("Rolle", appState.user?.role ?: "–")
                     AccountInfoRow("Server", appState.serverUrl)
+                    if (appState.serverUrl.startsWith("https://", ignoreCase = true)) {
+                        AccountInfoRow(
+                            "Zertifikatsprüfung",
+                            if (sessionStore.allowInvalidCertificates) "Deaktiviert" else "Aktiv"
+                        )
+                    }
                     appState.user?.lastLoginAt?.let { AccountInfoRow("Letzte Anmeldung", it) }
                     OutlinedButton(
                         onClick = { editingAccount = true },
