@@ -34,6 +34,7 @@ import app.fahrtenbuch.mobile.ui.screens.SettingsScreen
 import app.fahrtenbuch.mobile.ui.screens.StatisticsScreen
 import app.fahrtenbuch.mobile.ui.screens.TripsScreen
 import app.fahrtenbuch.mobile.ui.screens.WelcomeScreen
+import app.fahrtenbuch.mobile.ui.screens.VehiclesScreen
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
 
@@ -101,11 +102,13 @@ fun FahrtenbuchApp(
             composable("tracking") { DashboardScreen(appViewModel) }
             composable("trips") { TripsScreen(appViewModel) }
             composable("statistics") { StatisticsScreen(appViewModel) }
+            composable("vehicles") { VehiclesScreen(appViewModel) }
             composable("settings") {
                 SettingsScreen(
                     viewModel = appViewModel,
                     themeMode = themeMode,
-                    onThemeModeChange = onThemeModeChange
+                    onThemeModeChange = onThemeModeChange,
+                    onOpenVehicles = { navController.navigate("vehicles") }
                 )
             }
         }
