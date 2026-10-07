@@ -85,13 +85,7 @@ class SessionStore(context: Context) {
         .apply()
 
     private fun normalize(value: String): String {
-        val trimmed = value.trim()
-        val secureValue = if (trimmed.startsWith("http://", ignoreCase = true)) {
-            "https://" + trimmed.substring(7)
-        } else {
-            trimmed
-        }
-        val root = secureValue.trimEnd('/')
+        val root = value.trim().trimEnd('/')
         return when {
             root.endsWith("/api/v1") -> "$root/"
             root.endsWith("/api") -> "$root/v1/"
