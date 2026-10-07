@@ -122,7 +122,8 @@ data class Trip(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val vehicleName: String? = null,
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val syncState: String = "SYNCED"
 )
 
 data class TripInput(
