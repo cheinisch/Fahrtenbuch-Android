@@ -16,6 +16,10 @@ class SessionStore(context: Context) {
                 .apply()
         }
 
+    var allowInvalidCertificates: Boolean
+        get() = prefs.getBoolean("allow_invalid_certificates", false)
+        set(value) { prefs.edit().putBoolean("allow_invalid_certificates", value).apply() }
+
     var serverConfigured: Boolean
         get() = prefs.getBoolean("server_configured", false)
         set(value) { prefs.edit().putBoolean("server_configured", value).apply() }
@@ -82,6 +86,7 @@ class SessionStore(context: Context) {
         .remove("access_token")
         .remove("refresh_token")
         .remove("active_trip_id")
+        .remove("allow_invalid_certificates")
         .apply()
 
     private fun normalize(value: String): String {
