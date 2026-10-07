@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -32,7 +33,8 @@ import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 fun SettingsScreen(
     viewModel: AppViewModel,
     themeMode: ThemeMode,
-    onThemeModeChange: (ThemeMode) -> Unit
+    onThemeModeChange: (ThemeMode) -> Unit,
+    onOpenVehicles: () -> Unit = {}
 ) {
     var apiUrl by remember { mutableStateOf(BuildConfig.DEFAULT_API_URL) }
 
@@ -68,6 +70,29 @@ fun SettingsScreen(
                     selected = themeMode == mode,
                     onClick = { onThemeModeChange(mode) }
                 )
+            }
+        }
+
+        Text(
+            "Fahrzeuge",
+            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
+            fontWeight = FontWeight.SemiBold
+        )
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Fahrzeuge & Bluetooth", fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Fahrzeuge vom Server laden und ein gekoppeltes Bluetooth-Gerät zuweisen.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                )
+                OutlinedButton(onClick = onOpenVehicles) {
+                    Text("Fahrzeuge verwalten")
+                }
             }
         }
 
