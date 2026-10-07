@@ -278,6 +278,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
 
+            // Room remains the source of truth. Show it immediately.
             val local = repository.vehicles(forceNetwork = false)
             _state.value = _state.value.copy(
                 vehicles = local,
@@ -286,31 +287,33 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     ?: local.firstOrNull()?.id
             )
 
-            runCatching {
-                repository.syncFromServer()
-                repository.vehicles(forceNetwork = false)
-            }.onSuccess { vehicles ->
-                val selected = _state.value.selectedVehicleId
-                    ?.takeIf { id -> vehicles.any { it.id == id } }
-                    ?: vehicles.firstOrNull()?.id
-                _state.value = _state.value.copy(
-                    loading = false,
-                    vehicles = vehicles,
-                    selectedVehicleId = selected,
-                    vehiclesLoadedFromServer = true,
-                    error = null
-                )
-            }.onFailure {
-                _state.value = _state.value.copy(
-                    loading = false,
-                    vehiclesLoadedFromServer = false,
-                    error = if (local.isEmpty()) {
-                        "Fahrzeuge konnten nicht geladen werden."
-                    } else {
-                        "Offline-Modus: Lokale Fahrzeuge werden angezeigt."
-                    }
-                )
-            }
+            // This screen only depends on /vehicles. A failure while syncing
+            // trips or tags must not make a successful vehicle request look broken.
+            runCatching { repository.vehicles(forceNetwork = true) }
+                .onSuccess {
+                    val vehicles = repository.vehicles(forceNetwork = false)
+                    val selected = _state.value.selectedVehicleId
+                        ?.takeIf { id -> vehicles.any { it.id == id } }
+                        ?: vehicles.firstOrNull()?.id
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = vehicles,
+                        selectedVehicleId = selected,
+                        vehiclesLoadedFromServer = true,
+                        error = null
+                    )
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehiclesLoadedFromServer = false,
+                        error = if (local.isEmpty()) {
+                            "Fahrzeuge konnten nicht vom Server geladen werden."
+                        } else {
+                            "Offline-Modus: Lokale Fahrzeuge werden angezeigt."
+                        }
+                    )
+                }
         }
     }
 
