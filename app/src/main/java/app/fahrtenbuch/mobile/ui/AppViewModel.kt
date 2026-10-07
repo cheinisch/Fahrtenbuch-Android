@@ -248,6 +248,54 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun loadVehicles() {
+        if (!store.hasAuthenticatedSession) return
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.vehicles(forceNetwork = true) }
+                .onSuccess { vehicles ->
+                    val selected = _state.value.selectedVehicleId
+                        ?.takeIf { id -> vehicles.any { it.id == id } }
+                        ?: vehicles.firstOrNull()?.id
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = vehicles,
+                        selectedVehicleId = selected,
+                        error = null
+                    )
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.message ?: "Fahrzeuge konnten nicht geladen werden."
+                    )
+                }
+        }
+    }
+
+    fun setVehicleBluetooth(vehicleId: String, bluetoothMac: String?, onSaved: () -> Unit = {}) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.setVehicleBluetooth(vehicleId, bluetoothMac) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = _state.value.vehicles.map {
+                            if (it.id == updated.id) updated else it
+                        },
+                        error = null
+                    )
+                    onSaved()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.message ?: "Bluetooth-Gerät konnte nicht zugewiesen werden."
+                    )
+                }
+        }
+    }
+
     fun startTracking(onStarted: () -> Unit) {
         val vehicleId = _state.value.selectedVehicleId ?: return
         viewModelScope.launch {
