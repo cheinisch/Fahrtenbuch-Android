@@ -290,8 +290,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             // This screen only depends on /vehicles. A failure while syncing
             // trips or tags must not make a successful vehicle request look broken.
             runCatching { repository.vehicles(forceNetwork = true) }
-                .onSuccess {
-                    val vehicles = repository.vehicles(forceNetwork = false)
+                .onSuccess { vehicles ->
+                    // Use the actual server response immediately. Re-reading Room here
+                    // made a successful request look empty when local persistence failed.
                     val selected = _state.value.selectedVehicleId
                         ?.takeIf { id -> vehicles.any { it.id == id } }
                         ?: vehicles.firstOrNull()?.id
@@ -303,14 +304,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         error = null
                     )
                 }
-                .onFailure {
+                .onFailure { error ->
                     _state.value = _state.value.copy(
                         loading = false,
                         vehiclesLoadedFromServer = false,
                         error = if (local.isEmpty()) {
-                            "Fahrzeuge konnten nicht vom Server geladen werden."
+                            "Fahrzeuge konnten nicht vom Server geladen werden: " +
+                                (error.message ?: error.javaClass.simpleName)
                         } else {
-                            "Offline-Modus: Lokale Fahrzeuge werden angezeigt."
+                            "Offline-Modus: Lokale Fahrzeuge werden angezeigt. Serverfehler: " +
+                                (error.message ?: error.javaClass.simpleName)
                         }
                     )
                 }
