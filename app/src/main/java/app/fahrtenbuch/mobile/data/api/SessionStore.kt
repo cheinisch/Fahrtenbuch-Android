@@ -54,6 +54,14 @@ class SessionStore(context: Context) {
             .putString("refresh_token", refreshToken)
             .commit()
 
+    var activeVehicleId: String?
+        get() = prefs.getString("active_vehicle_id", null)
+        set(value) { prefs.edit().putString("active_vehicle_id", value).apply() }
+
+    var activeBluetoothMac: String?
+        get() = prefs.getString("active_bluetooth_mac", null)
+        set(value) { prefs.edit().putString("active_bluetooth_mac", value).apply() }
+
     var activeTripId: String?
         get() = prefs.getString("active_trip_id", null)
         set(value) { prefs.edit().putString("active_trip_id", value).apply() }
