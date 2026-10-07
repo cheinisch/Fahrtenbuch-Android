@@ -2,6 +2,8 @@ package app.fahrtenbuch.mobile.data.local
 
 import android.content.Context
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Entity(tableName = "cache")
 data class CacheEntity(@PrimaryKey val key: String, val json: String, val updatedAt: String)
@@ -154,7 +156,7 @@ abstract class OfflineDatabase : RoomDatabase() {
         }
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+            override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""
                     CREATE TABLE IF NOT EXISTS vehicles (
                         id TEXT NOT NULL PRIMARY KEY,
