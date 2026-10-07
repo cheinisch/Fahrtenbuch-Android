@@ -108,13 +108,23 @@ class FahrtenbuchRepository(
     }
 
     suspend fun vehicles(forceNetwork: Boolean = true): List<Vehicle> {
-        if (forceNetwork) runCatching { api.getVehicles() }.onSuccess { values ->
-            dao.putVehicles(values.map(Vehicle::toEntity))
-            // Keep locally pending/known rows; server-side deletions are reconciled by /sync.
-            // Keep the legacy JSON cache during the migration window.
-            dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(values), Instant.now().toString()))
+        if (forceNetwork) {
+            // Do not hide a successful /vehicles response just because the local
+            // cache cannot be written. The network result must reach the UI first.
+            val values = api.getVehicles()
+            runCatching {
+                dao.putVehicles(values.map(Vehicle::toEntity))
+                dao.putCache(
+                    CacheEntity(
+                        "vehicles",
+                        vehicleAdapter.toJson(values),
+                        Instant.now().toString()
+                    )
+                )
+            }
             return values
         }
+
         val stored = dao.vehicles().map(VehicleEntity::toModel)
         if (stored.isNotEmpty()) return stored
 
