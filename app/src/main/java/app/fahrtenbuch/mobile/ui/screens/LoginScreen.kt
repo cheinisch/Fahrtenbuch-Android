@@ -6,6 +6,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -15,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
@@ -38,10 +41,13 @@ fun LoginScreen(viewModel: AppViewModel) {
     var mode by rememberSaveable { mutableStateOf(LoginMode.LOGIN) }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var totp by rememberSaveable { mutableStateOf("") }
     var resetToken by rememberSaveable { mutableStateOf("") }
     var newPassword by rememberSaveable { mutableStateOf("") }
+    var newPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
+    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var resetRequested by rememberSaveable { mutableStateOf(false) }
     var resetChanged by rememberSaveable { mutableStateOf(false) }
 
@@ -81,7 +87,16 @@ fun LoginScreen(viewModel: AppViewModel) {
                             value = password,
                             onValueChange = { password = it },
                             label = { Text("Passwort") },
-                            visualTransformation = PasswordVisualTransformation(),
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(
+                                        imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                        contentDescription = if (passwordVisible) "Passwort ausblenden" else "Passwort anzeigen"
+                                    )
+                                }
+                            },
                             singleLine = true,
                             enabled = !state.loading,
                             modifier = Modifier.fillMaxWidth()
@@ -234,7 +249,16 @@ fun LoginScreen(viewModel: AppViewModel) {
                                 value = newPassword,
                                 onValueChange = { newPassword = it },
                                 label = { Text("Neues Passwort") },
-                                visualTransformation = PasswordVisualTransformation(),
+                                visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                trailingIcon = {
+                                    IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
+                                        Icon(
+                                            imageVector = if (newPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                            contentDescription = if (newPasswordVisible) "Passwort ausblenden" else "Passwort anzeigen"
+                                        )
+                                    }
+                                },
                                 singleLine = true,
                                 enabled = !state.loading,
                                 supportingText = { Text("Mindestens 8 Zeichen") },
@@ -244,7 +268,16 @@ fun LoginScreen(viewModel: AppViewModel) {
                                 value = confirmPassword,
                                 onValueChange = { confirmPassword = it },
                                 label = { Text("Passwort wiederholen") },
-                                visualTransformation = PasswordVisualTransformation(),
+                                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                trailingIcon = {
+                                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                        Icon(
+                                            imageVector = if (confirmPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                            contentDescription = if (confirmPasswordVisible) "Passwort ausblenden" else "Passwort anzeigen"
+                                        )
+                                    }
+                                },
                                 singleLine = true,
                                 enabled = !state.loading,
                                 isError = confirmPassword.isNotEmpty() && confirmPassword != newPassword,
