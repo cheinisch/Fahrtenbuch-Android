@@ -109,7 +109,8 @@ class FahrtenbuchRepository(
 
     suspend fun vehicles(forceNetwork: Boolean = true): List<Vehicle> {
         if (forceNetwork) runCatching { api.getVehicles() }.onSuccess { values ->
-            dao.replaceVehicles(values.map(Vehicle::toEntity))
+            dao.putVehicles(values.map(Vehicle::toEntity))
+            // Keep locally pending/known rows; server-side deletions are reconciled by /sync.
             // Keep the legacy JSON cache during the migration window.
             dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(values), Instant.now().toString()))
             return values
@@ -146,7 +147,7 @@ class FahrtenbuchRepository(
 
     suspend fun trips(forceNetwork: Boolean = true): List<Trip> {
         if (forceNetwork) runCatching { api.getTrips(limit = 500) }.onSuccess { values ->
-            dao.replaceTrips(values.map(Trip::toEntity))
+            dao.putTripRecords(values.map(Trip::toEntity))
             dao.putCache(CacheEntity("trips", tripAdapter.toJson(values), Instant.now().toString()))
             return mergeLocalTrips(values)
         }
