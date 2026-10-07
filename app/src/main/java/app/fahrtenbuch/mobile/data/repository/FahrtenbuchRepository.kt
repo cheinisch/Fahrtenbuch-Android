@@ -112,6 +112,20 @@ class FahrtenbuchRepository(
         return dao.cache("vehicles")?.json?.let(vehicleAdapter::fromJson).orEmpty()
     }
 
+    suspend fun createVehicle(name: String, licensePlate: String?): Vehicle {
+        val created = api.createVehicle(
+            CreateVehicleRequest(
+                name = name.trim(),
+                licensePlate = licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() }
+            )
+        )
+        val current = vehicles(forceNetwork = false).toMutableList()
+        current.removeAll { it.id == created.id }
+        current.add(created)
+        dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(current), Instant.now().toString()))
+        return created
+    }
+
     suspend fun setVehicleBluetooth(vehicleId: Uuid, bluetoothMac: String?): Vehicle {
         val normalized = bluetoothMac
             ?.trim()
