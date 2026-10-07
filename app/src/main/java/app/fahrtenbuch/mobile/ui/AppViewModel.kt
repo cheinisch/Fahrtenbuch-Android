@@ -25,7 +25,8 @@ data class AppUiState(
     val error: String? = null,
     val serverConfigured: Boolean = false,
     val serverUrl: String = "",
-    val loggedIn: Boolean = false
+    val loggedIn: Boolean = false,
+    val vehiclesLoadedFromServer: Boolean = false
 )
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
@@ -226,7 +227,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         vehicles = vehicles,
                         trips = trips,
                         tracking = store.activeTripId != null,
-                        selectedVehicleId = _state.value.selectedVehicleId ?: vehicles.firstOrNull()?.id
+                        selectedVehicleId = _state.value.selectedVehicleId ?: vehicles.firstOrNull()?.id,
+                        vehiclesLoadedFromServer = true
                     )
                 }
                 .onFailure {
@@ -261,13 +263,40 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         loading = false,
                         vehicles = vehicles,
                         selectedVehicleId = selected,
-                        error = null
+                        error = null,
+                        vehiclesLoadedFromServer = true
                     )
                 }
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
+                        vehiclesLoadedFromServer = false,
                         error = it.message ?: "Fahrzeuge konnten nicht geladen werden."
+                    )
+                }
+        }
+    }
+
+    fun createVehicle(name: String, licensePlate: String?, onCreated: (Vehicle) -> Unit = {}) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.createVehicle(name, licensePlate) }
+                .onSuccess { created ->
+                    val vehicles = (_state.value.vehicles + created).distinctBy { it.id }
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = vehicles,
+                        selectedVehicleId = _state.value.selectedVehicleId ?: created.id,
+                        vehiclesLoadedFromServer = true,
+                        error = null
+                    )
+                    onCreated(created)
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.message ?: "Fahrzeug konnte nicht angelegt werden."
                     )
                 }
         }
