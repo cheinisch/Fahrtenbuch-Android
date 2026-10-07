@@ -44,7 +44,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val state: StateFlow<AppUiState> = _state.asStateFlow()
 
     init {
-        if (store.serverConfigured && store.refreshToken != null) refresh()
+        if (store.serverConfigured && store.refreshToken != null) {
+            refresh()
+            loadAccount()
+        }
     }
 
     fun configureServer(url: String) {
@@ -125,8 +128,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
             runCatching { repository.passkeyLogin(authenticationResponseJson, deviceName) }
-                .onSuccess {
-                    _state.value = _state.value.copy(loggedIn = true, loading = false, error = null)
+                .onSuccess { user ->
+                    _state.value = _state.value.copy(
+                        loggedIn = true,
+                        loading = false,
+                        user = user,
+                        error = null
+                    )
                     refresh()
                 }
                 .onFailure {
@@ -182,8 +190,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
             runCatching { repository.login(email, password, totpCode, deviceName) }
-                .onSuccess {
-                    _state.value = _state.value.copy(loggedIn = true, loading = false, error = null)
+                .onSuccess { user ->
+                    _state.value = _state.value.copy(
+                        loggedIn = true,
+                        loading = false,
+                        user = user,
+                        error = null
+                    )
                     refresh()
                 }
                 .onFailure {
