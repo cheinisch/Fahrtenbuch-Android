@@ -7,6 +7,9 @@ import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.local.CacheEntity
 import app.fahrtenbuch.mobile.data.local.OfflineDatabase
 import app.fahrtenbuch.mobile.data.local.OfflineTripEntity
+import app.fahrtenbuch.mobile.data.local.VehicleEntity
+import app.fahrtenbuch.mobile.data.local.TripEntity
+import app.fahrtenbuch.mobile.data.local.TagEntity
 import app.fahrtenbuch.mobile.data.model.*
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import com.squareup.moshi.Moshi
@@ -106,10 +109,18 @@ class FahrtenbuchRepository(
 
     suspend fun vehicles(forceNetwork: Boolean = true): List<Vehicle> {
         if (forceNetwork) runCatching { api.getVehicles() }.onSuccess { values ->
+            dao.replaceVehicles(values.map(Vehicle::toEntity))
+            // Keep the legacy JSON cache during the migration window.
             dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(values), Instant.now().toString()))
             return values
         }
-        return dao.cache("vehicles")?.json?.let(vehicleAdapter::fromJson).orEmpty()
+        val stored = dao.vehicles().map(VehicleEntity::toModel)
+        if (stored.isNotEmpty()) return stored
+
+        // One-time compatibility fallback for databases created before v2.
+        val legacy = dao.cache("vehicles")?.json?.let(vehicleAdapter::fromJson).orEmpty()
+        if (legacy.isNotEmpty()) dao.replaceVehicles(legacy.map(Vehicle::toEntity))
+        return legacy
     }
 
     suspend fun createVehicle(name: String, licensePlate: String?): Vehicle {
@@ -119,10 +130,7 @@ class FahrtenbuchRepository(
                 licensePlate = licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() }
             )
         )
-        val current = vehicles(forceNetwork = false).toMutableList()
-        current.removeAll { it.id == created.id }
-        current.add(created)
-        dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(current), Instant.now().toString()))
+        dao.putVehicle(created.toEntity())
         return created
     }
 
@@ -132,20 +140,30 @@ class FahrtenbuchRepository(
             ?.uppercase()
             ?.takeIf { it.isNotBlank() }
         val updated = api.setBluetooth(vehicleId, BluetoothMacRequest(normalized))
-        val current = vehicles(forceNetwork = false).toMutableList()
-        val index = current.indexOfFirst { it.id == updated.id }
-        if (index >= 0) current[index] = updated else current.add(updated)
-        dao.putCache(CacheEntity("vehicles", vehicleAdapter.toJson(current), Instant.now().toString()))
+        dao.putVehicle(updated.toEntity())
         return updated
     }
 
     suspend fun trips(forceNetwork: Boolean = true): List<Trip> {
         if (forceNetwork) runCatching { api.getTrips(limit = 500) }.onSuccess { values ->
+            dao.replaceTrips(values.map(Trip::toEntity))
             dao.putCache(CacheEntity("trips", tripAdapter.toJson(values), Instant.now().toString()))
             return mergeLocalTrips(values)
         }
-        val cached = dao.cache("trips")?.json?.let(tripAdapter::fromJson).orEmpty()
-        return mergeLocalTrips(cached)
+        val stored = dao.trips().map(TripEntity::toModel)
+        if (stored.isNotEmpty()) return mergeLocalTrips(stored)
+
+        val legacy = dao.cache("trips")?.json?.let(tripAdapter::fromJson).orEmpty()
+        if (legacy.isNotEmpty()) dao.replaceTrips(legacy.map(Trip::toEntity))
+        return mergeLocalTrips(legacy)
+    }
+
+    suspend fun tags(forceNetwork: Boolean = true): List<Tag> {
+        if (forceNetwork) runCatching { api.tags() }.onSuccess { values ->
+            dao.replaceTags(values.map { TagEntity(it.id, it.name) })
+            return values
+        }
+        return dao.tags().map { Tag(it.id, it.name) }
     }
 
     suspend fun dashboard(): Dashboard = api.dashboard()
@@ -184,4 +202,66 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     status = if (end == null) "recording" else "completed",
     startedAt = startedAt,
     endedAt = end
+)
+
+
+private fun Vehicle.toEntity() = VehicleEntity(
+    id = id,
+    name = name,
+    licensePlate = licensePlate,
+    bluetoothMac = bluetoothMac,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+private fun VehicleEntity.toModel() = Vehicle(
+    id = id,
+    name = name,
+    licensePlate = licensePlate,
+    bluetoothMac = bluetoothMac,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+private fun Trip.toEntity() = TripEntity(
+    id = id,
+    vehicleId = vehicleId,
+    type = tripType.apiValue,
+    status = status,
+    startedAt = startedAt,
+    endedAt = endedAt,
+    startAddress = startAddress,
+    endAddress = endAddress,
+    purpose = purpose,
+    contact = contact,
+    notes = note,
+    distanceKm = distanceKm,
+    durationSeconds = durationSeconds,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+    vehicleName = vehicleName,
+    tagsJson = org.json.JSONArray(tags).toString()
+)
+
+private fun TripEntity.toModel() = Trip(
+    id = id,
+    vehicleId = vehicleId,
+    tripType = TripType.entries.firstOrNull { it.apiValue == type } ?: TripType.UNCLASSIFIED,
+    status = status,
+    startedAt = startedAt,
+    endedAt = endedAt,
+    startAddress = startAddress,
+    endAddress = endAddress,
+    purpose = purpose,
+    contact = contact,
+    note = notes,
+    distanceKm = distanceKm,
+    durationSeconds = durationSeconds,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+    vehicleName = vehicleName,
+    tags = runCatching {
+        val array = org.json.JSONArray(tagsJson)
+        List(array.length()) { array.getString(it) }
+    }.getOrDefault(emptyList())
 )
