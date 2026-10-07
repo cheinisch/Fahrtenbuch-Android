@@ -1,5 +1,6 @@
 package app.fahrtenbuch.mobile.data.api
 
+import android.util.Log
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import app.fahrtenbuch.mobile.data.model.RefreshRequest
@@ -16,6 +17,7 @@ import retrofit2.HttpException
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 object ApiFactory {
+    private const val AUTH_LOG_TAG = "FahrtenbuchAuth"
     private val refreshLock = Any()
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     private val apiErrorAdapter = moshi.adapter(ApiError::class.java)
@@ -45,7 +47,18 @@ object ApiFactory {
         val refreshApi = retrofit(store.baseUrl, refreshClient)
 
         val authenticator = Authenticator { _: Route?, response: Response ->
-            if (responseCount(response) >= 2) return@Authenticator null
+            Log.w(
+                AUTH_LOG_TAG,
+                "Authenticator invoked for ${response.request.method} ${response.request.url.encodedPath}: " +
+                    "response=${response.code}, " +
+                    "requestHadAuthorization=${response.request.header("Authorization") != null}, " +
+                    "accessTokenPresent=${!store.accessToken.isNullOrBlank()}, " +
+                    "refreshTokenPresent=${!store.refreshToken.isNullOrBlank()}"
+            )
+            if (responseCount(response) >= 2) {
+                Log.w(AUTH_LOG_TAG, "Authenticator stopped: retry limit reached")
+                return@Authenticator null
+            }
 
             synchronized(refreshLock) {
                 val currentAccessToken = store.accessToken
@@ -59,19 +72,25 @@ object ApiFactory {
                         .build()
                 }
 
-                val refreshToken = store.refreshToken ?: return@synchronized null
+                val refreshToken = store.refreshToken ?: run {
+                    Log.w(AUTH_LOG_TAG, "Authenticator stopped: no refresh token stored")
+                    return@synchronized null
+                }
                 val refreshed = try {
                     runBlocking { refreshApi.refresh(RefreshRequest(refreshToken)) }
                 } catch (error: HttpException) {
                     // Only destroy the local session when the refresh endpoint itself
                     // confirms that the refresh token is invalid. A transient/proxy
                     // 401/5xx must not silently log the user out.
+                    Log.w(AUTH_LOG_TAG, "Token refresh failed with HTTP ${error.code()}")
                     if (error.code() == 401) store.clearTokens()
                     return@synchronized null
-                } catch (_: Exception) {
+                } catch (error: Exception) {
+                    Log.w(AUTH_LOG_TAG, "Token refresh failed: ${error.javaClass.simpleName}: ${error.message}")
                     return@synchronized null
                 }
 
+                Log.d(AUTH_LOG_TAG, "Token refresh succeeded; retrying request with refreshed access token")
                 val nextRefreshToken = refreshed.refreshToken ?: refreshToken
                 if (!store.completeLogin(refreshed.accessToken, nextRefreshToken)) {
                     store.clearTokens()
@@ -86,10 +105,41 @@ object ApiFactory {
 
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
-                val builder: Request.Builder = chain.request().newBuilder()
-                store.accessToken?.takeIf { it.isNotBlank() }?.let { builder.header("Authorization", "Bearer $it") }
+                val original = chain.request()
+                val builder: Request.Builder = original.newBuilder()
+                val accessToken = store.accessToken?.takeIf { it.isNotBlank() }
+                val refreshTokenPresent = !store.refreshToken.isNullOrBlank()
+
+                if (accessToken != null) {
+                    builder.header("Authorization", "Bearer $accessToken")
+                }
                 builder.header("Accept", "application/json")
-                chain.proceed(builder.build())
+
+                val request = builder.build()
+                val authorizationAttached = request.header("Authorization")
+                    ?.startsWith("Bearer ") == true
+
+                Log.d(
+                    AUTH_LOG_TAG,
+                    "Request ${request.method} ${request.url.encodedPath}: " +
+                        "accessTokenPresent=${accessToken != null}, " +
+                        "refreshTokenPresent=$refreshTokenPresent, " +
+                        "authorizationAttached=$authorizationAttached"
+                )
+
+                val response = chain.proceed(request)
+
+                if (response.code == 401) {
+                    Log.w(
+                        AUTH_LOG_TAG,
+                        "HTTP 401 for ${request.method} ${request.url.encodedPath}: " +
+                            "accessTokenPresent=${accessToken != null}, " +
+                            "refreshTokenPresent=$refreshTokenPresent, " +
+                            "authorizationAttached=$authorizationAttached"
+                    )
+                }
+
+                response
             }
             .authenticator(authenticator)
             .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
