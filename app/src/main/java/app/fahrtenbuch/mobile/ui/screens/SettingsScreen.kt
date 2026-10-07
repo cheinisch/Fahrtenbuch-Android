@@ -10,18 +10,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,10 +43,23 @@ fun SettingsScreen(
     onThemeModeChange: (ThemeMode) -> Unit,
     onOpenVehicles: () -> Unit = {}
 ) {
-    var apiUrl by remember { mutableStateOf(BuildConfig.DEFAULT_API_URL) }
+    val appState by viewModel.state.collectAsState()
+    var editingAccount by rememberSaveable { mutableStateOf(false) }
+    var displayName by rememberSaveable { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val sessionStore = remember { SessionStore(context) }
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
+
+    LaunchedEffect(Unit) { viewModel.loadAccount() }
+    LaunchedEffect(appState.user?.id, editingAccount) {
+        if (!editingAccount) {
+            displayName = appState.user?.displayName.orEmpty()
+            username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
+            email = appState.user?.email.orEmpty()
+        }
+    }
 
     Column(
         Modifier
@@ -137,23 +153,77 @@ fun SettingsScreen(
         }
 
         Text(
-            "Server",
+            "Konto",
             modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
             fontWeight = FontWeight.SemiBold
         )
-        OutlinedTextField(
-            value = apiUrl,
-            onValueChange = { apiUrl = it },
-            label = { Text("Server- oder API-URL") },
-            supportingText = { Text("Beispiel: https://fahrtenbuch.example.de oder …/api/v1/") },
-            singleLine = true,
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             modifier = Modifier.fillMaxWidth()
-        )
-        Button(
-            onClick = { viewModel.changeServerUrl(apiUrl) },
-            modifier = Modifier.padding(top = 12.dp)
         ) {
-            Text("Speichern und verbinden")
+            Column(Modifier.padding(16.dp)) {
+                if (editingAccount) {
+                    OutlinedTextField(
+                        value = displayName,
+                        onValueChange = { displayName = it },
+                        label = { Text("Anzeigename") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("Anmeldename") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("E-Mail-Adresse") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = {
+                                editingAccount = false
+                                displayName = appState.user?.displayName.orEmpty()
+                                username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
+                                email = appState.user?.email.orEmpty()
+                            }
+                        ) { Text("Abbrechen") }
+                        Spacer(Modifier.weight(1f))
+                        TextButton(
+                            enabled = !appState.loading && username.isNotBlank() && email.isNotBlank(),
+                            onClick = {
+                                viewModel.updateAccount(displayName, username, email) {
+                                    editingAccount = false
+                                }
+                            }
+                        ) { Text(if (appState.loading) "Speichern …" else "Speichern") }
+                    }
+                } else {
+                    AccountInfoRow("Anzeigename", appState.user?.displayName ?: "–")
+                    AccountInfoRow(
+                        "Anmeldename",
+                        appState.user?.loginName ?: appState.user?.username ?: "–"
+                    )
+                    AccountInfoRow("E-Mail", appState.user?.email ?: "–")
+                    AccountInfoRow("Rolle", appState.user?.role ?: "–")
+                    appState.user?.lastLoginAt?.let { AccountInfoRow("Letzte Anmeldung", it) }
+                    OutlinedButton(
+                        onClick = { editingAccount = true },
+                        modifier = Modifier.padding(top = 12.dp)
+                    ) {
+                        Text("Benutzerdaten bearbeiten")
+                    }
+                }
+            }
         }
 
         Text(
@@ -197,6 +267,27 @@ private fun ThemeModeRow(
 
 @Composable
 private fun VersionInfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            value,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun AccountInfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
