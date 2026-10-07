@@ -26,7 +26,8 @@ data class AppUiState(
     val serverConfigured: Boolean = false,
     val serverUrl: String = "",
     val loggedIn: Boolean = false,
-    val vehiclesLoadedFromServer: Boolean = false
+    val vehiclesLoadedFromServer: Boolean = false,
+    val user: app.fahrtenbuch.mobile.data.model.User? = null
 )
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
@@ -189,6 +190,41 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value = _state.value.copy(
                         loading = false,
                         error = it.message ?: "Anmeldung fehlgeschlagen."
+                    )
+                }
+        }
+    }
+
+    fun loadAccount() {
+        if (!store.hasAuthenticatedSession) return
+        viewModelScope.launch {
+            runCatching { repository.me() }
+                .onSuccess { user ->
+                    _state.value = _state.value.copy(user = user, error = null)
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(error = ApiFactory.readableError(error))
+                }
+        }
+    }
+
+    fun updateAccount(
+        displayName: String?,
+        username: String?,
+        email: String?,
+        onSaved: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.updateProfile(displayName, username, email) }
+                .onSuccess { user ->
+                    _state.value = _state.value.copy(loading = false, user = user, error = null)
+                    onSaved()
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = ApiFactory.readableError(error)
                     )
                 }
         }
