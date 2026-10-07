@@ -99,6 +99,20 @@ class FahrtenbuchRepository(
         api.resetPassword(ResetPasswordRequest(token, password))
     }
 
+    suspend fun me(): User = api.me()
+
+    suspend fun updateProfile(
+        displayName: String?,
+        username: String?,
+        email: String?
+    ): User = api.updateMe(
+        mapOf(
+            "displayName" to displayName?.trim()?.takeIf { it.isNotBlank() },
+            "username" to username?.trim()?.takeIf { it.isNotBlank() },
+            "email" to email?.trim()?.takeIf { it.isNotBlank() }
+        )
+    )
+
     suspend fun devices(): List<DeviceInfo> = api.devices()
     suspend fun deleteDevice(deviceId: Uuid) = api.deleteDevice(deviceId)
 
