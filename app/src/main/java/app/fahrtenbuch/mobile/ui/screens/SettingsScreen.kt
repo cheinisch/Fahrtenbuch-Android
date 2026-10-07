@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -46,6 +48,7 @@ fun SettingsScreen(
     Column(
         Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
         Text(
@@ -152,6 +155,25 @@ fun SettingsScreen(
         ) {
             Text("Speichern und verbinden")
         }
+
+        Text(
+            "Versionsinformationen",
+            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
+            fontWeight = FontWeight.SemiBold
+        )
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp)
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                VersionInfoRow("App-Version", BuildConfig.VERSION_NAME)
+                VersionInfoRow("Build", BuildConfig.VERSION_CODE.toString())
+                VersionInfoRow("Paket", BuildConfig.APPLICATION_ID)
+            }
+        }
     }
 }
 
@@ -170,5 +192,26 @@ private fun ThemeModeRow(
         RadioButton(selected = selected, onClick = onClick)
         Spacer(Modifier.width(8.dp))
         Text(label, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+@Composable
+private fun VersionInfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            value,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
