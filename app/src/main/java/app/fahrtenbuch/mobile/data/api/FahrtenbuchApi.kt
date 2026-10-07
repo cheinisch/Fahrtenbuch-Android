@@ -20,7 +20,6 @@ import app.fahrtenbuch.mobile.data.model.ResetPasswordRequest
 import app.fahrtenbuch.mobile.data.model.SessionInfo
 import app.fahrtenbuch.mobile.data.model.StartTrackingRequest
 import app.fahrtenbuch.mobile.data.model.StopTrackingRequest
-import app.fahrtenbuch.mobile.data.model.SyncResponse
 import app.fahrtenbuch.mobile.data.model.Tag
 import app.fahrtenbuch.mobile.data.model.TagRequest
 import app.fahrtenbuch.mobile.data.model.TotpStatus
@@ -322,15 +321,6 @@ interface FahrtenbuchApi {
         @Query("lat") lat: Double,
         @Query("lon") lon: Double
     ): Map<String, Any?>
-
-    // ---------------------------------------------------------------------
-    // Synchronisation
-    // ---------------------------------------------------------------------
-
-    @GET("sync")
-    suspend fun sync(
-        @Query("since") since: String
-    ): SyncResponse
 
     // ---------------------------------------------------------------------
     // Statistiken
