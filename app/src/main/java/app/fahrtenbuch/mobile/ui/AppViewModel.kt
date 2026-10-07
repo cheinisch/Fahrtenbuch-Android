@@ -213,6 +213,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         username: String?,
         email: String?,
         serverUrl: String,
+        allowInvalidCertificates: Boolean,
         onSaved: () -> Unit = {}
     ) {
         viewModelScope.launch {
@@ -223,6 +224,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     "Die Serveradresse muss mit https:// oder http:// beginnen."
                 }
                 store.baseUrl = requestedServer
+                store.allowInvalidCertificates =
+                    requestedServer.startsWith("https://", ignoreCase = true) && allowInvalidCertificates
                 repository = FahrtenbuchRepository(getApplication(), ApiFactory.create(store), store)
                 repository.updateProfile(displayName, username, email)
             }
