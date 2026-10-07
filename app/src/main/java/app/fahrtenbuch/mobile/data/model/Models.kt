@@ -4,7 +4,22 @@ import com.squareup.moshi.Json
 
 typealias Uuid = String
 
-data class User(val id: Uuid, val displayName: String, val role: String)
+data class User(
+    val id: Uuid,
+    val displayName: String? = null,
+    val role: String,
+    val email: String? = null,
+    val loginName: String? = null,
+    val username: String? = null,
+    val status: String? = null,
+    val locale: String? = null,
+    val timezone: String? = null,
+    val themeMode: String? = null,
+    val totpEnabled: Boolean = false,
+    val lastLoginAt: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
 data class LoginRequest(
     val email: String,
     val password: String,
