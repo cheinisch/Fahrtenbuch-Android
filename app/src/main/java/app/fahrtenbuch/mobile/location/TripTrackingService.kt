@@ -90,7 +90,7 @@ class TripTrackingService : Service() {
         Log.i(TAG, "Tracking started: trip=${store.activeTripId}")
         val pendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         startForeground(NOTIFICATION_ID, NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Fahrt wird aufgezeichnet")
             .setContentText("Tracking aktiv · GPS wird aufgezeichnet.")
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
