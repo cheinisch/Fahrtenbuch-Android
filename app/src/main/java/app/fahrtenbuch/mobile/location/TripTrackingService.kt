@@ -26,6 +26,7 @@ class TripTrackingService : Service() {
     private lateinit var locationClient: FusedLocationProviderClient
     private lateinit var store: SessionStore
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var waitingForFirstFix = true
 
     private val callback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -45,6 +46,10 @@ class TripTrackingService : Service() {
             if (points.isNotEmpty()) scope.launch {
                 OfflineDatabase.get(applicationContext).dao().addPoints(points)
                 SyncScheduler.enqueue(applicationContext)
+                if (waitingForFirstFix) {
+                    waitingForFirstFix = false
+                    withContext(Dispatchers.Main) { switchToNormalTracking() }
+                }
             }
         }
     }
@@ -72,7 +77,22 @@ class TripTrackingService : Service() {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
             ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) { stopSelf(); return }
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5_000L).setMinUpdateIntervalMillis(2_000L).setMaxUpdateDelayMillis(10_000L).build()
+        waitingForFirstFix = true
+        val firstFixRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1_000L)
+            .setMinUpdateIntervalMillis(500L)
+            .setWaitForAccurateLocation(true)
+            .build()
+        locationClient.requestLocationUpdates(firstFixRequest, callback, mainLooper)
+    }
+
+    private fun switchToNormalTracking() {
+        if (store.activeTripId == null) return
+        locationClient.removeLocationUpdates(callback)
+        val intervalMs = store.trackingIntervalSeconds * 1_000L
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
+            .setMinUpdateIntervalMillis(intervalMs)
+            .setMaxUpdateDelayMillis(intervalMs * 2)
+            .build()
         locationClient.requestLocationUpdates(request, callback, mainLooper)
     }
 
