@@ -102,7 +102,12 @@ fun VehiclesScreen(viewModel: AppViewModel) {
             item {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Auf dem Server sind keine Fahrzeuge vorhanden.")
+                        Text(
+                            if (state.vehiclesLoadedFromServer)
+                                "Auf dem Server sind keine Fahrzeuge vorhanden."
+                            else
+                                "Es sind noch keine lokal gespeicherten Fahrzeuge verfügbar."
+                        )
                         Button(onClick = { showVehicleWizard = true }) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
