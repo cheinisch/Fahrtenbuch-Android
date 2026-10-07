@@ -154,4 +154,8 @@ data class DeviceInfo(
     val current: Boolean = false
 )
 data class ApiMessage(val message: String? = null)
-data class ApiError(val message: String? = null, val errors: Map<String, List<String>>? = null)
+data class ApiError(
+    val code: String? = null,
+    val message: String? = null,
+    val errors: Map<String, List<String>>? = null
+)
