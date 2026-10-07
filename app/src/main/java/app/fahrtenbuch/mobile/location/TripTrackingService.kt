@@ -5,6 +5,7 @@ import android.app.*
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import app.fahrtenbuch.mobile.MainActivity
@@ -27,10 +28,12 @@ class TripTrackingService : Service() {
     private lateinit var store: SessionStore
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var waitingForFirstFix = true
+    private var pointCount = 0L
 
     private val callback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             val localTripId = store.activeTripId ?: return
+            Log.d(TAG, "Location callback: trip=$localTripId locations=${result.locations.size}")
             val points = result.locations.map { location ->
                 TrackPointEntity(
                     localTripId = localTripId,
@@ -45,9 +48,20 @@ class TripTrackingService : Service() {
             }
             if (points.isNotEmpty()) scope.launch {
                 OfflineDatabase.get(applicationContext).dao().addPoints(points)
+                pointCount += points.size
+                points.forEach { point ->
+                    Log.d(
+                        TAG,
+                        "GPS stored: trip=${point.localTripId} #$pointCount " +
+                            "lat=${point.lat} lon=${point.lon} accuracy=${point.accuracy}m " +
+                            "speed=${point.speed}m/s bearing=${point.bearing} recordedAt=${point.recordedAt}"
+                    )
+                }
+                Log.d(TAG, "Scheduling sync after GPS write: trip=$localTripId totalPoints=$pointCount")
                 SyncScheduler.enqueue(applicationContext)
                 if (waitingForFirstFix) {
                     waitingForFirstFix = false
+                    Log.i(TAG, "First GPS fix received: trip=$localTripId; switching to normal tracking")
                     withContext(Dispatchers.Main) { switchToNormalTracking() }
                 }
             }
@@ -67,7 +81,13 @@ class TripTrackingService : Service() {
     }
 
     private fun startServiceTracking() {
-        if (store.activeTripId == null) { stopSelf(); return }
+        if (store.activeTripId == null) {
+            Log.w(TAG, "Tracking service started without activeTripId; stopping")
+            stopSelf()
+            return
+        }
+        pointCount = 0
+        Log.i(TAG, "Tracking started: trip=${store.activeTripId}")
         val pendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         startForeground(NOTIFICATION_ID, NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher)
@@ -84,6 +104,7 @@ class TripTrackingService : Service() {
             .setMinUpdateIntervalMillis(500L)
             .setWaitForAccurateLocation(true)
             .build()
+        Log.d(TAG, "Requesting first GPS fix: interval=1000ms minInterval=500ms highAccuracy=true")
         locationClient.requestLocationUpdates(firstFixRequest, callback, mainLooper)
     }
 
@@ -95,10 +116,16 @@ class TripTrackingService : Service() {
             .setMinUpdateIntervalMillis(intervalMs)
             .setMaxUpdateDelayMillis(intervalMs * 2)
             .build()
+        Log.i(TAG, "Normal GPS tracking active: trip=${store.activeTripId} interval=${store.trackingIntervalSeconds}s")
         locationClient.requestLocationUpdates(request, callback, mainLooper)
     }
 
-    private fun stopServiceTracking() { locationClient.removeLocationUpdates(callback); stopForeground(STOP_FOREGROUND_REMOVE); stopSelf() }
+    private fun stopServiceTracking() {
+        Log.i(TAG, "Tracking service stopping: trip=${store.activeTripId} recordedPoints=$pointCount")
+        locationClient.removeLocationUpdates(callback)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
     override fun onDestroy() { locationClient.removeLocationUpdates(callback); scope.cancel(); super.onDestroy() }
     override fun onBind(intent: Intent?): IBinder? = null
     private fun createNotificationChannel() = getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel(CHANNEL_ID, "Fahrtenaufzeichnung", NotificationManager.IMPORTANCE_LOW))
@@ -108,5 +135,6 @@ class TripTrackingService : Service() {
         const val ACTION_STOP = "app.fahrtenbuch.mobile.STOP_TRACKING"
         private const val CHANNEL_ID = "trip_tracking"
         private const val NOTIFICATION_ID = 1001
+        const val TAG = "FahrtenbuchTracking"
     }
 }
