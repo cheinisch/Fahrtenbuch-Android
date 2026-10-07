@@ -72,7 +72,9 @@ class TripTrackingService : Service() {
         startForeground(NOTIFICATION_ID, NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle("Fahrt wird aufgezeichnet")
-            .setContentText("GPS-Punkte werden sicher auf dem Gerät gespeichert.")
+            .setContentText("Tracking aktiv · GPS wird aufgezeichnet.")
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setOnlyAlertOnce(true)
             .setOngoing(true).setContentIntent(pendingIntent).build())
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
