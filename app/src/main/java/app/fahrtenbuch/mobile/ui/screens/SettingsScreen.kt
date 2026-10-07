@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
@@ -78,6 +79,41 @@ fun SettingsScreen(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
+
+        Text(
+            "Konto",
+            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
+            fontWeight = FontWeight.SemiBold
+        )
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                AccountInfoRow("Anzeigename", appState.user?.displayName ?: "–")
+                AccountInfoRow(
+                    "Anmeldename",
+                    appState.user?.loginName ?: appState.user?.username ?: "–"
+                )
+                AccountInfoRow("E-Mail", appState.user?.email ?: "–")
+                AccountInfoRow("Rolle", appState.user?.role ?: "–")
+                AccountInfoRow("Server", appState.serverUrl)
+                if (appState.serverUrl.startsWith("https://", ignoreCase = true)) {
+                    AccountInfoRow(
+                        "Zertifikatsprüfung",
+                        if (sessionStore.allowInvalidCertificates) "Deaktiviert" else "Aktiv"
+                    )
+                }
+                appState.user?.lastLoginAt?.let { AccountInfoRow("Letzte Anmeldung", it) }
+                OutlinedButton(
+                    onClick = { editingAccount = true },
+                    modifier = Modifier.padding(top = 12.dp)
+                ) {
+                    Text("Benutzerdaten bearbeiten")
+                }
+            }
+        }
 
         Text(
             "Darstellung",
@@ -159,117 +195,6 @@ fun SettingsScreen(
         }
 
         Text(
-            "Konto",
-            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-            fontWeight = FontWeight.SemiBold
-        )
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                if (editingAccount) {
-                    OutlinedTextField(
-                        value = displayName,
-                        onValueChange = { displayName = it },
-                        label = { Text("Anzeigename") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text("Anmeldename") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    )
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("E-Mail-Adresse") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    )
-                    OutlinedTextField(
-                        value = serverUrl,
-                        onValueChange = { serverUrl = it },
-                        label = { Text("Serveradresse") },
-                        supportingText = { Text("Das angegebene Protokoll wird unverändert verwendet.") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    )
-                    if (serverUrl.trim().startsWith("https://", ignoreCase = true)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text("Zertifikatsprüfung deaktivieren", fontWeight = FontWeight.Medium)
-                                Text(
-                                    "Nur für Server mit selbstsigniertem oder ungültigem Zertifikat. " +
-                                        "Die HTTPS-Verbindung kann dann nicht sicher authentifiziert werden.",
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                            Switch(
-                                checked = allowInvalidCertificates,
-                                onCheckedChange = { allowInvalidCertificates = it }
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = {
-                                editingAccount = false
-                                displayName = appState.user?.displayName.orEmpty()
-                                username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
-                                email = appState.user?.email.orEmpty()
-                                serverUrl = appState.serverUrl
-                                allowInvalidCertificates = sessionStore.allowInvalidCertificates
-                            }
-                        ) { Text("Abbrechen") }
-                        Spacer(Modifier.weight(1f))
-                        TextButton(
-                            enabled = !appState.loading && username.isNotBlank() && email.isNotBlank(),
-                            onClick = {
-                                viewModel.updateAccount(displayName, username, email, serverUrl, allowInvalidCertificates) {
-                                    editingAccount = false
-                                }
-                            }
-                        ) { Text(if (appState.loading) "Speichern …" else "Speichern") }
-                    }
-                } else {
-                    AccountInfoRow("Anzeigename", appState.user?.displayName ?: "–")
-                    AccountInfoRow(
-                        "Anmeldename",
-                        appState.user?.loginName ?: appState.user?.username ?: "–"
-                    )
-                    AccountInfoRow("E-Mail", appState.user?.email ?: "–")
-                    AccountInfoRow("Rolle", appState.user?.role ?: "–")
-                    AccountInfoRow("Server", appState.serverUrl)
-                    if (appState.serverUrl.startsWith("https://", ignoreCase = true)) {
-                        AccountInfoRow(
-                            "Zertifikatsprüfung",
-                            if (sessionStore.allowInvalidCertificates) "Deaktiviert" else "Aktiv"
-                        )
-                    }
-                    appState.user?.lastLoginAt?.let { AccountInfoRow("Letzte Anmeldung", it) }
-                    OutlinedButton(
-                        onClick = { editingAccount = true },
-                        modifier = Modifier.padding(top = 12.dp)
-                    ) {
-                        Text("Benutzerdaten bearbeiten")
-                    }
-                }
-            }
-        }
-
-        Text(
             "Versionsinformationen",
             modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
             fontWeight = FontWeight.SemiBold
@@ -287,6 +212,103 @@ fun SettingsScreen(
                 VersionInfoRow("Paket", BuildConfig.APPLICATION_ID)
             }
         }
+    }
+
+    if (editingAccount) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!appState.loading) editingAccount = false
+            },
+            title = { Text("Benutzerdaten bearbeiten") },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = displayName,
+                        onValueChange = { displayName = it },
+                        label = { Text("Anzeigename") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("Anmeldename") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("E-Mail-Adresse") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = serverUrl,
+                        onValueChange = { serverUrl = it },
+                        label = { Text("Serveradresse") },
+                        supportingText = { Text("Das angegebene Protokoll wird unverändert verwendet.") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (serverUrl.trim().startsWith("https://", ignoreCase = true)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Zertifikatsprüfung deaktivieren", fontWeight = FontWeight.Medium)
+                                Text(
+                                    "Nur für selbstsignierte oder ungültige Zertifikate.",
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            Switch(
+                                checked = allowInvalidCertificates,
+                                onCheckedChange = { allowInvalidCertificates = it }
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !appState.loading && username.isNotBlank() && email.isNotBlank(),
+                    onClick = {
+                        viewModel.updateAccount(
+                            displayName,
+                            username,
+                            email,
+                            serverUrl,
+                            allowInvalidCertificates
+                        ) {
+                            editingAccount = false
+                        }
+                    }
+                ) {
+                    Text(if (appState.loading) "Speichern …" else "Speichern")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !appState.loading,
+                    onClick = {
+                        editingAccount = false
+                        displayName = appState.user?.displayName.orEmpty()
+                        username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
+                        email = appState.user?.email.orEmpty()
+                        serverUrl = appState.serverUrl
+                        allowInvalidCertificates = sessionStore.allowInvalidCertificates
+                    }
+                ) {
+                    Text("Abbrechen")
+                }
+            }
+        )
     }
 }
 
