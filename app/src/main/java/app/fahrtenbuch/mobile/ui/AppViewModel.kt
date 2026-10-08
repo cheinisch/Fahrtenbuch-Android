@@ -4,6 +4,8 @@ import android.app.Application
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import app.fahrtenbuch.mobile.data.api.ApiFactory
 import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
@@ -15,6 +17,7 @@ import app.fahrtenbuch.mobile.sync.SyncScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 data class AppUiState(
@@ -45,6 +48,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val state: StateFlow<AppUiState> = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            var lastFinishedId: java.util.UUID? = null
+            WorkManager.getInstance(getApplication<Application>())
+                .getWorkInfosForUniqueWorkFlow("fahrtenbuch-sync")
+                .collect { jobs ->
+                    val finished = jobs.firstOrNull { it.state.isFinished }
+                    if (finished != null && finished.id != lastFinishedId) {
+                        lastFinishedId = finished.id
+                        if (store.hasAuthenticatedSession) refresh()
+                    }
+                }
+        }
         if (store.serverConfigured && store.refreshToken != null) {
             refresh()
             loadAccount()
