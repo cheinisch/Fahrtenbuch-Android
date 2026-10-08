@@ -18,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import app.fahrtenbuch.mobile.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -64,10 +66,10 @@ fun FahrtenbuchApp(
 
     val navController = rememberNavController()
     val destinations = listOf(
-        Destination("tracking", "Tracking", Icons.Default.LocationOn),
-        Destination("trips", "Fahrten", Icons.Default.ListAlt),
-        Destination("statistics", "Statistik", Icons.Default.BarChart),
-        Destination("settings", "Einstellungen", Icons.Default.Settings)
+        Destination("tracking", stringResource(R.string.tracking_title), Icons.Default.LocationOn),
+        Destination("trips", stringResource(R.string.trips), Icons.Default.ListAlt),
+        Destination("statistics", stringResource(R.string.statistics), Icons.Default.BarChart),
+        Destination("settings", stringResource(R.string.settings), Icons.Default.Settings)
     )
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
