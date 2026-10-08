@@ -70,7 +70,11 @@ fun TripsScreen(viewModel: AppViewModel) {
                                 MaterialTheme.colorScheme.errorContainer
                         ) {
                             Text(
-                                if (trip.syncState == "SYNCED") "Gesynct" else "Nur offline",
+                                when (trip.syncState) {
+                                    "SYNCED" -> "Gesynct"
+                                    "FAILED" -> "Sync fehlgeschlagen"
+                                    else -> "Ausstehend"
+                                },
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = if (trip.syncState == "SYNCED")
