@@ -86,4 +86,8 @@
     <string name="protocol_note">The specified protocol is used unchanged.</string>
     <string name="disable_cert_check">Disable certificate verification</string>
     <string name="invalid_cert_help">Only for self-signed or invalid certificates.</string>
+    <string name="trip_business">Business</string>
+    <string name="trip_private">Private</string>
+    <string name="trip_commute">Commute</string>
+    <string name="trip_unclassified">Unclassified</string>
 </resources>
