@@ -30,7 +30,16 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             // Push locally recorded tracking sessions first.
             val pendingTrips = dao.pendingTrips()
             Log.i(TAG, "Pending local trips: ${pendingTrips.size}")
+            val serverVehicles = api.getVehicles()
+            Log.i(TAG, "Server vehicle IDs: ${serverVehicles.map { it.id }}")
+            var failedTrips = 0
             pendingTrips.forEach { local ->
+                try {
+                    if (serverVehicles.none { it.id == local.vehicleId }) {
+                        Log.e(TAG, "Vehicle missing from server list: localId=${local.localId} vehicleId=${local.vehicleId}; retaining data")
+                        failedTrips++
+                        return@forEach
+                    }
                 var remoteId = local.remoteId
                 Log.i(
                     TAG,
