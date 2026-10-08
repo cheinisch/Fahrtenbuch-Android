@@ -1,5 +1,7 @@
 package app.fahrtenbuch.mobile.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import app.fahrtenbuch.mobile.R
 import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
