@@ -20,7 +20,6 @@ import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import org.json.JSONArray
-import org.json.JSONObject
 
 @Composable
 private fun FilterMenu(label: String, options: List<Pair<String, String>>, value: String, onSelect: (String) -> Unit) {
@@ -179,12 +178,13 @@ private fun TripRouteMap(points: List<TrackPoint>) {
         </script></body></html>
         """.trimIndent()
     }
-    AndroidView(
-        modifier = Modifier.fillMaxWidth().height(240.dp),
-        factory = { context -> WebView(context).apply {
-            settings.javaScriptEnabled = true
-            loadDataWithBaseURL("https://unpkg.com/", html, "text/html", "UTF-8", null)
-        } },
-        update = { web -> web.loadDataWithBaseURL("https://unpkg.com/", html, "text/html", "UTF-8", null) }
-    )
+    key(route) {
+        AndroidView(
+            modifier = Modifier.fillMaxWidth().height(240.dp),
+            factory = { context -> WebView(context).apply {
+                settings.javaScriptEnabled = true
+                loadDataWithBaseURL("https://unpkg.com/", html, "text/html", "UTF-8", null)
+            } }
+        )
+    }
 }
