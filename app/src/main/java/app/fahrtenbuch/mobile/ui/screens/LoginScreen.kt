@@ -83,12 +83,12 @@ fun LoginScreen(viewModel: AppViewModel) {
                 when (mode) {
                     LoginMode.LOGIN -> {
                         Text("Fahrtenbuch", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        Text("Am Server anmelden", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.server_login), color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                         OutlinedTextField(
                             value = email,
                             onValueChange = { email = it },
-                            label = { Text("E-Mail oder Benutzername") },
+                            label = { Text(stringResource(R.string.email_or_username)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                             singleLine = true,
                             enabled = !state.loading,
@@ -97,7 +97,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text("Passwort") },
+                            label = { Text(stringResource(R.string.password)) },
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             trailingIcon = {
@@ -115,7 +115,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                         OutlinedTextField(
                             value = totp,
                             onValueChange = { totp = it.filter(Char::isDigit).take(6) },
-                            label = { Text("TOTP-Code (falls aktiviert)") },
+                            label = { Text(stringResource(R.string.totp_code)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                             singleLine = true,
                             enabled = !state.loading,
@@ -139,7 +139,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                             if (state.loading) {
                                 CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                             } else {
-                                Text("Anmelden")
+                                Text(stringResource(R.string.sign_in))
                             }
                         }
 
@@ -175,7 +175,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                         ) {
                             Icon(Icons.Outlined.Key, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Mit Passkey anmelden")
+                            Text(stringResource(R.string.sign_in_passkey))
                         }
 
                         TextButton(
@@ -187,12 +187,12 @@ fun LoginScreen(viewModel: AppViewModel) {
                             enabled = !state.loading,
                             modifier = Modifier.align(Alignment.End)
                         ) {
-                            Text("Passwort vergessen?")
+                            Text(stringResource(R.string.forgot_password))
                         }
                     }
 
                     LoginMode.FORGOT -> {
-                        Text("Passwort zurücksetzen", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.reset_password), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                         if (!resetRequested) {
                             Text(
                                 "Gib deine E-Mail-Adresse ein. Wenn ein aktives Konto existiert, erhältst du einen Reset-Link.",
@@ -201,7 +201,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                             OutlinedTextField(
                                 value = email,
                                 onValueChange = { email = it },
-                                label = { Text("E-Mail") },
+                                label = { Text(stringResource(R.string.email)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                                 singleLine = true,
                                 enabled = !state.loading,
@@ -218,7 +218,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                                 modifier = Modifier.fillMaxWidth().height(52.dp)
                             ) {
                                 if (state.loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                                else Text("Reset-Link anfordern")
+                                else Text(stringResource(R.string.request_reset))
                             }
                         } else {
                             Text(
@@ -228,30 +228,30 @@ fun LoginScreen(viewModel: AppViewModel) {
                             Button(
                                 onClick = { mode = LoginMode.RESET },
                                 modifier = Modifier.fillMaxWidth().height(52.dp)
-                            ) { Text("Reset-Token eingeben") }
+                            ) { Text(stringResource(R.string.enter_reset_token)) }
                             TextButton(
                                 onClick = { mode = LoginMode.LOGIN },
                                 modifier = Modifier.align(Alignment.End)
-                            ) { Text("Zur Anmeldung") }
+                            ) { Text(stringResource(R.string.back_to_login)) }
                         }
                     }
 
                     LoginMode.RESET -> {
-                        Text("Neues Passwort", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.new_password), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                         if (resetChanged) {
-                            Text("Das Passwort wurde geändert. Alle bisherigen Sitzungen wurden vom Server widerrufen.")
+                            Text(stringResource(R.string.password_changed))
                             Button(
                                 onClick = {
                                     resetChanged = false
                                     mode = LoginMode.LOGIN
                                 },
                                 modifier = Modifier.fillMaxWidth().height(52.dp)
-                            ) { Text("Jetzt anmelden") }
+                            ) { Text(stringResource(R.string.sign_in_now)) }
                         } else {
                             OutlinedTextField(
                                 value = resetToken,
                                 onValueChange = { resetToken = it.trim() },
-                                label = { Text("Reset-Token") },
+                                label = { Text(stringResource(R.string.reset_token)) },
                                 singleLine = true,
                                 enabled = !state.loading,
                                 modifier = Modifier.fillMaxWidth()
@@ -259,7 +259,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                             OutlinedTextField(
                                 value = newPassword,
                                 onValueChange = { newPassword = it },
-                                label = { Text("Neues Passwort") },
+                                label = { Text(stringResource(R.string.new_password)) },
                                 visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                                 trailingIcon = {
@@ -272,13 +272,13 @@ fun LoginScreen(viewModel: AppViewModel) {
                                 },
                                 singleLine = true,
                                 enabled = !state.loading,
-                                supportingText = { Text("Mindestens 8 Zeichen") },
+                                supportingText = { Text(stringResource(R.string.min_eight_chars)) },
                                 modifier = Modifier.fillMaxWidth()
                             )
                             OutlinedTextField(
                                 value = confirmPassword,
                                 onValueChange = { confirmPassword = it },
-                                label = { Text("Passwort wiederholen") },
+                                label = { Text(stringResource(R.string.repeat_password)) },
                                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                                 trailingIcon = {
@@ -308,7 +308,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                                 modifier = Modifier.fillMaxWidth().height(52.dp)
                             ) {
                                 if (state.loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                                else Text("Passwort ändern")
+                                else Text(stringResource(R.string.change_password))
                             }
                         }
                     }
