@@ -13,6 +13,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import app.fahrtenbuch.mobile.R
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -33,8 +35,8 @@ fun StatisticsScreen(viewModel: AppViewModel) {
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Text("Statistik", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text("Auswertung deiner aufgezeichneten Fahrten", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.statistics), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.statistics_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
