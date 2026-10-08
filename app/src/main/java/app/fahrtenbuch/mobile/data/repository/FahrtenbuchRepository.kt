@@ -252,7 +252,7 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     status = if (end == null) "recording" else "completed",
     startedAt = startedAt,
     endedAt = end,
-    syncState = "PENDING"
+    syncState = if (syncError != null) "FAILED" else "PENDING"
 )
 
 
