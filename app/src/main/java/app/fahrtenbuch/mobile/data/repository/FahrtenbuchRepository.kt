@@ -211,6 +211,8 @@ class FahrtenbuchRepository(
         dao.putCache(CacheEntity("trips", tripAdapter.toJson(remoteTrips), now))
     }
 
+    suspend fun getTripDetails(id: Uuid): Trip = api.getTrip(id)
+
     suspend fun tripPoints(id: Uuid): List<TrackPoint> = api.tripPoints(id)
 
     suspend fun updateTripCategory(trip: Trip, type: TripType): Trip {
