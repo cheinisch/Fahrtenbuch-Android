@@ -61,7 +61,7 @@ fun TripsScreen(viewModel: AppViewModel) {
     ) {
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Fahrten", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.trips), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 IconButton(onClick = viewModel::syncNow, enabled = !state.loading) {
                     if (state.loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                     else Icon(Icons.Default.Sync, contentDescription = "Fahrten synchronisieren")
@@ -75,8 +75,8 @@ fun TripsScreen(viewModel: AppViewModel) {
                     FilterMenu("Tag", listOf("" to "Alle Tags") + tags.map { it to it }, tagFilter) { tagFilter = it }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(fromDate, { fromDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text("Von (JJJJ-MM-TT)") }, singleLine = true)
-                    OutlinedTextField(toDate, { toDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text("Bis (JJJJ-MM-TT)") }, singleLine = true)
+                    OutlinedTextField(fromDate, { fromDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text(stringResource(R.string.date_from)) }, singleLine = true)
+                    OutlinedTextField(toDate, { toDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text(stringResource(R.string.date_to)) }, singleLine = true)
                 }
                 Text("${filtered.size} Fahrten", style = MaterialTheme.typography.labelMedium)
             }
@@ -136,21 +136,21 @@ private fun TripDetailsDialog(
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Fahrtdetails", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.trip_details), style = MaterialTheme.typography.titleLarge)
                 Text("Start: ${trip.startedAt}")
                 Text("Ende: ${trip.endedAt ?: "Läuft"}")
                 Text("Strecke: ${trip.distanceKm ?: "–"} km")
                 Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
                 Text("${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}")
-                Text("Kategorie", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold)
                 FilterMenu("Kategorie", TripType.entries.map { it.apiValue to it.label }, trip.tripType.apiValue) { chosen ->
                     TripType.entries.firstOrNull { it.apiValue == chosen }?.let(onCategory)
                 }
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 if (points.isNotEmpty()) TripRouteMap(points)
-                else if (!loading) Text("Keine GPS-Route verfügbar.")
-                TextButton(onClick = onDismiss) { Text("Schließen") }
+                else if (!loading) Text(stringResource(R.string.no_gps_route))
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
             }
         }
     }
