@@ -1,3 +1,34 @@
 <resources>
     <string name="app_name">Fahrtenbuch</string>
+    <string name="tracking_title">Tracking</string>
+    <string name="tracking_subtitle">Start, record and finish trips</string>
+    <string name="vehicle">Vehicle</string>
+    <string name="latest_trip">Latest trip</string>
+    <string name="trips">Trips</string>
+    <string name="date_from">From (YYYY-MM-DD)</string>
+    <string name="date_to">To (YYYY-MM-DD)</string>
+    <string name="trip_details">Trip details</string>
+    <string name="category">Category</string>
+    <string name="no_gps_route">No GPS route available.</string>
+    <string name="close">Close</string>
+    <string name="statistics">Statistics</string>
+    <string name="statistics_subtitle">Summary of your recorded trips</string>
+    <string name="vehicles">Vehicles</string>
+    <string name="vehicles_subtitle">Load vehicles and assign Bluetooth</string>
+    <string name="setup_first_vehicle">Set up your first vehicle</string>
+    <string name="choose_bluetooth">Choose a Bluetooth device already paired with Android.</string>
+    <string name="no_paired_devices">No paired devices found.</string>
+    <string name="reload_paired_devices">Reload paired devices</string>
+    <string name="manual_mac">Enter MAC address manually</string>
+    <string name="mac_format">Format: AA:BB:CC:DD:EE:FF</string>
+    <string name="remove_assignment">Remove assignment</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="setup_vehicle">Set up vehicle</string>
+    <string name="setup_vehicle_description">Create your vehicle, then assign its Bluetooth device.</string>
+    <string name="vehicle_name">Vehicle name</string>
+    <string name="vehicle_example">e.g. Škoda Karoq</string>
+    <string name="license_plate_optional">License plate (optional)</string>
+    <string name="vehicle_step_one">Step 1 of 2 · Vehicle details</string>
+    <string name="create_vehicle">Create vehicle</string>
 </resources>
