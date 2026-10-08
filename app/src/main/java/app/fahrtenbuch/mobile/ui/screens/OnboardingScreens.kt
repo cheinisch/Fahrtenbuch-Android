@@ -38,7 +38,7 @@ fun WelcomeScreen(onConnect: () -> Unit) {
         Spacer(Modifier.height(24.dp))
         Text("Fahrtenbuch", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(18.dp))
-        Text("Deine Fahrten. Deine Daten.", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.your_trips_data), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(22.dp))
         Text(
             "Verbinde die App mit deinem selbst gehosteten Fahrtenbuch-Server und melde dieses Gerät sicher an.",
@@ -48,10 +48,10 @@ fun WelcomeScreen(onConnect: () -> Unit) {
         )
         Spacer(Modifier.weight(1f))
         Button(onClick = onConnect, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
-            Text("Mit Server verbinden", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.connect_server), fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(16.dp))
-        Text("Für selbst gehostete Installationen", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.self_hosted), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(18.dp))
     }
 }
@@ -61,7 +61,7 @@ fun ConnectServerScreen(onBack: () -> Unit, onQrCode: () -> Unit, onManual: () -
     Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp)) {
         BackButton(onBack)
         Spacer(Modifier.height(32.dp))
-        Text("Mit deinem Server verbinden", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.connect_your_server), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
         Text(
             "Scanne den Anmelde-QR-Code aus deinem Web-Fahrtenbuch oder richte den Server manuell ein.",
@@ -101,7 +101,7 @@ fun ManualServerSetupScreen(onBack: () -> Unit, onSave: (String) -> Result<Unit>
     Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp)) {
         BackButton(onBack)
         Spacer(Modifier.height(32.dp))
-        Text("Server manuell einrichten", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.manual_server_setup), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
         Text(
             "Trage die öffentliche Adresse deiner Fahrtenbuch-Installation ein. /api/v1 wird automatisch ergänzt.",
@@ -112,7 +112,7 @@ fun ManualServerSetupScreen(onBack: () -> Unit, onSave: (String) -> Result<Unit>
         OutlinedTextField(
             value = serverUrl,
             onValueChange = { serverUrl = it; error = null },
-            label = { Text("Serveradresse") },
+            label = { Text(stringResource(R.string.server_address)) },
             placeholder = { Text("https://fahrtenbuch.example.de") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             singleLine = true,
@@ -127,7 +127,7 @@ fun ManualServerSetupScreen(onBack: () -> Unit, onSave: (String) -> Result<Unit>
             enabled = serverUrl.isNotBlank(),
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(14.dp)
-        ) { Text("Server speichern und anmelden", fontWeight = FontWeight.SemiBold) }
+        ) { Text(stringResource(R.string.save_server_login), fontWeight = FontWeight.SemiBold) }
     }
 }
 
@@ -170,7 +170,7 @@ fun QrPairingScreen(
     Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp)) {
         BackButton(onBack)
         Spacer(Modifier.height(32.dp))
-        Text("Gerät anmelden", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.pair_device), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
         Text(
             "Öffne im Web-Fahrtenbuch „Mobile App verbinden“ und scanne den dort angezeigten einmaligen QR-Code.",
@@ -184,13 +184,13 @@ fun QrPairingScreen(
                 loading -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator()
                     Spacer(Modifier.height(16.dp))
-                    Text("Gerät wird angemeldet …")
+                    Text(stringResource(R.string.device_signing_in))
                 }
                 scanning -> CircularProgressIndicator()
                 else -> OutlinedButton(onClick = { startScan() }, modifier = Modifier.height(54.dp), shape = RoundedCornerShape(14.dp)) {
                     Icon(Icons.Outlined.QrCodeScanner, null)
                     Spacer(Modifier.width(10.dp))
-                    Text("Erneut scannen")
+                    Text(stringResource(R.string.scan_again))
                 }
             }
         }
@@ -247,7 +247,7 @@ fun PairConfirmationScreen(
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
-                            Text("Verbinden", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.connect), fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
