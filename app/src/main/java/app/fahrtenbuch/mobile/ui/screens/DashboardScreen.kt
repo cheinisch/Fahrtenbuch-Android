@@ -28,6 +28,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import app.fahrtenbuch.mobile.R
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,8 +67,8 @@ fun DashboardScreen(viewModel: AppViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text("Tracking", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text("Fahrt starten, aufzeichnen und beenden", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.tracking_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.tracking_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         item {
@@ -75,7 +77,7 @@ fun DashboardScreen(viewModel: AppViewModel) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(18.dp)) {
-                    Text("Fahrzeug", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.vehicle), fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.vehicles.forEach { vehicle ->
@@ -112,7 +114,7 @@ fun DashboardScreen(viewModel: AppViewModel) {
         }
 
         item {
-            Text("Letzte Fahrt", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.latest_trip), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             val trip = state.trips.firstOrNull()
             if (trip != null) {
                 Spacer(Modifier.height(8.dp))
