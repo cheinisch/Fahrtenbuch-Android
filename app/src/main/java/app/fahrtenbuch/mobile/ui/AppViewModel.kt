@@ -11,6 +11,7 @@ import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
 import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
+import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.data.model.Vehicle
 import app.fahrtenbuch.mobile.data.repository.FahrtenbuchRepository
 import app.fahrtenbuch.mobile.sync.SyncScheduler
@@ -24,6 +25,9 @@ data class AppUiState(
     val loading: Boolean = true,
     val vehicles: List<Vehicle> = emptyList(),
     val trips: List<Trip> = emptyList(),
+    val tripPoints: List<TrackPoint> = emptyList(),
+    val tripDetailsLoading: Boolean = false,
+    val tripDetailsError: String? = null,
     val tracking: Boolean = false,
     val selectedVehicleId: String? = null,
     val error: String? = null,
@@ -353,6 +357,37 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             tracking = store.activeTripId != null,
             selectedVehicleId = selected
         )
+    }
+
+    fun loadTripDetails(trip: Trip) {
+        _state.value = _state.value.copy(tripPoints = emptyList(), tripDetailsLoading = true, tripDetailsError = null)
+        if (trip.syncState != "SYNCED") {
+            _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = "Die Route ist erst nach vollständiger Synchronisierung verfügbar.")
+            return
+        }
+        viewModelScope.launch {
+            runCatching { repository.tripPoints(trip.id) }
+                .onSuccess { _state.value = _state.value.copy(tripPoints = it, tripDetailsLoading = false) }
+                .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
+        }
+    }
+
+    fun updateTripCategory(trip: Trip, type: TripType) {
+        if (trip.syncState != "SYNCED") {
+            _state.value = _state.value.copy(tripDetailsError = "Bitte die Fahrt zuerst synchronisieren.")
+            return
+        }
+        viewModelScope.launch {
+            _state.value = _state.value.copy(tripDetailsLoading = true, tripDetailsError = null)
+            runCatching { repository.updateTripCategory(trip, type) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        tripDetailsLoading = false,
+                        trips = _state.value.trips.map { if (it.id == updated.id) updated else it }
+                    )
+                }
+                .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
+        }
     }
 
     fun syncNow() {
