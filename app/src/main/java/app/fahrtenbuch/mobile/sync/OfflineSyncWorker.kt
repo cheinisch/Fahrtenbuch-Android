@@ -70,20 +70,29 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                             "distanceKm=${completed.distanceKm} durationSeconds=${completed.durationSeconds}"
                     )
                 }
+                } catch (error: HttpException) {
+                    val body = runCatching { error.response()?.errorBody()?.string() }.getOrNull()
+                    Log.e(TAG, "Trip failed: localId=${local.localId} HTTP ${error.code()} body=${body ?: "<empty>"}; retaining data", error)
+                    failedTrips++
+                } catch (error: Exception) {
+                    if (error is kotlinx.coroutines.CancellationException) throw error
+                    Log.e(TAG, "Trip failed: localId=${local.localId}; retaining data", error)
+                    failedTrips++
+                }
             }
 
             // Pull fresh server state only after all local writes have been pushed.
             // The backend currently exposes full collection endpoints rather than
             // a delta /sync route, so these snapshots are the reconciliation point.
-            val vehicles = api.getVehicles()
+            val vehicles = serverVehicles
             val trips = api.getTrips(limit = 500)
             val tags = api.tags()
             dao.replaceVehicles(vehicles.map { it.toEntity() })
             dao.replaceTrips(trips.map { it.toEntity() })
             dao.replaceTags(tags.map { TagEntity(it.id, it.name) })
 
-            Log.i(TAG, "Sync completed successfully")
-            Result.success()
+            Log.i(TAG, "Sync completed: failedTrips=$failedTrips")
+            if (failedTrips > 0) Result.failure() else Result.success()
         } catch (error: HttpException) {
             val responseBody = runCatching { error.response()?.errorBody()?.string() }.getOrNull()
             Log.e(
