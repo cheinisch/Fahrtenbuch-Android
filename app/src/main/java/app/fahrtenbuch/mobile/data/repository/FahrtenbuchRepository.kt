@@ -236,9 +236,21 @@ class FahrtenbuchRepository(
 
     private suspend fun mergeLocalTrips(remote: List<Trip>): List<Trip> {
         val pending = dao.pendingTrips()
-        // A server-side recording is not fully synced while its local stop is pending.
         val pendingRemoteIds = pending.mapNotNull { it.remoteId }.toSet()
-        val local = pending.map { it.toUiTrip(it.endedAt) }
+        // Reconcile completed local sessions with the server by remote ID.
+        // Never label a server-side recording as fully synchronized.
+        val local = pending.map { session ->
+            val serverTrip = session.remoteId?.let { id -> remote.firstOrNull { it.id == id } }
+            if (serverTrip != null && serverTrip.status == "completed" &&
+                session.pendingStop && session.endedAt != null
+            ) {
+                // The stop response can be lost after the server committed the trip.
+                dao.markTripSynced(session.localId)
+                serverTrip
+            } else {
+                session.toUiTrip(session.endedAt)
+            }
+        }
         return (local + remote.filterNot { it.id in pendingRemoteIds })
             .distinctBy { it.id }
             .sortedByDescending { it.startedAt }
