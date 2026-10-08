@@ -1,5 +1,7 @@
 package app.fahrtenbuch.mobile.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import app.fahrtenbuch.mobile.R
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
