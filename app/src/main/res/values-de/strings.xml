@@ -86,4 +86,8 @@
     <string name="protocol_note">Das angegebene Protokoll wird unverändert verwendet.</string>
     <string name="disable_cert_check">Zertifikatsprüfung deaktivieren</string>
     <string name="invalid_cert_help">Nur für selbstsignierte oder ungültige Zertifikate.</string>
+    <string name="trip_business">Dienstlich</string>
+    <string name="trip_private">Privat</string>
+    <string name="trip_commute">Arbeitsweg</string>
+    <string name="trip_unclassified">Nicht zugeordnet</string>
 </resources>
