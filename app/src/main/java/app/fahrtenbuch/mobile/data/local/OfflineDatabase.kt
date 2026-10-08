@@ -57,7 +57,8 @@ data class OfflineTripEntity(
     val startedAt: String,
     val endedAt: String?,
     val state: String, // RECORDING, STOPPED, SYNCED
-    val pendingStop: Boolean = false
+    val pendingStop: Boolean = false,
+    val syncError: String? = null
 )
 
 @Entity(tableName = "track_points", indices = [Index("localTripId")])
@@ -99,8 +100,9 @@ interface OfflineDao {
     @Query("SELECT * FROM offline_trips WHERE localId = :id") suspend fun trip(id: String): OfflineTripEntity?
     @Query("SELECT * FROM offline_trips WHERE state != 'SYNCED' ORDER BY startedAt") suspend fun pendingTrips(): List<OfflineTripEntity>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTrip(value: OfflineTripEntity)
+    @Query("UPDATE offline_trips SET syncError=:message WHERE localId=:localId") suspend fun setTripSyncError(localId: String, message: String?)
     @Query("UPDATE offline_trips SET remoteId=:remoteId WHERE localId=:localId") suspend fun setRemoteId(localId: String, remoteId: String)
-    @Query("UPDATE offline_trips SET state='SYNCED', pendingStop=0 WHERE localId=:localId") suspend fun markTripSynced(localId: String)
+    @Query("UPDATE offline_trips SET state='SYNCED', pendingStop=0, syncError=NULL WHERE localId=:localId") suspend fun markTripSynced(localId: String)
 
     @Insert suspend fun addPoints(points: List<TrackPointEntity>)
     @Query("SELECT * FROM track_points WHERE localTripId=:tripId ORDER BY id") suspend fun points(tripId: String): List<TrackPointEntity>
@@ -135,7 +137,7 @@ interface OfflineDao {
         OfflineTripEntity::class,
         TrackPointEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -150,9 +152,15 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN syncError TEXT")
+            }
         }
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
