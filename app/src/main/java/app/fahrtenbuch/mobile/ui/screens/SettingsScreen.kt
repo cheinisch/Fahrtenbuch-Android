@@ -21,6 +21,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import app.fahrtenbuch.mobile.R
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -110,7 +112,7 @@ fun SettingsScreen(
                     onClick = { editingAccount = true },
                     modifier = Modifier.padding(top = 12.dp)
                 ) {
-                    Text("Benutzerdaten bearbeiten")
+                    Text(stringResource(R.string.edit_profile))
                 }
             }
         }
@@ -150,14 +152,14 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(Modifier.padding(16.dp)) {
-                Text("Fahrzeuge & Bluetooth", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.vehicles_bluetooth), fontWeight = FontWeight.SemiBold)
                 Text(
                     "Fahrzeuge vom Server laden und ein gekoppeltes Bluetooth-Gerät zuweisen.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                 )
                 OutlinedButton(onClick = onOpenVehicles) {
-                    Text("Fahrzeuge verwalten")
+                    Text(stringResource(R.string.manage_vehicles))
                 }
             }
         }
@@ -173,7 +175,7 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(Modifier.padding(16.dp)) {
-                Text("GPS-Intervall", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.gps_interval), fontWeight = FontWeight.SemiBold)
                 Text(
                     "Nach dem ersten GPS-Fix wird die Position in diesem Intervall gespeichert.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -219,7 +221,7 @@ fun SettingsScreen(
             onDismissRequest = {
                 if (!appState.loading) editingAccount = false
             },
-            title = { Text("Benutzerdaten bearbeiten") },
+            title = { Text(stringResource(R.string.edit_profile)) },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -228,29 +230,29 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = displayName,
                         onValueChange = { displayName = it },
-                        label = { Text("Anzeigename") },
+                        label = { Text(stringResource(R.string.display_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Anmeldename") },
+                        label = { Text(stringResource(R.string.login_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("E-Mail-Adresse") },
+                        label = { Text(stringResource(R.string.email_address)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = serverUrl,
                         onValueChange = { serverUrl = it },
-                        label = { Text("Serveradresse") },
-                        supportingText = { Text("Das angegebene Protokoll wird unverändert verwendet.") },
+                        label = { Text(stringResource(R.string.server_address)) },
+                        supportingText = { Text(stringResource(R.string.protocol_note)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -260,7 +262,7 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(Modifier.weight(1f)) {
-                                Text("Zertifikatsprüfung deaktivieren", fontWeight = FontWeight.Medium)
+                                Text(stringResource(R.string.disable_cert_check), fontWeight = FontWeight.Medium)
                                 Text(
                                     "Nur für selbstsignierte oder ungültige Zertifikate.",
                                     color = MaterialTheme.colorScheme.error,
