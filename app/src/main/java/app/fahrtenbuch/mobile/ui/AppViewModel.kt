@@ -359,6 +359,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    fun refreshLatestTripDetails() {
+        val trip = _state.value.trips.firstOrNull() ?: return
+        if (trip.syncState != "SYNCED") return
+        viewModelScope.launch {
+            runCatching { repository.getTripDetails(trip.id) }
+                .onSuccess { remote ->
+                    _state.value = _state.value.copy(
+                        trips = _state.value.trips.map { current ->
+                            if (current.id == remote.id) remote else current
+                        }
+                    )
+                }
+        }
+    }
+
     fun loadTripDetails(trip: Trip) {
         _state.value = _state.value.copy(tripPoints = emptyList(), tripDetailsLoading = true, tripDetailsError = null)
         if (trip.syncState != "SYNCED") {
