@@ -1,5 +1,7 @@
 package app.fahrtenbuch.mobile.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import app.fahrtenbuch.mobile.R
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
