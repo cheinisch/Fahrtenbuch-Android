@@ -211,6 +211,27 @@ class FahrtenbuchRepository(
         dao.putCache(CacheEntity("trips", tripAdapter.toJson(remoteTrips), now))
     }
 
+    suspend fun tripPoints(id: Uuid): List<TrackPoint> = api.tripPoints(id)
+
+    suspend fun updateTripCategory(trip: Trip, type: TripType): Trip {
+        val updated = api.updateTrip(
+            trip.id,
+            TripInput(
+                vehicleId = trip.vehicleId,
+                tripType = type.apiValue,
+                startedAt = trip.startedAt,
+                endedAt = trip.endedAt,
+                startAddress = trip.startAddress,
+                endAddress = trip.endAddress,
+                purpose = trip.purpose,
+                contact = trip.contact,
+                notes = trip.note
+            )
+        )
+        dao.putTripRecord(updated.toEntity())
+        return updated
+    }
+
     suspend fun dashboard(): Dashboard = api.dashboard()
 
     /** Starts immediately without requiring a network connection. */
