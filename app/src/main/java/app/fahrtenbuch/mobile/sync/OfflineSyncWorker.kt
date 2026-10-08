@@ -37,9 +37,11 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                 try {
                     if (serverVehicles.none { it.id == local.vehicleId }) {
                         Log.e(TAG, "Vehicle missing from server list: localId=${local.localId} vehicleId=${local.vehicleId}; retaining data")
+                        dao.setTripSyncError(local.localId, "Fahrzeug nicht auf dem Server vorhanden")
                         failedTrips++
                         return@forEach
                     }
+                dao.setTripSyncError(local.localId, null)
                 var remoteId = local.remoteId
                 Log.i(
                     TAG,
@@ -82,10 +84,13 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                 } catch (error: HttpException) {
                     val body = runCatching { error.response()?.errorBody()?.string() }.getOrNull()
                     Log.e(TAG, "Trip failed: localId=${local.localId} HTTP ${error.code()} body=${body ?: "<empty>"}; retaining data", error)
+                    val detail = runCatching { org.json.JSONObject(body ?: "{}").optString("message") }.getOrNull().orEmpty()
+                    dao.setTripSyncError(local.localId, "HTTP ${error.code()}: ${detail.ifBlank { "Synchronisierung fehlgeschlagen" }}")
                     failedTrips++
                 } catch (error: Exception) {
                     if (error is kotlinx.coroutines.CancellationException) throw error
                     Log.e(TAG, "Trip failed: localId=${local.localId}; retaining data", error)
+                    dao.setTripSyncError(local.localId, error.message ?: "Synchronisierung fehlgeschlagen")
                     failedTrips++
                 }
             }
