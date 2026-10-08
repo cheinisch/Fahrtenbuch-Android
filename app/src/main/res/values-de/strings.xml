@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">Fahrtenbuch</string>
+    <string name="tracking_title">Tracking</string>
+    <string name="tracking_subtitle">Fahrt starten, aufzeichnen und beenden</string>
+    <string name="vehicle">Fahrzeug</string>
+    <string name="latest_trip">Letzte Fahrt</string>
+    <string name="trips">Fahrten</string>
+    <string name="date_from">Von (JJJJ-MM-TT)</string>
+    <string name="date_to">Bis (JJJJ-MM-TT)</string>
+    <string name="trip_details">Fahrtdetails</string>
+    <string name="category">Kategorie</string>
+    <string name="no_gps_route">Keine GPS-Route verfügbar.</string>
+    <string name="close">Schließen</string>
+    <string name="statistics">Statistik</string>
+    <string name="statistics_subtitle">Auswertung deiner aufgezeichneten Fahrten</string>
+    <string name="vehicles">Fahrzeuge</string>
+    <string name="vehicles_subtitle">Fahrzeuge laden und Bluetooth zuweisen</string>
+    <string name="setup_first_vehicle">Erstes Fahrzeug einrichten</string>
+    <string name="choose_bluetooth">Wähle ein bereits mit Android gekoppeltes Bluetooth-Gerät aus.</string>
+    <string name="no_paired_devices">Keine gekoppelten Geräte gefunden.</string>
+    <string name="reload_paired_devices">Gekoppelte Geräte neu laden</string>
+    <string name="manual_mac">MAC-Adresse manuell</string>
+    <string name="mac_format">Format: AA:BB:CC:DD:EE:FF</string>
+    <string name="remove_assignment">Zuordnung entfernen</string>
+    <string name="save">Speichern</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="setup_vehicle">Fahrzeug einrichten</string>
+    <string name="setup_vehicle_description">Lege dein Fahrzeug an. Anschließend kannst du direkt das Bluetooth-Gerät des Fahrzeugs zuweisen.</string>
+    <string name="vehicle_name">Fahrzeugname</string>
+    <string name="vehicle_example">z. B. Škoda Karoq</string>
+    <string name="license_plate_optional">Kennzeichen (optional)</string>
+    <string name="vehicle_step_one">Schritt 1 von 2 · Fahrzeugdaten</string>
+    <string name="create_vehicle">Fahrzeug anlegen</string>
+</resources>
