@@ -90,7 +90,7 @@ fun TripsScreen(viewModel: AppViewModel) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("${trip.startAddress ?: "Start"} → ${trip.endAddress ?: "Ziel"}", fontWeight = FontWeight.Bold)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("${trip.tripType.label} · ${state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()}")
+                        Text("${localizedTripType(trip.tripType)} · ${state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()}")
                         Surface(
                             shape = RoundedCornerShape(50),
                             color = if (trip.syncState == "SYNCED") MaterialTheme.colorScheme.secondaryContainer
@@ -143,7 +143,7 @@ private fun TripDetailsDialog(
                 Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
                 Text("${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}")
                 Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold)
-                FilterMenu("Kategorie", TripType.entries.map { it.apiValue to it.label }, trip.tripType.apiValue) { chosen ->
+                FilterMenu("Kategorie", TripType.entries.map { it.apiValue to localizedTripType(it) }, trip.tripType.apiValue) { chosen ->
                     TripType.entries.firstOrNull { it.apiValue == chosen }?.let(onCategory)
                 }
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -187,4 +187,12 @@ private fun TripRouteMap(points: List<TrackPoint>) {
             } }
         )
     }
+}
+
+@Composable
+private fun localizedTripType(type: TripType): String = when (type) {
+    TripType.BUSINESS -> stringResource(R.string.trip_business)
+    TripType.PRIVATE -> stringResource(R.string.trip_private)
+    TripType.COMMUTE -> stringResource(R.string.trip_commute)
+    TripType.UNCLASSIFIED -> stringResource(R.string.trip_unclassified)
 }
