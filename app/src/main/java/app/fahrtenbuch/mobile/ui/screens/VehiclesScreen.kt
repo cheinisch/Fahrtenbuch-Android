@@ -78,8 +78,8 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("Fahrzeuge", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text("Fahrzeuge laden und Bluetooth zuweisen", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.vehicles), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.vehicles_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Row {
                     IconButton(onClick = { showVehicleWizard = true }, enabled = !state.loading) {
@@ -113,7 +113,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                         Button(onClick = { showVehicleWizard = true }) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Erstes Fahrzeug einrichten")
+                            Text(stringResource(R.string.setup_first_vehicle))
                         }
                     }
                 }
@@ -221,11 +221,11 @@ private fun BluetoothAssignmentDialog(
         title = { Text("Bluetooth für ${vehicle.name}") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Wähle ein bereits mit Android gekoppeltes Bluetooth-Gerät aus.")
+                Text(stringResource(R.string.choose_bluetooth))
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
                 if (devices.isEmpty()) {
-                    Text("Keine gekoppelten Geräte gefunden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.no_paired_devices), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     LazyColumn(
                         state = deviceListState,
@@ -252,7 +252,7 @@ private fun BluetoothAssignmentDialog(
                 }
 
                 TextButton(onClick = onRefresh, enabled = !loading) {
-                    Text("Gekoppelte Geräte neu laden")
+                    Text(stringResource(R.string.reload_paired_devices))
                 }
 
                 HorizontalDivider()
@@ -262,11 +262,11 @@ private fun BluetoothAssignmentDialog(
                         manualMac = it
                         selectedMac = it.ifBlank { null }
                     },
-                    label = { Text("MAC-Adresse manuell") },
+                    label = { Text(stringResource(R.string.manual_mac)) },
                     placeholder = { Text("AA:BB:CC:DD:EE:FF") },
                     isError = !manualValid,
                     supportingText = {
-                        if (!manualValid) Text("Format: AA:BB:CC:DD:EE:FF")
+                        if (!manualValid) Text(stringResource(R.string.mac_format))
                     },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -274,7 +274,7 @@ private fun BluetoothAssignmentDialog(
 
                 if (vehicle.bluetoothMac != null) {
                     TextButton(onClick = { onSave(null) }, enabled = !loading) {
-                        Text("Zuordnung entfernen")
+                        Text(stringResource(R.string.remove_assignment))
                     }
                 }
             }
@@ -285,11 +285,11 @@ private fun BluetoothAssignmentDialog(
                 enabled = !loading && normalizedManual.isNotBlank() && manualValid
             ) {
                 if (loading) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                else Text("Speichern")
+                else Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !loading) { Text("Abbrechen") }
+            TextButton(onClick = onDismiss, enabled = !loading) { Text(stringResource(R.string.cancel)) }
         }
     )
 }
@@ -325,15 +325,15 @@ private fun VehicleSetupWizard(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Fahrzeug einrichten") },
+        title = { Text(stringResource(R.string.setup_vehicle)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Lege dein Fahrzeug an. Anschließend kannst du direkt das Bluetooth-Gerät des Fahrzeugs zuweisen.")
+                Text(stringResource(R.string.setup_vehicle_description))
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Fahrzeugname") },
-                    placeholder = { Text("z. B. Škoda Karoq") },
+                    label = { Text(stringResource(R.string.vehicle_name)) },
+                    placeholder = { Text(stringResource(R.string.vehicle_example)) },
                     singleLine = true,
                     enabled = !loading,
                     modifier = Modifier.fillMaxWidth()
@@ -341,7 +341,7 @@ private fun VehicleSetupWizard(
                 OutlinedTextField(
                     value = licensePlate,
                     onValueChange = { licensePlate = it.uppercase() },
-                    label = { Text("Kennzeichen (optional)") },
+                    label = { Text(stringResource(R.string.license_plate_optional)) },
                     placeholder = { Text("RÜD-AB 123") },
                     singleLine = true,
                     enabled = !loading,
@@ -361,11 +361,11 @@ private fun VehicleSetupWizard(
                 enabled = name.isNotBlank() && !loading
             ) {
                 if (loading) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                else Text("Fahrzeug anlegen")
+                else Text(stringResource(R.string.create_vehicle))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !loading) { Text("Abbrechen") }
+            TextButton(onClick = onDismiss, enabled = !loading) { Text(stringResource(R.string.cancel)) }
         }
     )
 }
