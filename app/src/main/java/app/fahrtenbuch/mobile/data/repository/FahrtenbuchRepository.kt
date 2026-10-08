@@ -235,8 +235,13 @@ class FahrtenbuchRepository(
     fun requestSync() = SyncScheduler.enqueue(context)
 
     private suspend fun mergeLocalTrips(remote: List<Trip>): List<Trip> {
-        val local = dao.pendingTrips().map { it.toUiTrip(it.endedAt) }
-        return (local + remote).distinctBy { it.id }.sortedByDescending { it.startedAt }
+        val pending = dao.pendingTrips()
+        // A server-side recording is not fully synced while its local stop is pending.
+        val pendingRemoteIds = pending.mapNotNull { it.remoteId }.toSet()
+        val local = pending.map { it.toUiTrip(it.endedAt) }
+        return (local + remote.filterNot { it.id in pendingRemoteIds })
+            .distinctBy { it.id }
+            .sortedByDescending { it.startedAt }
     }
 }
 
@@ -246,7 +251,8 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     tripType = TripType.entries.firstOrNull { it.apiValue == type } ?: TripType.UNCLASSIFIED,
     status = if (end == null) "recording" else "completed",
     startedAt = startedAt,
-    endedAt = end
+    endedAt = end,
+    syncState = "PENDING"
 )
 
 
