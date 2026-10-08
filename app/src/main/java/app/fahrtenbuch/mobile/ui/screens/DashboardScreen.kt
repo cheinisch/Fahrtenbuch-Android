@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -36,12 +37,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.fahrtenbuch.mobile.location.TripTrackingService
 import app.fahrtenbuch.mobile.ui.AppViewModel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(viewModel: AppViewModel) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val latestTrip = state.trips.firstOrNull()
+    LaunchedEffect(latestTrip?.id, latestTrip?.syncState) {
+        if (latestTrip?.syncState == "SYNCED") viewModel.refreshLatestTripDetails()
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -109,9 +118,13 @@ fun DashboardScreen(viewModel: AppViewModel) {
                 Spacer(Modifier.height(8.dp))
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("${trip.startAddress ?: "Start"} → ${trip.endAddress ?: "Ziel"}", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "${trip.startAddress?.takeIf { it.isNotBlank() } ?: "Startort nicht verfügbar"} → " +
+                                (trip.endAddress?.takeIf { it.isNotBlank() } ?: "Zielort nicht verfügbar"),
+                            fontWeight = FontWeight.SemiBold
+                        )
                         Text("${trip.tripType.label} · ${trip.vehicleName}")
-                        Text("${trip.distanceKm ?: 0.0} km · ${trip.startedAt}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("${trip.distanceKm ?: 0.0} km · ${formatTripDate(trip.startedAt)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -128,3 +141,8 @@ private fun stopTrackingService(context: Context) {
     val intent = Intent(context, TripTrackingService::class.java).setAction(TripTrackingService.ACTION_STOP)
     context.startService(intent)
 }
+
+private fun formatTripDate(value: String): String = runCatching {
+    val date = Instant.parse(value).atZone(ZoneId.systemDefault())
+    DateTimeFormatter.ofPattern("dd.MM.yyyy 'um' HH:mm 'Uhr'", Locale.GERMANY).format(date)
+}.getOrElse { value }
