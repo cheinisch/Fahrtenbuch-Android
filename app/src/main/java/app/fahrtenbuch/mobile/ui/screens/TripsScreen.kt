@@ -1,6 +1,5 @@
 package app.fahrtenbuch.mobile.ui.screens
 
-import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,7 +25,10 @@ import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.ui.AppViewModel
-import org.json.JSONArray
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 
 @Composable
 private fun FilterMenu(label: String, options: List<Pair<String, String>>, value: String, onSelect: (String) -> Unit) {
@@ -216,36 +218,61 @@ private fun TripDetailsScreen(
 }
 
 @Composable
-private fun TripRouteMap(points: List<TrackPoint>, modifier: Modifier = Modifier.fillMaxWidth().height(240.dp)) {
-    val route = remember(points) {
-        JSONArray().apply {
-            points.forEach { put(JSONArray().put(it.lat).put(it.lon)) }
-        }.toString()
-    }
-    val html = remember(route) {
-        """
-        <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-        <style>html,body,#map{height:100%;margin:0}</style></head><body><div id="map"></div>
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script>
-        const pts=$route;
-        const map=L.map('map');
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
-        const line=L.polyline(pts,{color:'#2563eb',weight:4}).addTo(map);
-        if(pts.length){L.marker(pts[0]).addTo(map);L.marker(pts[pts.length-1]).addTo(map);map.fitBounds(line.getBounds(),{padding:[20,20],maxZoom:16});}
-        </script></body></html>
-        """.trimIndent()
-    }
-    key(route) {
-        AndroidView(
-            modifier = modifier,
-            factory = { context -> WebView(context).apply {
-                settings.javaScriptEnabled = true
-                loadDataWithBaseURL("https://unpkg.com/", html, "text/html", "UTF-8", null)
-            } }
-        )
-    }
+private fun TripRouteMap(
+    points: List<TrackPoint>,
+    modifier: Modifier = Modifier.fillMaxWidth().height(240.dp)
+) {
+    val geoPoints = remember(points) { points.map { GeoPoint(it.lat, it.lon) } }
+
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            MapView(context).apply {
+                setMultiTouchControls(true)
+                minZoomLevel = 3.0
+                maxZoomLevel = 20.0
+            }
+        },
+        update = { map ->
+            map.overlays.clear()
+
+            if (geoPoints.isNotEmpty()) {
+                val route = Polyline(map).apply {
+                    setPoints(geoPoints)
+                    outlinePaint.strokeWidth = 8f
+                    outlinePaint.color = android.graphics.Color.rgb(37, 99, 235)
+                }
+                map.overlays.add(route)
+
+                Marker(map).apply {
+                    position = geoPoints.first()
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    title = "Start"
+                    map.overlays.add(this)
+                }
+
+                if (geoPoints.size > 1) {
+                    Marker(map).apply {
+                        position = geoPoints.last()
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        title = "Ziel"
+                        map.overlays.add(this)
+                    }
+                }
+
+                if (geoPoints.size == 1) {
+                    map.controller.setZoom(16.0)
+                    map.controller.setCenter(geoPoints.first())
+                } else {
+                    map.post {
+                        map.zoomToBoundingBox(route.bounds, true, 64)
+                    }
+                }
+            }
+
+            map.invalidate()
+        }
+    )
 }
 
 @Composable
