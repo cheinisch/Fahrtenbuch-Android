@@ -10,7 +10,12 @@ class SessionStore(context: Context) {
     private val prefs = context.getSharedPreferences("fahrtenbuch_session", Context.MODE_PRIVATE)
 
     var appMode: AppMode
-        get() = runCatching { AppMode.valueOf(prefs.getString("app_mode", AppMode.UNSET.name) ?: AppMode.UNSET.name) }.getOrDefault(AppMode.UNSET)
+        get() {
+            val saved = prefs.getString("app_mode", null)
+            if (saved != null) return runCatching { AppMode.valueOf(saved) }.getOrDefault(AppMode.UNSET)
+            // Existing installations before app modes were introduced are server installations.
+            return if (prefs.getBoolean("server_configured", false)) AppMode.SERVER else AppMode.UNSET
+        }
         set(value) { prefs.edit().putString("app_mode", value.name).apply() }
 
     val setupCompleted: Boolean get() = appMode != AppMode.UNSET
