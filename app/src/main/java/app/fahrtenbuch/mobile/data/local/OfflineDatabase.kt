@@ -84,12 +84,14 @@ interface OfflineDao {
     @Query("SELECT * FROM vehicles WHERE id=:id") suspend fun vehicle(id: String): VehicleEntity?
     @Query("SELECT * FROM vehicles WHERE bluetoothMac=:mac COLLATE NOCASE LIMIT 1") suspend fun vehicleByBluetooth(mac: String): VehicleEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putVehicle(value: VehicleEntity)
+    @Query("UPDATE vehicles SET bluetoothMac=:mac, updatedAt=:updatedAt WHERE id=:id") suspend fun setVehicleBluetooth(id: String, mac: String?, updatedAt: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putVehicles(values: List<VehicleEntity>)
     @Query("DELETE FROM vehicles") suspend fun clearVehicles()
 
     @Query("SELECT * FROM trips ORDER BY startedAt DESC") suspend fun trips(): List<TripEntity>
     @Query("SELECT * FROM trips WHERE id=:id") suspend fun storedTrip(id: String): TripEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecord(value: TripEntity)
+    @Query("UPDATE offline_trips SET type=:type WHERE localId=:id") suspend fun setLocalTripType(id: String, type: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecords(values: List<TripEntity>)
     @Query("DELETE FROM trips") suspend fun clearTripRecords()
 
