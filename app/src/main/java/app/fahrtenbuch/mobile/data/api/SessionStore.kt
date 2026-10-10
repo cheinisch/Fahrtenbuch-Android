@@ -4,8 +4,29 @@ import android.content.Context
 import app.fahrtenbuch.mobile.BuildConfig
 import java.util.UUID
 
+enum class AppMode { UNSET, LOCAL, SERVER }
+
 class SessionStore(context: Context) {
     private val prefs = context.getSharedPreferences("fahrtenbuch_session", Context.MODE_PRIVATE)
+
+    var appMode: AppMode
+        get() = runCatching { AppMode.valueOf(prefs.getString("app_mode", AppMode.UNSET.name) ?: AppMode.UNSET.name) }.getOrDefault(AppMode.UNSET)
+        set(value) { prefs.edit().putString("app_mode", value.name).apply() }
+
+    val setupCompleted: Boolean get() = appMode != AppMode.UNSET
+    val isLocalMode: Boolean get() = appMode == AppMode.LOCAL
+    val isServerMode: Boolean get() = appMode == AppMode.SERVER
+
+    fun selectLocalMode() {
+        prefs.edit()
+            .putString("app_mode", AppMode.LOCAL.name)
+            .putBoolean("server_configured", false)
+            .remove("access_token")
+            .remove("refresh_token")
+            .apply()
+    }
+
+    fun selectServerMode() { appMode = AppMode.SERVER }
 
     var baseUrl: String
         get() = prefs.getString("base_url", BuildConfig.DEFAULT_API_URL) ?: BuildConfig.DEFAULT_API_URL
@@ -13,6 +34,7 @@ class SessionStore(context: Context) {
             prefs.edit()
                 .putString("base_url", normalize(value))
                 .putBoolean("server_configured", true)
+                .putString("app_mode", AppMode.SERVER.name)
                 .apply()
         }
 
@@ -42,7 +64,7 @@ class SessionStore(context: Context) {
         }
 
     val hasAuthenticatedSession: Boolean
-        get() = serverConfigured && !refreshToken.isNullOrBlank()
+        get() = isServerMode && serverConfigured && !refreshToken.isNullOrBlank()
 
     fun completeLogin(accessToken: String, refreshToken: String): Boolean =
         prefs.edit()
@@ -54,6 +76,7 @@ class SessionStore(context: Context) {
         prefs.edit()
             .putString("base_url", normalize(serverUrl))
             .putBoolean("server_configured", true)
+            .putString("app_mode", AppMode.SERVER.name)
             .putString("access_token", accessToken)
             .putString("refresh_token", refreshToken)
             .commit()
