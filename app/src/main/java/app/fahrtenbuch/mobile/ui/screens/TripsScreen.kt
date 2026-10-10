@@ -162,11 +162,10 @@ private fun TripDetailsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     "${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}",
@@ -179,9 +178,8 @@ private fun TripDetailsScreen(
                     Text("Strecke: ${trip.distanceKm ?: "–"} km")
                     Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
                 }
-                Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold)
                 FilterMenu(
-                    "Kategorie",
+                    stringResource(R.string.category),
                     TripType.entries.map { it.apiValue to localizedTripType(it) },
                     trip.tripType.apiValue
                 ) { chosen ->
@@ -197,17 +195,22 @@ private fun TripDetailsScreen(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
             )
-            if (points.isNotEmpty()) {
-                TripRouteMap(points, Modifier.fillMaxWidth().height(430.dp))
-            } else if (!loading) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(260.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(stringResource(R.string.no_gps_route))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    points.isNotEmpty() -> TripRouteMap(
+                        points,
+                        Modifier.fillMaxSize()
+                    )
+                    loading -> CircularProgressIndicator()
+                    else -> Text(stringResource(R.string.no_gps_route))
                 }
             }
-            Spacer(Modifier.height(20.dp))
         }
     }
 }
