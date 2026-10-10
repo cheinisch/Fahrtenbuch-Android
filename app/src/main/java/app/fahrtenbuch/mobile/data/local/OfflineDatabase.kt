@@ -92,6 +92,7 @@ interface OfflineDao {
     @Query("SELECT * FROM trips WHERE id=:id") suspend fun storedTrip(id: String): TripEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecord(value: TripEntity)
     @Query("UPDATE offline_trips SET type=:type WHERE localId=:id") suspend fun setLocalTripType(id: String, type: String)
+    @Query("UPDATE offline_trips SET vehicleId=:newVehicleId WHERE vehicleId=:oldVehicleId") suspend fun remapOfflineTripsVehicle(oldVehicleId: String, newVehicleId: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecords(values: List<TripEntity>)
     @Query("DELETE FROM trips") suspend fun clearTripRecords()
 
