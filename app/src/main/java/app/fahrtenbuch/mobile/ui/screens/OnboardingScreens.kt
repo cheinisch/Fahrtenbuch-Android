@@ -30,7 +30,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 import org.json.JSONObject
 
 @Composable
-fun WelcomeScreen(onConnect: () -> Unit) {
+fun WelcomeScreen(onLocal: () -> Unit, onConnect: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -43,17 +43,21 @@ fun WelcomeScreen(onConnect: () -> Unit) {
         Text(stringResource(R.string.your_trips_data), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(22.dp))
         Text(
-            "Verbinde die App mit deinem selbst gehosteten Fahrtenbuch-Server und melde dieses Gerät sicher an.",
+            stringResource(R.string.setup_mode_description),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.weight(1f))
-        Button(onClick = onConnect, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
+        Button(onClick = onLocal, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
+            Text(stringResource(R.string.use_local_only), fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = onConnect, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
             Text(stringResource(R.string.connect_server), fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(16.dp))
-        Text(stringResource(R.string.self_hosted), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.local_mode_help), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         Spacer(Modifier.height(18.dp))
     }
 }
