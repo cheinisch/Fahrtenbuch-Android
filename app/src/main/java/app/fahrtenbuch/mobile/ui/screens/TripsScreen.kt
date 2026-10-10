@@ -147,73 +147,81 @@ private fun TripDetailsScreen(
     onCategory: (TripType) -> Unit
 ) {
     BackHandler(onBack = onBack)
+    val scrollState = rememberScrollState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.trip_details)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    "${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text("Start: ${trip.startedAt}")
-                Text("Ende: ${trip.endedAt ?: "Läuft"}")
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    Text("Strecke: ${trip.distanceKm ?: "–"} km")
-                    Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
-                }
-                FilterMenu(
-                    stringResource(R.string.category),
-                    TripType.entries.map { it.apiValue to localizedTripType(it) },
-                    trip.tripType.apiValue
-                ) { chosen ->
-                    TripType.entries.firstOrNull { it.apiValue == chosen }?.let(onCategory)
-                }
-                if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            IconButton(onClick = onBack) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
             }
-
             Text(
-                "Strecke",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                stringResource(R.string.trip_details),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(start = 8.dp)
             )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                when {
-                    points.isNotEmpty() -> TripRouteMap(
-                        points,
-                        Modifier.fillMaxSize()
-                    )
-                    loading -> CircularProgressIndicator()
-                    else -> Text(stringResource(R.string.no_gps_route))
-                }
-            }
         }
+
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text("Start: ${trip.startedAt}")
+            Text("Ende: ${trip.endedAt ?: "Läuft"}")
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                Text("Strecke: ${trip.distanceKm ?: "–"} km")
+                Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
+            }
+            FilterMenu(
+                stringResource(R.string.category),
+                TripType.entries.map { it.apiValue to localizedTripType(it) },
+                trip.tripType.apiValue
+            ) { chosen ->
+                TripType.entries.firstOrNull { it.apiValue == chosen }?.let(onCategory)
+            }
+            if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
+            error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        }
+
+        Text(
+            "Strecke",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+        )
+
+        when {
+            points.isNotEmpty() -> TripRouteMap(
+                points,
+                Modifier
+                    .fillMaxWidth()
+                    .height(520.dp)
+            )
+            loading -> Box(
+                Modifier.fillMaxWidth().height(320.dp),
+                contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator() }
+            else -> Box(
+                Modifier.fillMaxWidth().height(320.dp),
+                contentAlignment = Alignment.Center
+            ) { Text(stringResource(R.string.no_gps_route)) }
+        }
+
+        Spacer(Modifier.height(24.dp))
     }
 }
 
