@@ -39,6 +39,7 @@ import app.fahrtenbuch.mobile.ui.screens.WelcomeScreen
 import app.fahrtenbuch.mobile.ui.screens.VehiclesScreen
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
+import app.fahrtenbuch.mobile.data.api.AppMode
 
 private data class Destination(
     val route: String,
@@ -54,12 +55,17 @@ fun FahrtenbuchApp(
 ) {
     val state by appViewModel.state.collectAsState()
 
-    if (!state.serverConfigured) {
+    if (state.appMode == AppMode.UNSET) {
         FirstStartNavigation(appViewModel)
         return
     }
 
-    if (!state.loggedIn) {
+    if (state.appMode == AppMode.SERVER && !state.serverConfigured) {
+        FirstStartNavigation(appViewModel)
+        return
+    }
+
+    if (state.appMode == AppMode.SERVER && !state.loggedIn) {
         LoginScreen(appViewModel)
         return
     }
@@ -124,7 +130,10 @@ private fun FirstStartNavigation(viewModel: AppViewModel) {
 
     NavHost(navController = navController, startDestination = "welcome") {
         composable("welcome") {
-            WelcomeScreen(onConnect = { navController.navigate("connect") })
+            WelcomeScreen(
+                onLocal = { viewModel.chooseLocalMode() },
+                onConnect = { navController.navigate("connect") }
+            )
         }
         composable("connect") {
             ConnectServerScreen(
