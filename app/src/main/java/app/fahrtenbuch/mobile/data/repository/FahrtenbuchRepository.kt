@@ -45,6 +45,7 @@ class FahrtenbuchRepository(
         check(store.completeLogin(response.accessToken, response.refreshToken)) {
             "Die Anmeldung konnte nicht lokal gespeichert werden."
         }
+        migrateStandaloneDataIfNeeded()
         SyncScheduler.enqueue(context)
         return response.user
     }
@@ -70,6 +71,7 @@ class FahrtenbuchRepository(
                 refreshToken = response.refreshToken
             )
         ) { "Die Pairing-Sitzung konnte nicht lokal gespeichert werden." }
+        migrateStandaloneDataIfNeeded()
         SyncScheduler.enqueue(context)
     }
 
@@ -87,6 +89,7 @@ class FahrtenbuchRepository(
         check(store.completeLogin(response.accessToken, response.refreshToken)) {
             "Die Passkey-Anmeldung konnte nicht lokal gespeichert werden."
         }
+        migrateStandaloneDataIfNeeded()
         SyncScheduler.enqueue(context)
         return response.user
     }
@@ -207,6 +210,27 @@ class FahrtenbuchRepository(
      * Pulls the complete server snapshots into Room. UI code reads Room first;
      * this method only refreshes the local source of truth.
      */
+    private suspend fun migrateStandaloneDataIfNeeded() {
+        if (!store.migrationPending) return
+        val localVehicles = dao.vehicles()
+        val serverVehicles = api.getVehicles().toMutableList()
+
+        for (local in localVehicles.filter { it.syncState == "LOCAL" }) {
+            val existing = serverVehicles.firstOrNull { remote ->
+                (!local.licensePlate.isNullOrBlank() && remote.licensePlate.equals(local.licensePlate, ignoreCase = true)) ||
+                    remote.name.equals(local.name, ignoreCase = true)
+            }
+            val remote = existing ?: api.createVehicle(CreateVehicleRequest(local.name, local.licensePlate)).also(serverVehicles::add)
+            dao.remapOfflineTripsVehicle(local.id, remote.id)
+            if (!local.bluetoothMac.isNullOrBlank() && remote.bluetoothMac.isNullOrBlank()) {
+                runCatching { api.setBluetooth(remote.id, BluetoothMacRequest(local.bluetoothMac)) }
+            }
+        }
+
+        dao.replaceVehicles(serverVehicles.map(Vehicle::toEntity))
+        store.completeMigration()
+    }
+
     suspend fun syncFromServer() {
         val remoteVehicles = api.getVehicles()
         val remoteTrips = api.getTrips(limit = 500)
