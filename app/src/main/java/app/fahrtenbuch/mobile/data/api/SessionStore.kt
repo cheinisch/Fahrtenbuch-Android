@@ -16,6 +16,9 @@ class SessionStore(context: Context) {
     val setupCompleted: Boolean get() = appMode != AppMode.UNSET
     val isLocalMode: Boolean get() = appMode == AppMode.LOCAL
     val isServerMode: Boolean get() = appMode == AppMode.SERVER
+    var migrationPending: Boolean
+        get() = prefs.getBoolean("migration_pending", false)
+        set(value) { prefs.edit().putBoolean("migration_pending", value).apply() }
 
     fun selectLocalMode() {
         prefs.edit()
@@ -26,7 +29,12 @@ class SessionStore(context: Context) {
             .apply()
     }
 
-    fun selectServerMode() { appMode = AppMode.SERVER }
+    fun selectServerMode() {
+        if (isLocalMode) migrationPending = true
+        appMode = AppMode.SERVER
+    }
+
+    fun completeMigration() { migrationPending = false }
 
     var baseUrl: String
         get() = prefs.getString("base_url", BuildConfig.DEFAULT_API_URL) ?: BuildConfig.DEFAULT_API_URL
