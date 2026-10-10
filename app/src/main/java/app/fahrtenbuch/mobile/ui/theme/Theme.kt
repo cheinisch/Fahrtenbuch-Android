@@ -35,21 +35,21 @@ data class FahrtenbuchColors(
 val FahrtenbuchLightColors = FahrtenbuchColors(
     main = Color(0xFFFFFFFF),
     text = Color(0xFF1A1A1A),
-    accent = Color(0xFFF59E0B),
-    accentSecondary = Color(0xFFFFE0A3),
-    accentText = Color(0xFF111111),
-    surface = Color(0xFFF6F6F6),
-    border = Color(0xFFD9D9D9)
+    accent = Color(0xFF0EA5E9), // Tailwind sky-500
+    accentSecondary = Color(0xFFE0F2FE), // sky-100
+    accentText = Color(0xFFFFFFFF),
+    surface = Color(0xFFF8FAFC), // slate-50
+    border = Color(0xFFE2E8F0) // slate-200
 )
 
 val FahrtenbuchDarkColors = FahrtenbuchColors(
     main = Color(0xFF121212),
     text = Color(0xFFF5F5F5),
-    accent = Color(0xFFF59E0B),
-    accentSecondary = Color(0xFF5C4308),
-    accentText = Color(0xFF111111),
-    surface = Color(0xFF1E1E1E),
-    border = Color(0xFF3C3C3C)
+    accent = Color(0xFF0284C7), // Tailwind sky-600
+    accentSecondary = Color(0xFF0C4A6E), // sky-900
+    accentText = Color(0xFFFFFFFF),
+    surface = Color(0xFF1E293B), // slate-800
+    border = Color(0xFF334155) // slate-700
 )
 
 private val LocalFahrtenbuchColors = staticCompositionLocalOf { FahrtenbuchLightColors }
