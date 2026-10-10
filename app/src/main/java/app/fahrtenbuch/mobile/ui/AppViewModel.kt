@@ -82,6 +82,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         refresh()
     }
 
+    fun startServerMigrationSetup() {
+        store.beginServerMigration()
+        _state.value = _state.value.copy(appMode = AppMode.UNSET, loggedIn = false, error = null)
+    }
+
     fun configureServer(url: String) {
         val normalizedInput = url.trim()
         require(normalizedInput.startsWith("https://") || normalizedInput.startsWith("http://")) {
