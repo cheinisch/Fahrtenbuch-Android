@@ -228,6 +228,12 @@ interface FahrtenbuchApi {
         @Body request: TripInput
     ): Trip
 
+    @PUT("trips/{id}/classify")
+    suspend fun classifyTrip(
+        @Path("id") id: Uuid,
+        @Body request: Map<String, String>
+    ): Trip
+
     @DELETE("trips/{id}")
     suspend fun deleteTrip(
         @Path("id") id: Uuid
