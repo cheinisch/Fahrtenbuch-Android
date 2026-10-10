@@ -216,20 +216,9 @@ class FahrtenbuchRepository(
     suspend fun tripPoints(id: Uuid): List<TrackPoint> = api.tripPoints(id)
 
     suspend fun updateTripCategory(trip: Trip, type: TripType): Trip {
-        val updated = api.updateTrip(
-            trip.id,
-            TripInput(
-                vehicleId = trip.vehicleId,
-                tripType = type.apiValue,
-                startedAt = trip.startedAt,
-                endedAt = trip.endedAt,
-                startAddress = trip.startAddress,
-                endAddress = trip.endAddress,
-                purpose = trip.purpose,
-                contact = trip.contact,
-                notes = trip.note
-            )
-        )
+        // Classification must not overwrite GPS coordinates, timestamps,
+        // addresses or other trip metadata.
+        val updated = api.classifyTrip(trip.id, mapOf("category" to type.apiValue))
         dao.putTripRecord(updated.toEntity())
         return updated
     }
