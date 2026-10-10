@@ -93,4 +93,8 @@
     <string name="setup_mode_description">Wie möchtest du Fahrtenbuch verwenden? Du kannst zunächst vollständig lokal arbeiten und später auf einen Server migrieren.</string>
     <string name="use_local_only">Nur auf diesem Gerät</string>
     <string name="local_mode_help">Im lokalen Modus bleiben Fahrzeuge, Fahrten und GPS-Daten ausschließlich auf diesem Gerät.</string>
+    <string name="storage_mode">Speichermodus</string>
+    <string name="local_mode_title">Nur auf diesem Gerät</string>
+    <string name="local_mode_migration_help">Alle Daten liegen lokal. Du kannst sie über einen geführten Wechsel auf deinen Fahrtenbuch-Server migrieren.</string>
+    <string name="migrate_to_server">Zum Server wechseln</string>
 </resources>
