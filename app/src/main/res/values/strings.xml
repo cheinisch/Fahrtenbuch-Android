@@ -90,4 +90,7 @@
     <string name="trip_private">Private</string>
     <string name="trip_commute">Commute</string>
     <string name="trip_unclassified">Unclassified</string>
+    <string name="setup_mode_description">How would you like to use Fahrtenbuch? You can start fully local and migrate to a server later.</string>
+    <string name="use_local_only">Only on this device</string>
+    <string name="local_mode_help">In local mode, vehicles, trips and GPS data remain exclusively on this device.</string>
 </resources>
