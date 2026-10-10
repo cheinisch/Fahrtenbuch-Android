@@ -12,8 +12,8 @@ android {
         applicationId = "app.fahrtenbuch.mobile"
         minSdk = 29
         targetSdk = 36
-        versionCode = 14
-        versionName = "0.3.0"
+        versionCode = 16
+        versionName = "0.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -22,13 +22,7 @@ android {
 
     buildTypes {
         release {
-            // Generate an R8 mapping file for Play Console crash/ANR deobfuscation.
-            isMinifyEnabled = true
-            isShrinkResources = true
-            ndk {
-                // Package native symbol information for dependencies that ship .so files.
-                debugSymbolLevel = "SYMBOL_TABLE"
-            }
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
