@@ -22,7 +22,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Generate an R8 mapping file for Play Console crash/ANR deobfuscation.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            ndk {
+                // Package native symbol information for dependencies that ship .so files.
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
