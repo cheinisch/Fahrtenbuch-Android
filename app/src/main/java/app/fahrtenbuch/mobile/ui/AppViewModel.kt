@@ -8,6 +8,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import app.fahrtenbuch.mobile.data.api.ApiFactory
 import app.fahrtenbuch.mobile.data.api.SessionStore
+import app.fahrtenbuch.mobile.data.api.AppMode
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
 import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
@@ -23,6 +24,7 @@ import kotlinx.coroutines.launch
 
 data class AppUiState(
     val loading: Boolean = true,
+    val appMode: AppMode = AppMode.UNSET,
     val vehicles: List<Vehicle> = emptyList(),
     val trips: List<Trip> = emptyList(),
     val tripPoints: List<TrackPoint> = emptyList(),
@@ -44,6 +46,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(
         AppUiState(
             loading = false,
+            appMode = store.appMode,
             serverConfigured = store.serverConfigured,
             serverUrl = store.baseUrl,
             loggedIn = store.refreshToken != null
@@ -64,10 +67,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
         }
-        if (store.serverConfigured && store.refreshToken != null) {
+        if (store.isServerMode && store.serverConfigured && store.refreshToken != null) {
             refresh()
             loadAccount()
+        } else if (store.isLocalMode) {
+            refresh()
         }
+    }
+
+    fun chooseLocalMode() {
+        store.selectLocalMode()
+        SyncScheduler.cancel(getApplication())
+        _state.value = _state.value.copy(appMode = AppMode.LOCAL, serverConfigured = false, loggedIn = true, error = null)
+        refresh()
     }
 
     fun configureServer(url: String) {
@@ -75,9 +87,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         require(normalizedInput.startsWith("https://") || normalizedInput.startsWith("http://")) {
             "Die Serveradresse muss mit https:// oder http:// beginnen."
         }
+        store.selectServerMode()
         store.baseUrl = normalizedInput
         repository = FahrtenbuchRepository(getApplication(), ApiFactory.create(store), store)
         _state.value = _state.value.copy(
+            appMode = AppMode.SERVER,
             serverConfigured = true,
             serverUrl = store.baseUrl,
             loggedIn = false,
@@ -293,6 +307,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refresh() {
+        if (store.isLocalMode) {
+            viewModelScope.launch {
+                val vehicles = repository.vehicles(forceNetwork = false)
+                val trips = repository.trips(forceNetwork = false)
+                applyLocalData(vehicles, trips, loading = false)
+                _state.value = _state.value.copy(error = null, vehiclesLoadedFromServer = false)
+            }
+            return
+        }
         if (!store.serverConfigured || store.refreshToken == null) return
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
@@ -376,7 +399,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadTripDetails(trip: Trip) {
         _state.value = _state.value.copy(tripPoints = emptyList(), tripDetailsLoading = true, tripDetailsError = null)
-        if (trip.syncState != "SYNCED") {
+        if (!store.isLocalMode && trip.syncState != "SYNCED") {
             _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = "Die Route ist erst nach vollständiger Synchronisierung verfügbar.")
             return
         }
@@ -388,7 +411,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateTripCategory(trip: Trip, type: TripType) {
-        if (trip.syncState != "SYNCED") {
+        if (!store.isLocalMode && trip.syncState != "SYNCED") {
             _state.value = _state.value.copy(tripDetailsError = "Bitte die Fahrt zuerst synchronisieren.")
             return
         }
@@ -406,7 +429,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun syncNow() {
-        if (!store.hasAuthenticatedSession) return
+        if (!store.isServerMode || !store.hasAuthenticatedSession) return
         SyncScheduler.pushIfOnline(getApplication())
         refresh()
     }
