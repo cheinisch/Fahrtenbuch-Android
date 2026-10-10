@@ -440,6 +440,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadVehicles() {
+        if (store.isLocalMode) { refresh(); return }
         if (!store.hasAuthenticatedSession) return
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
