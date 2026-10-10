@@ -149,6 +149,12 @@ class FahrtenbuchRepository(
     }
 
     suspend fun createVehicle(name: String, licensePlate: String?): Vehicle {
+        if (store.isLocalMode) {
+            val now = Instant.now().toString()
+            val created = Vehicle(UUID.randomUUID().toString(), name.trim(), licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() }, createdAt = now, updatedAt = now)
+            dao.putVehicle(created.toEntity().copy(syncState = "LOCAL"))
+            return created
+        }
         val created = api.createVehicle(
             CreateVehicleRequest(
                 name = name.trim(),
@@ -164,6 +170,12 @@ class FahrtenbuchRepository(
             ?.trim()
             ?.uppercase()
             ?.takeIf { it.isNotBlank() }
+        if (store.isLocalMode) {
+            val current = dao.vehicle(vehicleId) ?: error("Lokales Fahrzeug nicht gefunden")
+            val now = Instant.now().toString()
+            dao.setVehicleBluetooth(vehicleId, normalized, now)
+            return current.copy(bluetoothMac = normalized, updatedAt = now).toModel()
+        }
         val updated = api.setBluetooth(vehicleId, BluetoothMacRequest(normalized))
         dao.putVehicle(updated.toEntity())
         return updated
@@ -211,11 +223,19 @@ class FahrtenbuchRepository(
         dao.putCache(CacheEntity("trips", tripAdapter.toJson(remoteTrips), now))
     }
 
-    suspend fun getTripDetails(id: Uuid): Trip = api.getTrip(id)
+    suspend fun getTripDetails(id: Uuid): Trip = if (store.isLocalMode) {
+        dao.trip(id)?.toUiTrip(dao.trip(id)?.endedAt) ?: dao.storedTrip(id)?.toModel() ?: error("Lokale Fahrt nicht gefunden")
+    } else api.getTrip(id)
 
-    suspend fun tripPoints(id: Uuid): List<TrackPoint> = api.tripPoints(id)
+    suspend fun tripPoints(id: Uuid): List<TrackPoint> = if (store.isLocalMode) {
+        dao.points(id).map { TrackPoint(id = it.id.toString(), tripId = id, lat = it.lat, lon = it.lon, altitude = it.altitude, accuracy = it.accuracy, speed = it.speed, bearing = it.bearing, recordedAt = it.recordedAt) }
+    } else api.tripPoints(id)
 
     suspend fun updateTripCategory(trip: Trip, type: TripType): Trip {
+        if (store.isLocalMode) {
+            dao.setLocalTripType(trip.id, type.apiValue)
+            return trip.copy(tripType = type, syncState = "LOCAL")
+        }
         // Classification must not overwrite GPS coordinates, timestamps,
         // addresses or other trip metadata.
         val updated = api.classifyTrip(trip.id, mapOf("category" to type.apiValue))
@@ -231,7 +251,7 @@ class FahrtenbuchRepository(
         val now = Instant.now().toString()
         dao.putTrip(OfflineTripEntity(localId, null, vehicleId, type.apiValue, now, null, "RECORDING"))
         store.activeTripId = localId
-        SyncScheduler.enqueue(context)
+        if (store.isServerMode) SyncScheduler.enqueue(context)
         return localId
     }
 
@@ -240,11 +260,11 @@ class FahrtenbuchRepository(
         val endedAt = Instant.now().toString()
         dao.putTrip(local.copy(endedAt = endedAt, state = "STOPPED", pendingStop = true))
         store.activeTripId = null
-        SyncScheduler.enqueue(context)
-        return local.toUiTrip(endedAt)
+        if (store.isServerMode) SyncScheduler.enqueue(context)
+        return local.toUiTrip(endedAt).copy(syncState = if (store.isLocalMode) "LOCAL" else "PENDING")
     }
 
-    fun requestSync() = SyncScheduler.enqueue(context)
+    fun requestSync() { if (store.isServerMode) SyncScheduler.enqueue(context) }
 
     private suspend fun mergeLocalTrips(remote: List<Trip>): List<Trip> {
         val pending = dao.pendingTrips()
@@ -253,14 +273,14 @@ class FahrtenbuchRepository(
         // Never label a server-side recording as fully synchronized.
         val local = pending.map { session ->
             val serverTrip = session.remoteId?.let { id -> remote.firstOrNull { it.id == id } }
-            if (serverTrip != null && serverTrip.status == "completed" &&
+            if (store.isServerMode && serverTrip != null && serverTrip.status == "completed" &&
                 session.pendingStop && session.endedAt != null
             ) {
                 // The stop response can be lost after the server committed the trip.
                 dao.markTripSynced(session.localId)
                 serverTrip
             } else {
-                session.toUiTrip(session.endedAt)
+                session.toUiTrip(session.endedAt).copy(syncState = if (store.isLocalMode) "LOCAL" else if (session.syncError != null) "FAILED" else "PENDING")
             }
         }
         return (local + remote.filterNot { it.id in pendingRemoteIds })
