@@ -90,4 +90,7 @@
     <string name="trip_private">Privat</string>
     <string name="trip_commute">Arbeitsweg</string>
     <string name="trip_unclassified">Nicht zugeordnet</string>
+    <string name="setup_mode_description">Wie möchtest du Fahrtenbuch verwenden? Du kannst zunächst vollständig lokal arbeiten und später auf einen Server migrieren.</string>
+    <string name="use_local_only">Nur auf diesem Gerät</string>
+    <string name="local_mode_help">Im lokalen Modus bleiben Fahrzeuge, Fahrten und GPS-Daten ausschließlich auf diesem Gerät.</string>
 </resources>
