@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.fahrtenbuch.mobile.BuildConfig
 import app.fahrtenbuch.mobile.data.api.SessionStore
+import app.fahrtenbuch.mobile.data.api.AppMode
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
@@ -113,6 +114,31 @@ fun SettingsScreen(
                     modifier = Modifier.padding(top = 12.dp)
                 ) {
                     Text(stringResource(R.string.edit_profile))
+                }
+            }
+        }
+
+        if (appState.appMode == AppMode.LOCAL) {
+            Text(
+                stringResource(R.string.storage_mode),
+                modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
+                fontWeight = FontWeight.SemiBold
+            )
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.local_mode_title), fontWeight = FontWeight.SemiBold)
+                    Text(
+                        stringResource(R.string.local_mode_migration_help),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    )
+                    OutlinedButton(onClick = { viewModel.startServerMigrationSetup() }) {
+                        Text(stringResource(R.string.migrate_to_server))
+                    }
                 }
             }
         }
