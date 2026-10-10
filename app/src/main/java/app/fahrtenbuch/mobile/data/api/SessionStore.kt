@@ -29,6 +29,11 @@ class SessionStore(context: Context) {
             .apply()
     }
 
+    fun beginServerMigration() {
+        migrationPending = true
+        appMode = AppMode.UNSET
+    }
+
     fun selectServerMode() {
         if (isLocalMode) migrationPending = true
         appMode = AppMode.SERVER
