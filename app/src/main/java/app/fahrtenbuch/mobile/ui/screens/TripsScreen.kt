@@ -1,22 +1,26 @@
 package app.fahrtenbuch.mobile.ui.screens
 
 import android.webkit.WebView
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.fahrtenbuch.mobile.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
 import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.TrackPoint
@@ -48,8 +52,21 @@ fun TripsScreen(viewModel: AppViewModel) {
     var tagFilter by remember { mutableStateOf("") }
     var fromDate by remember { mutableStateOf("") }
     var toDate by remember { mutableStateOf("") }
-    var selectedTripId by remember { mutableStateOf<String?>(null) }
+    var selectedTripId by rememberSaveable { mutableStateOf<String?>(null) }
     val selectedTrip = state.trips.firstOrNull { it.id == selectedTripId }
+
+    if (selectedTrip != null) {
+        TripDetailsScreen(
+            trip = selectedTrip,
+            points = state.tripPoints,
+            loading = state.tripDetailsLoading,
+            error = state.tripDetailsError,
+            onBack = { selectedTripId = null },
+            onCategory = { viewModel.updateTripCategory(selectedTrip, it) }
+        )
+        return
+    }
+
     val filtered = state.trips.filter { trip ->
         (vehicleFilter.isBlank() || trip.vehicleId == vehicleFilter) &&
         (tagFilter.isBlank() || tagFilter in trip.tags) &&
@@ -114,52 +131,88 @@ fun TripsScreen(viewModel: AppViewModel) {
             }
         }
     }
-    if (selectedTrip != null) {
-        TripDetailsDialog(
-            trip = selectedTrip,
-            points = state.tripPoints,
-            loading = state.tripDetailsLoading,
-            error = state.tripDetailsError,
-            onDismiss = { selectedTripId = null },
-            onCategory = { viewModel.updateTripCategory(selectedTrip, it) }
-        )
-    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TripDetailsDialog(
+private fun TripDetailsScreen(
     trip: Trip,
     points: List<TrackPoint>,
     loading: Boolean,
     error: String?,
-    onDismiss: () -> Unit,
+    onBack: () -> Unit,
     onCategory: (TripType) -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(stringResource(R.string.trip_details), style = MaterialTheme.typography.titleLarge)
+    BackHandler(onBack = onBack)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.trip_details)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    "${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
                 Text("Start: ${trip.startedAt}")
                 Text("Ende: ${trip.endedAt ?: "Läuft"}")
-                Text("Strecke: ${trip.distanceKm ?: "–"} km")
-                Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
-                Text("${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}")
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Text("Strecke: ${trip.distanceKm ?: "–"} km")
+                    Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
+                }
                 Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold)
-                FilterMenu("Kategorie", TripType.entries.map { it.apiValue to localizedTripType(it) }, trip.tripType.apiValue) { chosen ->
+                FilterMenu(
+                    "Kategorie",
+                    TripType.entries.map { it.apiValue to localizedTripType(it) },
+                    trip.tripType.apiValue
+                ) { chosen ->
                     TripType.entries.firstOrNull { it.apiValue == chosen }?.let(onCategory)
                 }
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                if (points.isNotEmpty()) TripRouteMap(points)
-                else if (!loading) Text(stringResource(R.string.no_gps_route))
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
             }
+
+            Text(
+                "Strecke",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+            )
+            if (points.isNotEmpty()) {
+                TripRouteMap(points, Modifier.fillMaxWidth().height(430.dp))
+            } else if (!loading) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(260.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(stringResource(R.string.no_gps_route))
+                }
+            }
+            Spacer(Modifier.height(20.dp))
         }
     }
 }
 
 @Composable
-private fun TripRouteMap(points: List<TrackPoint>) {
+private fun TripRouteMap(points: List<TrackPoint>, modifier: Modifier = Modifier.fillMaxWidth().height(240.dp)) {
     val route = remember(points) {
         JSONArray().apply {
             points.forEach { put(JSONArray().put(it.lat).put(it.lon)) }
@@ -182,7 +235,7 @@ private fun TripRouteMap(points: List<TrackPoint>) {
     }
     key(route) {
         AndroidView(
-            modifier = Modifier.fillMaxWidth().height(240.dp),
+            modifier = modifier,
             factory = { context -> WebView(context).apply {
                 settings.javaScriptEnabled = true
                 loadDataWithBaseURL("https://unpkg.com/", html, "text/html", "UTF-8", null)
