@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -154,38 +157,88 @@ private fun TripDetailsScreen(
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .height(470.dp)
         ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
+            when {
+                points.isNotEmpty() -> TripRouteMap(points, Modifier.fillMaxSize())
+                loading -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) { CircularProgressIndicator() }
+                else -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) { Text(stringResource(R.string.no_gps_route)) }
             }
-            Text(
-                stringResource(R.string.trip_details),
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(12.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                tonalElevation = 4.dp
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
+                    }
+                    Text(
+                        stringResource(R.string.trip_details),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(end = 18.dp)
+                    )
+                }
+            }
         }
 
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                "${trip.startAddress ?: "Start unbekannt"} → ${trip.endAddress ?: "Ziel unbekannt"}",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text("Start: ${trip.startedAt}")
-            Text("Ende: ${trip.endedAt ?: "Läuft"}")
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                Text("Strecke: ${trip.distanceKm ?: "–"} km")
-                Text("Dauer: ${trip.durationSeconds ?: "–"} Sekunden")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                TripMetric(
+                    value = "${formatDistance(trip.distanceKm)} km",
+                    label = "Strecke",
+                    modifier = Modifier.weight(1f)
+                )
+                TripMetric(
+                    value = formatDuration(trip.durationSeconds),
+                    label = "Dauer",
+                    modifier = Modifier.weight(1f)
+                )
+                TripMetric(
+                    value = localizedTripType(trip.tripType),
+                    label = stringResource(R.string.category),
+                    modifier = Modifier.weight(1f)
+                )
             }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            TripPlaceRow(
+                icon = Icons.Default.LocationOn,
+                title = "Start",
+                time = formatTripTime(trip.startedAt),
+                address = trip.startAddress ?: "Start unbekannt"
+            )
+            TripPlaceRow(
+                icon = Icons.Default.Flag,
+                title = "Ziel",
+                time = formatTripTime(trip.endedAt),
+                address = trip.endAddress ?: "Ziel unbekannt"
+            )
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold)
             FilterMenu(
                 stringResource(R.string.category),
                 TripType.entries.map { it.apiValue to localizedTripType(it) },
@@ -193,35 +246,103 @@ private fun TripDetailsScreen(
             ) { chosen ->
                 TripType.entries.firstOrNull { it.apiValue == chosen }?.let(onCategory)
             }
+
+            trip.vehicleName?.takeIf { it.isNotBlank() }?.let {
+                DetailLine("Fahrzeug", it)
+            }
+            trip.purpose?.takeIf { it.isNotBlank() }?.let {
+                DetailLine("Zweck", it)
+            }
+            trip.note?.takeIf { it.isNotBlank() }?.let {
+                DetailLine("Notiz", it)
+            }
+
             if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
 
-        Text(
-            "Strecke",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-        )
-
-        when {
-            points.isNotEmpty() -> TripRouteMap(
-                points,
-                Modifier
-                    .fillMaxWidth()
-                    .height(520.dp)
-            )
-            loading -> Box(
-                Modifier.fillMaxWidth().height(320.dp),
-                contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
-            else -> Box(
-                Modifier.fillMaxWidth().height(320.dp),
-                contentAlignment = Alignment.Center
-            ) { Text(stringResource(R.string.no_gps_route)) }
-        }
-
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun TripMetric(value: String, label: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun TripPlaceRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    time: String,
+    address: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(10.dp).size(20.dp)
+            )
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(title, fontWeight = FontWeight.SemiBold)
+                Text(time, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(address, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun DetailLine(label: String, value: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontWeight = FontWeight.Medium)
+    }
+}
+
+private fun formatDistance(distanceKm: Double?): String =
+    distanceKm?.let { String.format(java.util.Locale.getDefault(), "%.1f", it) } ?: "–"
+
+private fun formatDuration(seconds: Int?): String {
+    if (seconds == null) return "–"
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    return if (hours > 0) "${hours} h ${minutes} min" else "${minutes} min"
+}
+
+private fun formatTripTime(value: String?): String {
+    if (value.isNullOrBlank()) return "–"
+    return runCatching {
+        val instant = java.time.Instant.parse(value)
+        java.time.format.DateTimeFormatter
+            .ofPattern("HH:mm")
+            .withZone(java.time.ZoneId.systemDefault())
+            .format(instant)
+    }.getOrElse {
+        value.substringAfter('T', value).take(5)
     }
 }
 
@@ -248,7 +369,7 @@ private fun TripRouteMap(
                 val route = Polyline(map).apply {
                     setPoints(geoPoints)
                     outlinePaint.strokeWidth = 8f
-                    outlinePaint.color = android.graphics.Color.rgb(37, 99, 235)
+                    outlinePaint.color = android.graphics.Color.rgb(14, 165, 233)
                 }
                 map.overlays.add(route)
 
