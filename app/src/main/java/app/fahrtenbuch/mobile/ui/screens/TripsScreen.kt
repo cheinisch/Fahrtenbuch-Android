@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -160,107 +162,91 @@ private fun TripDetailsScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(470.dp)
+                .height(500.dp)
         ) {
             when {
                 points.isNotEmpty() -> TripRouteMap(points, Modifier.fillMaxSize())
-                loading -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
-                else -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) { Text(stringResource(R.string.no_gps_route)) }
+                loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.no_gps_route))
+                }
             }
 
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(12.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                tonalElevation = 4.dp
+                    .padding(16.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+                shadowElevation = 8.dp
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.padding(end = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
                     }
                     Text(
                         stringResource(R.string.trip_details),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(end = 18.dp)
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
         }
 
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                TripMetric(
-                    value = "${formatDistance(trip.distanceKm)} km",
-                    label = "Strecke",
-                    modifier = Modifier.weight(1f)
-                )
-                TripMetric(
-                    value = formatDuration(trip.durationSeconds),
-                    label = "Dauer",
-                    modifier = Modifier.weight(1f)
-                )
-                TripMetric(
-                    value = localizedTripType(trip.tripType),
-                    label = stringResource(R.string.category),
-                    modifier = Modifier.weight(1f)
-                )
+                TripMetric("${formatDistance(trip.distanceKm)} km", "Strecke", Modifier.weight(1f))
+                TripMetric(formatDuration(trip.durationSeconds), "Dauer", Modifier.weight(1f))
+                TripMetric(localizedTripType(trip.tripType), stringResource(R.string.category), Modifier.weight(1f))
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            TripPlacesCard(trip)
 
-            TripPlaceRow(
-                icon = Icons.Default.LocationOn,
-                title = "Start",
-                time = formatTripTime(trip.startedAt),
-                address = trip.startAddress ?: "Start unbekannt"
-            )
-            TripPlaceRow(
-                icon = Icons.Default.Flag,
-                title = "Ziel",
-                time = formatTripTime(trip.endedAt),
-                address = trip.endAddress ?: "Ziel unbekannt"
-            )
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold)
-            FilterMenu(
-                stringResource(R.string.category),
-                TripType.entries.map { it.apiValue to localizedTripType(it) },
-                trip.tripType.apiValue
-            ) { chosen ->
-                TripType.entries.firstOrNull { it.apiValue == chosen }?.let(onCategory)
-            }
-
-            trip.vehicleName?.takeIf { it.isNotBlank() }?.let {
-                DetailLine("Fahrzeug", it)
-            }
-            trip.purpose?.takeIf { it.isNotBlank() }?.let {
-                DetailLine("Zweck", it)
-            }
-            trip.note?.takeIf { it.isNotBlank() }?.let {
-                DetailLine("Notiz", it)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 1.dp
+            ) {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    DetailCategoryRow(trip.tripType, onCategory)
+                    trip.vehicleName?.takeIf { it.isNotBlank() }?.let {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        DetailIconLine(Icons.Default.DirectionsCar, "Fahrzeug", it)
+                    }
+                    trip.purpose?.takeIf { it.isNotBlank() }?.let {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        DetailIconLine(Icons.Default.Flag, "Zweck", it)
+                    }
+                    trip.note?.takeIf { it.isNotBlank() }?.let {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        DetailIconLine(Icons.Default.Notes, "Notiz", it)
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    DetailIconLine(Icons.Default.LocationOn, "Startzeit", formatTripDateTime(trip.startedAt))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    DetailIconLine(Icons.Default.Flag, "Endzeit", formatTripDateTime(trip.endedAt))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    DetailIconLine(Icons.Default.LocationOn, "Dauer", formatDuration(trip.durationSeconds))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    DetailIconLine(Icons.Default.LocationOn, "Strecke", "${formatDistance(trip.distanceKm)} km")
+                }
             }
 
             if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
-
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -269,15 +255,46 @@ private fun TripDetailsScreen(
 private fun TripMetric(value: String, label: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 1.dp
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+            Spacer(Modifier.height(3.dp))
             Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun TripPlacesCard(trip: Trip) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 1.dp
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            TripPlaceRow(
+                icon = Icons.Default.LocationOn,
+                title = "Start",
+                time = formatTripDateTime(trip.startedAt),
+                address = trip.startAddress ?: "Start unbekannt"
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 52.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+            TripPlaceRow(
+                icon = Icons.Default.Flag,
+                title = "Ziel",
+                time = formatTripDateTime(trip.endedAt),
+                address = trip.endAddress ?: "Ziel unbekannt"
+            )
         }
     }
 }
@@ -292,12 +309,9 @@ private fun TripPlaceRow(
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer
-        ) {
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
             Icon(
                 icon,
                 contentDescription = null,
@@ -305,26 +319,66 @@ private fun TripPlaceRow(
                 modifier = Modifier.padding(10.dp).size(20.dp)
             )
         }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(title, fontWeight = FontWeight.SemiBold)
-                Text(time, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(title, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(time, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
             }
-            Text(address, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(address, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
 @Composable
-private fun DetailLine(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontWeight = FontWeight.Medium)
+private fun DetailCategoryRow(type: TripType, onCategory: (TripType) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Default.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            stringResource(R.string.category),
+            modifier = Modifier.padding(start = 12.dp).weight(1f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Box {
+            TextButton(onClick = { expanded = true }) {
+                Text(localizedTripType(type), fontWeight = FontWeight.SemiBold)
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                TripType.entries.forEach { entry ->
+                    DropdownMenuItem(
+                        text = { Text(localizedTripType(entry)) },
+                        onClick = {
+                            expanded = false
+                            onCategory(entry)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailIconLine(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 13.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        Text(label, modifier = Modifier.padding(start = 12.dp).weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 private fun formatDistance(distanceKm: Double?): String =
-    distanceKm?.let { String.format(java.util.Locale.getDefault(), "%.1f", it) } ?: "–"
+    distanceKm?.let { String.format(java.util.Locale.getDefault(), "%.2f", it) } ?: "–"
 
 private fun formatDuration(seconds: Int?): String {
     if (seconds == null) return "–"
@@ -333,17 +387,15 @@ private fun formatDuration(seconds: Int?): String {
     return if (hours > 0) "${hours} h ${minutes} min" else "${minutes} min"
 }
 
-private fun formatTripTime(value: String?): String {
+private fun formatTripDateTime(value: String?): String {
     if (value.isNullOrBlank()) return "–"
     return runCatching {
         val instant = java.time.Instant.parse(value)
         java.time.format.DateTimeFormatter
-            .ofPattern("HH:mm")
+            .ofPattern("dd.MM.yyyy, HH:mm")
             .withZone(java.time.ZoneId.systemDefault())
             .format(instant)
-    }.getOrElse {
-        value.substringAfter('T', value).take(5)
-    }
+    }.getOrElse { value }
 }
 
 @Composable
