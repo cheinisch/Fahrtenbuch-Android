@@ -102,4 +102,7 @@
     <string name="local_mode_title">Only on this device</string>
     <string name="local_mode_migration_help">All data is stored locally. You can migrate it to your Fahrtenbuch server with a guided switch.</string>
     <string name="migrate_to_server">Switch to server</string>
+    <string name="location_notice_title">Location access for automatic trip tracking</string>
+    <string name="location_notice_text">Fahrtenbuch uses your location to record routes, distance, start and destination during a trip. For automatic trip tracking, location may also be accessed in the background when the app is not visible or the display is off. Location is only recorded for trip tracking.</string>
+    <string name="location_notice_continue">Continue</string>
 </resources>
