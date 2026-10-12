@@ -13,6 +13,11 @@
     <string name="close">Close</string>
     <string name="statistics">Statistics</string>
     <string name="statistics_subtitle">Summary of your recorded trips</string>
+    <string name="statistics_total">Total</string>
+    <string name="statistics_trips">Trips</string>
+    <string name="statistics_business">Business</string>
+    <string name="statistics_private">Private</string>
+    <string name="statistics_commute">Commute</string>
     <string name="vehicles">Vehicles</string>
     <string name="vehicles_subtitle">Load vehicles and assign Bluetooth</string>
     <string name="setup_first_vehicle">Set up your first vehicle</string>
