@@ -97,4 +97,7 @@
     <string name="local_mode_title">Nur auf diesem Gerät</string>
     <string name="local_mode_migration_help">Alle Daten liegen lokal. Du kannst sie über einen geführten Wechsel auf deinen Fahrtenbuch-Server migrieren.</string>
     <string name="migrate_to_server">Zum Server wechseln</string>
+    <string name="location_notice_title">Standortzugriff für die automatische Fahrtenaufzeichnung</string>
+    <string name="location_notice_text">Fahrtenbuch verwendet deinen Standort, um während einer Fahrt Route, Entfernung sowie Start und Ziel aufzuzeichnen. Für die automatische Fahrtenaufzeichnung kann der Standort auch im Hintergrund erfasst werden, wenn die App nicht sichtbar oder das Display ausgeschaltet ist. Standortdaten werden nur für die Fahrtenaufzeichnung verwendet.</string>
+    <string name="location_notice_continue">Weiter</string>
 </resources>
