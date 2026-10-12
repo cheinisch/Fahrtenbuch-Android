@@ -30,6 +30,45 @@ import com.journeyapps.barcodescanner.ScanOptions
 import org.json.JSONObject
 
 @Composable
+fun LocationDisclosureScreen(onContinue: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.weight(1f))
+        Icon(
+            Icons.Outlined.LocationOn,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(62.dp)
+        )
+        Spacer(Modifier.height(24.dp))
+        Text(
+            stringResource(R.string.location_notice_title),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(20.dp))
+        Text(
+            stringResource(R.string.location_notice_text),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.weight(1f))
+        Button(
+            onClick = onContinue,
+            modifier = Modifier.fillMaxWidth().height(58.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(stringResource(R.string.location_notice_continue), fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.height(18.dp))
+    }
+}
+
+@Composable
 fun WelcomeScreen(onLocal: () -> Unit, onConnect: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 24.dp),
