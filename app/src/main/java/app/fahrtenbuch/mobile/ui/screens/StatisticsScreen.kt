@@ -40,18 +40,18 @@ fun StatisticsScreen(viewModel: AppViewModel) {
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatisticCard("Gesamt", "%.1f km".format(totalKm), Modifier.weight(1f))
-                StatisticCard("Fahrten", state.trips.size.toString(), Modifier.weight(1f))
+                StatisticCard(stringResource(R.string.statistics_total), "%.1f km".format(totalKm), Modifier.weight(1f))
+                StatisticCard(stringResource(R.string.statistics_trips), state.trips.size.toString(), Modifier.weight(1f))
             }
         }
         item {
-            StatisticCard("Dienstlich", "%.1f km".format(businessKm), Modifier.fillMaxWidth())
+            StatisticCard(stringResource(R.string.statistics_business), "%.1f km".format(businessKm), Modifier.fillMaxWidth())
         }
         item {
-            StatisticCard("Privat", "%.1f km".format(privateKm), Modifier.fillMaxWidth())
+            StatisticCard(stringResource(R.string.statistics_private), "%.1f km".format(privateKm), Modifier.fillMaxWidth())
         }
         item {
-            StatisticCard("Arbeitsweg", "%.1f km".format(commuteKm), Modifier.fillMaxWidth())
+            StatisticCard(stringResource(R.string.statistics_commute), "%.1f km".format(commuteKm), Modifier.fillMaxWidth())
         }
     }
 }
