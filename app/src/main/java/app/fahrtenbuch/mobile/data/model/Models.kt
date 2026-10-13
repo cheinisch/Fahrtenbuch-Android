@@ -102,7 +102,9 @@ data class Vehicle(
     val licensePlate: String? = null,
     val bluetoothMac: String? = null,
     val createdAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    /** Standardfahrzeug des Benutzers (Server: is_default, setzen per PUT /vehicles/{id}/default) */
+    val isDefault: Boolean = false
 )
 
 data class Trip(

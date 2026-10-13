@@ -414,7 +414,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private fun applyLocalData(vehicles: List<Vehicle>, trips: List<Trip>, loading: Boolean) {
         val selected = _state.value.selectedVehicleId
             ?.takeIf { id -> vehicles.any { it.id == id } }
-            ?: vehicles.firstOrNull()?.id
+            ?: defaultVehicleId(vehicles)
         _state.value = _state.value.copy(
             loading = loading,
             vehicles = vehicles,
@@ -497,7 +497,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 vehicles = local,
                 selectedVehicleId = _state.value.selectedVehicleId
                     ?.takeIf { id -> local.any { it.id == id } }
-                    ?: local.firstOrNull()?.id
+                    ?: defaultVehicleId(local)
             )
 
             // This screen only depends on /vehicles. A failure while syncing
@@ -508,7 +508,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     // made a successful request look empty when local persistence failed.
                     val selected = _state.value.selectedVehicleId
                         ?.takeIf { id -> vehicles.any { it.id == id } }
-                        ?: vehicles.firstOrNull()?.id
+                        ?: defaultVehicleId(vehicles)
                     _state.value = _state.value.copy(
                         loading = false,
                         vehicles = vehicles,
@@ -526,6 +526,26 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         } else {
                             str(R.string.info_offline_vehicles, ApiFactory.readableError(error))
                         }
+                    )
+                }
+        }
+    }
+
+    /** Vorauswahl: Standardfahrzeug vom Server bzw. lokal, sonst das erste. */
+    private fun defaultVehicleId(vehicles: List<Vehicle>): String? =
+        (vehicles.firstOrNull { it.isDefault } ?: vehicles.firstOrNull())?.id
+
+    fun setDefaultVehicle(vehicleId: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.setDefaultVehicle(vehicleId) }
+                .onSuccess { vehicles ->
+                    _state.value = _state.value.copy(loading = false, vehicles = vehicles)
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = str(R.string.error_default_vehicle, ApiFactory.readableError(error))
                     )
                 }
         }

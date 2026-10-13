@@ -16,7 +16,8 @@ data class VehicleEntity(
     val bluetoothMac: String?,
     val createdAt: String?,
     val updatedAt: String?,
-    val syncState: String = "SYNCED"
+    val syncState: String = "SYNCED",
+    @ColumnInfo(defaultValue = "0") val isDefault: Boolean = false
 )
 
 @Entity(tableName = "trips", indices = [Index("vehicleId"), Index("startedAt")])
@@ -91,6 +92,8 @@ interface OfflineDao {
     @Query("UPDATE vehicles SET bluetoothMac=:mac, updatedAt=:updatedAt WHERE id=:id") suspend fun setVehicleBluetooth(id: String, mac: String?, updatedAt: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putVehicles(values: List<VehicleEntity>)
     @Query("DELETE FROM vehicles") suspend fun clearVehicles()
+    /** Genau ein Standardfahrzeug: das gewählte auf true, alle anderen auf false. */
+    @Query("UPDATE vehicles SET isDefault = CASE WHEN id = :id THEN 1 ELSE 0 END") suspend fun setDefaultVehicle(id: String)
 
     @Query("SELECT * FROM trips ORDER BY startedAt DESC") suspend fun trips(): List<TripEntity>
     @Query("SELECT * FROM trips WHERE id=:id") suspend fun storedTrip(id: String): TripEntity?
@@ -148,7 +151,7 @@ interface OfflineDao {
         OfflineTripEntity::class,
         TrackPointEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -163,9 +166,15 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN isDefault INTEGER NOT NULL DEFAULT 0")
+            }
         }
 
         private val MIGRATION_3_4 = object : Migration(3, 4) {

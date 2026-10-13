@@ -201,10 +201,21 @@ class FahrtenbuchRepository(
         return legacy
     }
 
+    /** Standardfahrzeug setzen (Server-Modus über die API, lokal nur in Room). */
+    suspend fun setDefaultVehicle(vehicleId: Uuid): List<Vehicle> {
+        if (store.isServerMode) api.setDefaultVehicle(vehicleId)
+        dao.setDefaultVehicle(vehicleId)
+        return dao.vehicles().map(VehicleEntity::toModel)
+    }
+
     suspend fun createVehicle(name: String, licensePlate: String?): Vehicle {
         if (store.isLocalMode) {
             val now = Instant.now().toString()
-            val created = Vehicle(UUID.randomUUID().toString(), name.trim(), licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() }, createdAt = now, updatedAt = now)
+            // Wie auf dem Server: das erste Fahrzeug wird automatisch Standardfahrzeug
+            val created = Vehicle(
+                UUID.randomUUID().toString(), name.trim(), licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() },
+                createdAt = now, updatedAt = now, isDefault = dao.vehicles().isEmpty()
+            )
             dao.putVehicle(created.toEntity().copy(syncState = "LOCAL"))
             return created
         }
@@ -426,7 +437,8 @@ private fun Vehicle.toEntity() = VehicleEntity(
     licensePlate = licensePlate,
     bluetoothMac = bluetoothMac,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    isDefault = isDefault
 )
 
 private fun VehicleEntity.toModel() = Vehicle(
@@ -435,7 +447,8 @@ private fun VehicleEntity.toModel() = Vehicle(
     licensePlate = licensePlate,
     bluetoothMac = bluetoothMac,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    isDefault = isDefault
 )
 
 private fun Trip.toEntity() = TripEntity(

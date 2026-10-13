@@ -21,6 +21,10 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -128,7 +132,26 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Icon(Icons.Default.DirectionsCar, contentDescription = null)
                         Column {
-                            Text(vehicle.name, fontWeight = FontWeight.Bold)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(vehicle.name, fontWeight = FontWeight.Bold)
+                                if (vehicle.isDefault) {
+                                    Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primaryContainer) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                                            Text(
+                                                stringResource(R.string.vehicles_default),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                             Text(vehicle.licensePlate ?: stringResource(R.string.vehicles_no_plate), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
@@ -153,6 +176,13 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                         Icon(Icons.Default.Bluetooth, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(if (vehicle.bluetoothMac == null) R.string.vehicles_bt_assign else R.string.vehicles_bt_change))
+                    }
+                    if (!vehicle.isDefault) {
+                        TextButton(onClick = { viewModel.setDefaultVehicle(vehicle.id) }, enabled = !state.loading) {
+                            Icon(Icons.Outlined.StarBorder, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.vehicles_make_default))
+                        }
                     }
                 }
             }

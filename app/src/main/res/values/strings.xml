@@ -311,4 +311,7 @@
     <string name="about_map_data_text">Maps: © OpenStreetMap contributors (ODbL), OpenMapTiles, tiles by OpenFreeMap.</string>
     <string name="about_libraries_text">All libraries used by the app and their licenses, generated automatically with every build.</string>
     <string name="about_libraries_show">Show all licenses</string>
+    <string name="vehicles_default">Default</string>
+    <string name="vehicles_make_default">Set as default vehicle</string>
+    <string name="error_default_vehicle">Default vehicle could not be changed: %1$s</string>
 </resources>

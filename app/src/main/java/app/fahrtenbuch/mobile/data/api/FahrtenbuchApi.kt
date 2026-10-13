@@ -191,6 +191,11 @@ interface FahrtenbuchApi {
         @Body request: UpdateVehicleRequest
     ): Vehicle
 
+    @PUT("vehicles/{vehicleId}/default")
+    suspend fun setDefaultVehicle(
+        @Path("vehicleId") vehicleId: Uuid
+    ): Vehicle
+
     @PUT("vehicles/{vehicleId}/bluetooth")
     suspend fun setBluetooth(
         @Path("vehicleId") id: Uuid,

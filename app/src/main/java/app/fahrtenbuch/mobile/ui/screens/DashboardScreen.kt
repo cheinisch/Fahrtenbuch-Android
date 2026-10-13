@@ -106,12 +106,15 @@ fun DashboardScreen(
         if (latestTrip?.syncState == "SYNCED") viewModel.refreshLatestTripDetails()
     }
 
-    // Zuletzt genutzte Fahrzeuge zuerst, damit sie bei vielen Fahrzeugen vorne stehen.
+    // Standardfahrzeug zuerst, danach die zuletzt genutzten – wichtig bei vielen Fahrzeugen.
     val vehicles = remember(state.vehicles, completed) {
         val usageOrder = completed.map { it.vehicleId }.distinct()
-        state.vehicles.sortedBy { vehicle -> usageOrder.indexOf(vehicle.id).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+        state.vehicles.sortedWith(
+            compareByDescending<app.fahrtenbuch.mobile.data.model.Vehicle> { it.isDefault }
+                .thenBy { vehicle -> usageOrder.indexOf(vehicle.id).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+        )
     }
-    // Ohne Auswahl ließe sich keine Fahrt starten: dann das zuletzt genutzte Fahrzeug wählen.
+    // Ohne Auswahl ließe sich keine Fahrt starten: dann das Standardfahrzeug (bzw. das erste) wählen.
     LaunchedEffect(vehicles, state.selectedVehicleId) {
         if (vehicles.isNotEmpty() && vehicles.none { it.id == state.selectedVehicleId }) {
             viewModel.selectVehicle(vehicles.first().id)
