@@ -1,6 +1,7 @@
 package app.fahrtenbuch.mobile.ui
 
 import android.app.Application
+import app.fahrtenbuch.mobile.R
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,6 +42,9 @@ data class AppUiState(
 )
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
+    /** Übersetzter Text aus den String-Ressourcen (Sprache des Geräts). */
+    private fun str(id: Int, vararg args: Any): String = getApplication<Application>().getString(id, *args)
+
     private val store = SessionStore(application)
     private var repository = FahrtenbuchRepository(getApplication(), ApiFactory.create(store), store)
     private val _state = MutableStateFlow(
@@ -90,7 +94,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun configureServer(url: String) {
         val normalizedInput = url.trim()
         require(normalizedInput.startsWith("https://") || normalizedInput.startsWith("http://")) {
-            "Die Serveradresse muss mit https:// oder http:// beginnen."
+            str(R.string.error_server_scheme)
         }
         store.selectServerMode()
         store.baseUrl = normalizedInput
@@ -123,7 +127,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             runCatching {
                 val server = payload.server.trim()
                 require(server.startsWith("https://") || server.startsWith("http://")) {
-                    "Der QR-Code enthält keine gültige Serveradresse."
+                    str(R.string.error_qr_server)
                 }
                 store.baseUrl = server
                 repository = FahrtenbuchRepository(getApplication(), ApiFactory.create(store), store)
@@ -145,7 +149,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     serverConfigured = false,
                     loggedIn = false,
                     loading = false,
-                    error = it.message ?: "Die Geräteanmeldung ist fehlgeschlagen."
+                    error = it.message ?: str(R.string.error_pair_failed)
                 )
             }
         }
@@ -157,7 +161,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (result.isFailure) {
             _state.value = _state.value.copy(
                 loading = false,
-                error = result.exceptionOrNull()?.message ?: "Passkey-Anmeldung konnte nicht gestartet werden."
+                error = result.exceptionOrNull()?.message ?: str(R.string.error_passkey_start)
             )
         }
         return result
@@ -180,7 +184,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value = _state.value.copy(
                         loading = false,
                         loggedIn = false,
-                        error = it.message ?: "Passkey-Anmeldung fehlgeschlagen."
+                        error = it.message ?: str(R.string.error_passkey_failed)
                     )
                 }
         }
@@ -201,7 +205,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = it.message ?: "Passwort-Reset konnte nicht angefordert werden."
+                        error = it.message ?: str(R.string.error_reset_request)
                     )
                 }
         }
@@ -219,7 +223,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = it.message ?: "Passwort konnte nicht geändert werden."
+                        error = it.message ?: str(R.string.error_reset_change)
                     )
                 }
         }
@@ -241,7 +245,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = it.message ?: "Anmeldung fehlgeschlagen."
+                        error = it.message ?: str(R.string.error_login_failed)
                     )
                 }
         }
@@ -273,7 +277,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             runCatching {
                 val requestedServer = serverUrl.trim()
                 require(requestedServer.startsWith("https://") || requestedServer.startsWith("http://")) {
-                    "Die Serveradresse muss mit https:// oder http:// beginnen."
+                    str(R.string.error_server_scheme)
                 }
                 store.baseUrl = requestedServer
                 store.allowInvalidCertificates =
@@ -338,7 +342,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                             loggedIn = false,
                             vehicles = emptyList(),
                             trips = emptyList(),
-                            error = "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+                            error = str(R.string.error_session_expired)
                         )
                         return@onSuccess
                     }
@@ -357,16 +361,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                             loggedIn = false,
                             vehicles = emptyList(),
                             trips = emptyList(),
-                            error = "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+                            error = str(R.string.error_session_expired)
                         )
                     } else {
                         _state.value = _state.value.copy(
                             loading = false,
                             vehiclesLoadedFromServer = false,
                             error = if (localVehicles.isEmpty() && localTrips.isEmpty()) {
-                                "Server nicht erreichbar und noch keine lokalen Daten vorhanden."
+                                str(R.string.error_server_unreachable)
                             } else {
-                                "Offline-Modus: Lokale Daten werden angezeigt."
+                                str(R.string.info_offline_local)
                             }
                         )
                     }
@@ -405,7 +409,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun loadTripDetails(trip: Trip) {
         _state.value = _state.value.copy(tripPoints = emptyList(), tripDetailsLoading = true, tripDetailsError = null)
         if (!store.isLocalMode && trip.syncState != "SYNCED") {
-            _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = "Die Route ist erst nach vollständiger Synchronisierung verfügbar.")
+            _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = str(R.string.error_route_after_sync))
             return
         }
         viewModelScope.launch {
@@ -417,7 +421,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateTripCategory(trip: Trip, type: TripType) {
         if (!store.isLocalMode && trip.syncState != "SYNCED") {
-            _state.value = _state.value.copy(tripDetailsError = "Bitte die Fahrt zuerst synchronisieren.")
+            _state.value = _state.value.copy(tripDetailsError = str(R.string.error_sync_trip_first))
             return
         }
         viewModelScope.launch {
@@ -476,11 +480,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         loading = false,
                         vehiclesLoadedFromServer = false,
                         error = if (local.isEmpty()) {
-                            "Fahrzeuge konnten nicht vom Server geladen werden: " +
-                                ApiFactory.readableError(error)
+                            str(R.string.error_vehicles_load, ApiFactory.readableError(error))
                         } else {
-                            "Offline-Modus: Lokale Fahrzeuge werden angezeigt. Serverfehler: " +
-                                ApiFactory.readableError(error)
+                            str(R.string.info_offline_vehicles, ApiFactory.readableError(error))
                         }
                     )
                 }
@@ -506,7 +508,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = it.message ?: "Fahrzeug konnte nicht angelegt werden."
+                        error = it.message ?: str(R.string.error_vehicle_create)
                     )
                 }
         }
@@ -529,7 +531,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = it.message ?: "Bluetooth-Gerät konnte nicht zugewiesen werden."
+                        error = it.message ?: str(R.string.error_bt_assign)
                     )
                 }
         }
@@ -547,7 +549,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 .onFailure {
                     _state.value = _state.value.copy(
-                        error = it.message ?: "Tracking konnte nicht gestartet werden."
+                        error = it.message ?: str(R.string.error_tracking_start)
                     )
                 }
         }
@@ -564,7 +566,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 .onFailure {
                     _state.value = _state.value.copy(
-                        error = it.message ?: "Tracking konnte nicht beendet werden."
+                        error = it.message ?: str(R.string.error_tracking_stop)
                     )
                 }
         }

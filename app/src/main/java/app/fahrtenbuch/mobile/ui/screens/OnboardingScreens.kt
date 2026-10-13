@@ -2,6 +2,8 @@ package app.fahrtenbuch.mobile.ui.screens
 
 import androidx.compose.ui.res.stringResource
 import app.fahrtenbuch.mobile.R
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -77,7 +79,7 @@ fun WelcomeScreen(onLocal: () -> Unit, onConnect: () -> Unit) {
         Spacer(Modifier.weight(1f))
         Icon(Icons.Outlined.DirectionsCar, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(62.dp))
         Spacer(Modifier.height(24.dp))
-        Text("Fahrtenbuch", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(18.dp))
         Text(stringResource(R.string.your_trips_data), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(22.dp))
@@ -109,14 +111,14 @@ fun ConnectServerScreen(onBack: () -> Unit, onQrCode: () -> Unit, onManual: () -
         Text(stringResource(R.string.connect_your_server), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
         Text(
-            "Scanne den Anmelde-QR-Code aus deinem Web-Fahrtenbuch oder richte den Server manuell ein.",
+            stringResource(R.string.welcome_intro),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(42.dp))
-        ConnectionCard(Icons.Outlined.QrCodeScanner, "QR-Code scannen", "Server verbinden und dieses Gerät direkt anmelden", onQrCode)
+        ConnectionCard(Icons.Outlined.QrCodeScanner, stringResource(R.string.connect_qr_title), stringResource(R.string.connect_qr_text), onQrCode)
         Spacer(Modifier.height(20.dp))
-        ConnectionCard(Icons.Outlined.Settings, "Manuell einrichten", "Serveradresse eingeben und anschließend klassisch anmelden", onManual)
+        ConnectionCard(Icons.Outlined.Settings, stringResource(R.string.connect_manual_title), stringResource(R.string.connect_manual_text), onManual)
     }
 }
 
@@ -143,13 +145,14 @@ private fun ConnectionCard(icon: ImageVector, title: String, subtitle: String, o
 fun ManualServerSetupScreen(onBack: () -> Unit, onSave: (String) -> Result<Unit>) {
     var serverUrl by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    val invalidServer = stringResource(R.string.error_invalid_server)
     Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp)) {
         BackButton(onBack)
         Spacer(Modifier.height(32.dp))
         Text(stringResource(R.string.manual_server_setup), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
         Text(
-            "Trage die öffentliche Adresse deiner Fahrtenbuch-Installation ein. /api/v1 wird automatisch ergänzt.",
+            stringResource(R.string.manual_intro),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -162,13 +165,13 @@ fun ManualServerSetupScreen(onBack: () -> Unit, onSave: (String) -> Result<Unit>
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             singleLine = true,
             isError = error != null,
-            supportingText = { Text(error ?: "HTTPS wird für externe Server empfohlen.") },
+            supportingText = { Text(error ?: stringResource(R.string.manual_https_hint)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp)
         )
         Spacer(Modifier.height(24.dp))
         Button(
-            onClick = { onSave(serverUrl).onFailure { error = it.message ?: "Ungültige Serveradresse." } },
+            onClick = { onSave(serverUrl).onFailure { error = it.message ?: invalidServer } },
             enabled = serverUrl.isNotBlank(),
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(14.dp)
@@ -185,16 +188,17 @@ fun QrPairingScreen(
 ) {
     var scanning by remember { mutableStateOf(false) }
     var localError by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(ScanContract()) { result ->
         scanning = false
         val raw = result.contents
         if (raw.isNullOrBlank()) {
-            localError = "Es wurde kein QR-Code erkannt."
+            localError = context.getString(R.string.qr_none_detected)
         } else {
-            runCatching { parsePairQrPayload(raw) }
+            runCatching { parsePairQrPayload(raw, context) }
                 .onSuccess { onPairCode(it) }
-                .onFailure { localError = it.message ?: "Ungültiger Anmelde-QR-Code." }
+                .onFailure { localError = it.message ?: context.getString(R.string.qr_invalid) }
         }
     }
 
@@ -204,7 +208,7 @@ fun QrPairingScreen(
         launcher.launch(
             ScanOptions()
                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                .setPrompt("Anmelde-QR-Code scannen")
+                .setPrompt(context.getString(R.string.qr_scan_prompt))
                 .setBeepEnabled(false)
                 .setOrientationLocked(true)
         )
@@ -218,7 +222,7 @@ fun QrPairingScreen(
         Text(stringResource(R.string.pair_device), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(14.dp))
         Text(
-            "Öffne im Web-Fahrtenbuch „Mobile App verbinden“ und scanne den dort angezeigten einmaligen QR-Code.",
+            stringResource(R.string.qr_intro),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -277,7 +281,7 @@ fun PairConfirmationScreen(
                         modifier = Modifier.weight(1f).height(54.dp),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text("Abbrechen")
+                        Text(stringResource(R.string.cancel))
                     }
                     Button(
                         onClick = onConfirm,
@@ -315,13 +319,13 @@ fun PairConfirmationScreen(
             )
             Spacer(Modifier.height(20.dp))
             Text(
-                "Verbindung bestätigen",
+                stringResource(R.string.pair_confirm_title),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Prüfe, ob Server und Benutzerkonto korrekt sind. Erst danach wird dieses Gerät vollständig angemeldet.",
+                stringResource(R.string.pair_confirm_text),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -334,22 +338,22 @@ fun PairConfirmationScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    PairConfirmationRow(Icons.Outlined.Dns, "Server", payload.server)
+                    PairConfirmationRow(Icons.Outlined.Dns, stringResource(R.string.settings_server), payload.server)
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     PairConfirmationRow(
                         Icons.Outlined.Person,
-                        "Benutzer",
-                        payload.username?.takeIf { it.isNotBlank() } ?: "Nicht angegeben"
+                        stringResource(R.string.pair_user),
+                        payload.username?.takeIf { it.isNotBlank() } ?: stringResource(R.string.pair_not_specified)
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     PairConfirmationRow(
                         Icons.Outlined.Email,
-                        "E-Mail",
-                        payload.email?.takeIf { it.isNotBlank() } ?: "Nicht angegeben"
+                        stringResource(R.string.email_address),
+                        payload.email?.takeIf { it.isNotBlank() } ?: stringResource(R.string.pair_not_specified)
                     )
                     payload.expiresAt?.takeIf { it.isNotBlank() }?.let {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        PairConfirmationRow(Icons.Outlined.Schedule, "Gültig bis", formatPairExpiry(it))
+                        PairConfirmationRow(Icons.Outlined.Schedule, stringResource(R.string.pair_valid_until), formatPairExpiry(it))
                     }
                 }
             }
@@ -364,7 +368,7 @@ fun PairConfirmationScreen(
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "Pairing-ID und Anmeldetoken werden aus Sicherheitsgründen nicht angezeigt.",
+                    stringResource(R.string.pair_secrets_hidden),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -407,22 +411,22 @@ private fun PairConfirmationRow(icon: ImageVector, label: String, value: String)
 private fun formatPairExpiry(value: String): String = runCatching {
     val formatter = DateTimeFormatter
         .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-        .withLocale(Locale.GERMANY)
+        .withLocale(Locale.getDefault())
         .withZone(ZoneId.systemDefault())
     formatter.format(Instant.parse(value))
 }.getOrDefault(value)
 
-private fun parsePairQrPayload(raw: String): PairQrPayload {
+private fun parsePairQrPayload(raw: String, context: Context): PairQrPayload {
     val json = JSONObject(raw)
     val type = json.optString("type", "pair")
-    require(type == "pair") { "Der QR-Code ist kein Fahrtenbuch-Anmeldecode." }
+    require(type == "pair") { context.getString(R.string.qr_not_pair_code) }
 
     val server = json.optString("server").trim()
     val pairId = json.optString("pairId").trim()
     val pairToken = json.optString("pairToken").trim()
-    require(server.startsWith("https://") || server.startsWith("http://")) { "Im QR-Code fehlt eine gültige Serveradresse." }
-    require(pairId.isNotBlank()) { "Im QR-Code fehlt die Pairing-ID." }
-    require(pairToken.isNotBlank()) { "Im QR-Code fehlt der einmalige Pairing-Token." }
+    require(server.startsWith("https://") || server.startsWith("http://")) { context.getString(R.string.qr_missing_server) }
+    require(pairId.isNotBlank()) { context.getString(R.string.qr_missing_pair_id) }
+    require(pairToken.isNotBlank()) { context.getString(R.string.qr_missing_token) }
 
     return PairQrPayload(
         version = json.optInt("version", 1),
@@ -434,15 +438,15 @@ private fun parsePairQrPayload(raw: String): PairQrPayload {
         email = json.optString("email").ifBlank { null },
         expiresAt = json.optString("expiresAt").ifBlank { json.optString("expires").ifBlank { null } }
     ).also { payload ->
-        require(payload.version == 1) { "Diese Version des Anmelde-QR-Codes wird nicht unterstützt." }
+        require(payload.version == 1) { context.getString(R.string.qr_unsupported_version) }
         payload.expiresAt?.let { expiry ->
             val expired = runCatching { Instant.parse(expiry).isBefore(Instant.now()) }.getOrDefault(false)
-            require(!expired) { "Der Anmelde-QR-Code ist abgelaufen." }
+            require(!expired) { context.getString(R.string.qr_expired) }
         }
     }
 }
 
 @Composable
 private fun BackButton(onBack: () -> Unit) {
-    IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, contentDescription = "Zurück") }
+    IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
 }

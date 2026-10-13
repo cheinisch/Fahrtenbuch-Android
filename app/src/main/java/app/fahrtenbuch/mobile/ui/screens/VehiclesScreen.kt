@@ -51,7 +51,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                 bluetoothError = null
             }
             .onFailure {
-                bluetoothError = it.message ?: "Bluetooth-Geräte konnten nicht gelesen werden."
+                bluetoothError = it.message ?: context.getString(R.string.vehicles_bt_read_failed)
             }
     }
 
@@ -59,7 +59,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) readBluetoothDevices()
-        else bluetoothError = "Bluetooth-Berechtigung wurde nicht erteilt."
+        else bluetoothError = context.getString(R.string.vehicles_bt_permission_denied)
     }
 
     LaunchedEffect(Unit) {
@@ -85,10 +85,10 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                 }
                 Row {
                     IconButton(onClick = { showVehicleWizard = true }, enabled = !state.loading) {
-                        Icon(Icons.Default.Add, contentDescription = "Fahrzeug anlegen")
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.vehicles_add))
                     }
                     IconButton(onClick = viewModel::loadVehicles, enabled = !state.loading) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Fahrzeuge neu laden")
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.vehicles_reload))
                     }
                 }
             }
@@ -108,9 +108,9 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             if (state.vehiclesLoadedFromServer)
-                                "Auf dem Server sind keine Fahrzeuge vorhanden."
+                                stringResource(R.string.vehicles_empty_server)
                             else
-                                "Es sind noch keine lokal gespeicherten Fahrzeuge verfügbar."
+                                stringResource(R.string.vehicles_empty_local)
                         )
                         Button(onClick = { showVehicleWizard = true }) {
                             Icon(Icons.Default.Add, contentDescription = null)
@@ -129,11 +129,11 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                         Icon(Icons.Default.DirectionsCar, contentDescription = null)
                         Column {
                             Text(vehicle.name, fontWeight = FontWeight.Bold)
-                            Text(vehicle.licensePlate ?: "Kein Kennzeichen", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(vehicle.licensePlate ?: stringResource(R.string.vehicles_no_plate), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Text(
-                        vehicle.bluetoothMac?.let { "Bluetooth: $it" } ?: "Noch kein Bluetooth-Gerät zugewiesen",
+                        vehicle.bluetoothMac?.let { stringResource(R.string.vehicles_bt_assigned, it) } ?: stringResource(R.string.vehicles_bt_none),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     OutlinedButton(
@@ -152,7 +152,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                     ) {
                         Icon(Icons.Default.Bluetooth, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text(if (vehicle.bluetoothMac == null) "Bluetooth zuweisen" else "Bluetooth ändern")
+                        Text(stringResource(if (vehicle.bluetoothMac == null) R.string.vehicles_bt_assign else R.string.vehicles_bt_change))
                     }
                 }
             }
@@ -220,7 +220,7 @@ private fun BluetoothAssignmentDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Bluetooth für ${vehicle.name}") },
+        title = { Text(stringResource(R.string.vehicles_bt_dialog_title, vehicle.name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(stringResource(R.string.choose_bluetooth))
@@ -299,15 +299,15 @@ private fun BluetoothAssignmentDialog(
 @SuppressLint("MissingPermission")
 private fun pairedBluetoothDevices(context: Context): List<PairedBluetoothDevice> {
     val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-        ?: error("Bluetooth wird von diesem Gerät nicht unterstützt.")
+        ?: error(context.getString(R.string.vehicles_bt_unsupported))
     val adapter: BluetoothAdapter = manager.adapter
-        ?: error("Bluetooth wird von diesem Gerät nicht unterstützt.")
-    if (!adapter.isEnabled) error("Bluetooth ist deaktiviert.")
+        ?: error(context.getString(R.string.vehicles_bt_unsupported))
+    if (!adapter.isEnabled) error(context.getString(R.string.vehicles_bt_disabled))
 
     return adapter.bondedDevices
         .map { device ->
             PairedBluetoothDevice(
-                name = device.name?.takeIf { it.isNotBlank() } ?: "Unbekanntes Gerät",
+                name = device.name?.takeIf { it.isNotBlank() } ?: context.getString(R.string.vehicles_bt_unknown_device),
                 address = device.address.uppercase()
             )
         }
@@ -344,14 +344,14 @@ private fun VehicleSetupWizard(
                     value = licensePlate,
                     onValueChange = { licensePlate = it.uppercase() },
                     label = { Text(stringResource(R.string.license_plate_optional)) },
-                    placeholder = { Text("RÜD-AB 123") },
+                    placeholder = { Text(stringResource(R.string.license_plate_example)) },
                     singleLine = true,
                     enabled = !loading,
                     modifier = Modifier.fillMaxWidth()
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 Text(
-                    "Schritt 1 von 2 · Fahrzeugdaten",
+                    stringResource(R.string.vehicle_step_one),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

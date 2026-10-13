@@ -78,13 +78,13 @@ fun LoginScreen(viewModel: AppViewModel) {
                         },
                         enabled = !state.loading
                     ) {
-                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Zurück")
+                        Icon(Icons.Outlined.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
 
                 when (mode) {
                     LoginMode.LOGIN -> {
-                        Text("Fahrtenbuch", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         Text(stringResource(R.string.server_login), color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                         OutlinedTextField(
@@ -106,7 +106,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
                                         imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                        contentDescription = if (passwordVisible) "Passwort ausblenden" else "Passwort anzeigen"
+                                        contentDescription = stringResource(if (passwordVisible) R.string.password_hide else R.string.password_show)
                                     )
                                 }
                             },
@@ -163,11 +163,11 @@ fun LoginScreen(viewModel: AppViewModel) {
                                                 deviceName
                                             )
                                         } else {
-                                            viewModel.cancelAuthLoading("Der ausgewählte Anmeldenachweis ist kein Passkey.")
+                                            viewModel.cancelAuthLoading(context.getString(R.string.error_not_passkey))
                                         }
                                     } catch (error: Exception) {
                                         viewModel.cancelAuthLoading(
-                                            error.message ?: "Passkey-Anmeldung wurde abgebrochen."
+                                            error.message ?: context.getString(R.string.error_passkey_cancelled)
                                         )
                                     }
                                 }
@@ -197,7 +197,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                         Text(stringResource(R.string.reset_password), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                         if (!resetRequested) {
                             Text(
-                                "Gib deine E-Mail-Adresse ein. Wenn ein aktives Konto existiert, erhältst du einen Reset-Link.",
+                                stringResource(R.string.reset_intro),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             OutlinedTextField(
@@ -224,7 +224,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                             }
                         } else {
                             Text(
-                                "Die Anfrage wurde angenommen. Prüfe dein Postfach und öffne den Reset-Link. Du kannst den enthaltenen Token auch hier eingeben.",
+                                stringResource(R.string.reset_accepted),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Button(
@@ -268,7 +268,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                                     IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
                                         Icon(
                                             imageVector = if (newPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                            contentDescription = if (newPasswordVisible) "Passwort ausblenden" else "Passwort anzeigen"
+                                            contentDescription = stringResource(if (newPasswordVisible) R.string.password_hide else R.string.password_show)
                                         )
                                     }
                                 },
@@ -287,7 +287,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                                     IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                                         Icon(
                                             imageVector = if (confirmPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                            contentDescription = if (confirmPasswordVisible) "Passwort ausblenden" else "Passwort anzeigen"
+                                            contentDescription = stringResource(if (confirmPasswordVisible) R.string.password_hide else R.string.password_show)
                                         )
                                     }
                                 },
