@@ -58,7 +58,11 @@ data class OfflineTripEntity(
     val endedAt: String?,
     val state: String, // RECORDING, STOPPED, SYNCED
     val pendingStop: Boolean = false,
-    val syncError: String? = null
+    val syncError: String? = null,
+    // Auf dem Gerät ermittelt (Geocoder bzw. GPS-Punkte), vor allem für den lokalen Modus
+    val startAddress: String? = null,
+    val endAddress: String? = null,
+    val distanceKm: Double? = null
 )
 
 @Entity(tableName = "track_points", indices = [Index("localTripId")])
@@ -104,6 +108,10 @@ interface OfflineDao {
     @Query("SELECT * FROM offline_trips WHERE state != 'SYNCED' ORDER BY startedAt") suspend fun pendingTrips(): List<OfflineTripEntity>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTrip(value: OfflineTripEntity)
     @Query("UPDATE offline_trips SET syncError=:message WHERE localId=:localId") suspend fun setTripSyncError(localId: String, message: String?)
+    @Query("SELECT * FROM offline_trips WHERE endedAt IS NOT NULL AND (startAddress IS NULL OR endAddress IS NULL OR distanceKm IS NULL)")
+    suspend fun tripsMissingDetails(): List<OfflineTripEntity>
+    @Query("UPDATE offline_trips SET startAddress=:startAddress, endAddress=:endAddress, distanceKm=:distanceKm WHERE localId=:localId")
+    suspend fun setTripDetails(localId: String, startAddress: String?, endAddress: String?, distanceKm: Double?)
     @Query("UPDATE offline_trips SET remoteId=:remoteId WHERE localId=:localId") suspend fun setRemoteId(localId: String, remoteId: String)
     @Query("UPDATE offline_trips SET state='SYNCED', pendingStop=0, syncError=NULL WHERE localId=:localId") suspend fun markTripSynced(localId: String)
 
@@ -140,7 +148,7 @@ interface OfflineDao {
         OfflineTripEntity::class,
         TrackPointEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -155,9 +163,17 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN startAddress TEXT")
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN endAddress TEXT")
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN distanceKm REAL")
+            }
         }
 
         private val MIGRATION_2_3 = object : Migration(2, 3) {

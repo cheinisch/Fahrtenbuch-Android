@@ -10,6 +10,10 @@ import app.fahrtenbuch.mobile.data.local.OfflineTripEntity
 import app.fahrtenbuch.mobile.data.local.VehicleEntity
 import app.fahrtenbuch.mobile.data.local.TripEntity
 import app.fahrtenbuch.mobile.data.local.TagEntity
+import app.fahrtenbuch.mobile.data.local.TrackPointEntity
+import app.fahrtenbuch.mobile.location.ReverseGeocoder
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import app.fahrtenbuch.mobile.data.model.*
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import com.squareup.moshi.Moshi
@@ -20,6 +24,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.UUID
+
+/** Verhindert parallele Ortsauflösung, auch über mehrere Repository-Instanzen. */
+private val detailsMutex = Mutex()
 
 class FahrtenbuchRepository(
     private val context: Context,
@@ -290,6 +297,30 @@ class FahrtenbuchRepository(
 
     fun requestSync() { if (store.isServerMode) SyncScheduler.enqueue(context) }
 
+    /**
+     * Ergänzt beendete Fahrten auf dem Gerät um Start-/Zieladresse (Android-Geocoder) und
+     * die Strecke aus den GPS-Punkten. Läuft ohne Server, z. B. im lokalen Modus. Was ohne
+     * Internet nicht aufgelöst werden kann, bleibt leer und wird beim nächsten Mal erneut
+     * versucht. Liefert true, wenn sich etwas geändert hat.
+     */
+    suspend fun resolveLocalTripDetails(): Boolean = detailsMutex.withLock {
+        var changed = false
+        for (trip in dao.tripsMissingDetails()) {
+            val points = dao.points(trip.localId)
+            if (points.isEmpty()) continue
+            val distance = trip.distanceKm ?: trackDistanceKm(points)
+            val start = trip.startAddress
+                ?: runCatching { ReverseGeocoder.lookup(context, points.first().lat, points.first().lon) }.getOrNull()
+            val end = trip.endAddress
+                ?: runCatching { ReverseGeocoder.lookup(context, points.last().lat, points.last().lon) }.getOrNull()
+            if (start != trip.startAddress || end != trip.endAddress || distance != trip.distanceKm) {
+                dao.setTripDetails(trip.localId, start, end, distance)
+                changed = true
+            }
+        }
+        changed
+    }
+
     private suspend fun mergeLocalTrips(remote: List<Trip>): List<Trip> {
         val pending = dao.pendingTrips()
         val pendingRemoteIds = pending.mapNotNull { it.remoteId }.toSet()
@@ -320,8 +351,30 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     status = if (end == null) "recording" else "completed",
     startedAt = startedAt,
     endedAt = end,
+    startAddress = startAddress,
+    endAddress = endAddress,
+    distanceKm = distanceKm,
+    durationSeconds = end?.let {
+        runCatching { java.time.Duration.between(Instant.parse(startedAt), Instant.parse(it)).seconds.toInt() }.getOrNull()
+    },
     syncState = if (syncError != null) "FAILED" else "PENDING"
 )
+
+/** Strecke aus GPS-Punkten (Haversine); ungenaue Fixes über 50 m werden ignoriert. */
+private fun trackDistanceKm(points: List<TrackPointEntity>): Double {
+    val usable = points.filter { it.accuracy == null || it.accuracy <= 50.0 }
+    var meters = 0.0
+    for (i in 1 until usable.size) {
+        val a = usable[i - 1]
+        val b = usable[i]
+        val dLat = Math.toRadians(b.lat - a.lat)
+        val dLon = Math.toRadians(b.lon - a.lon)
+        val h = Math.sin(dLat / 2).let { it * it } +
+            Math.cos(Math.toRadians(a.lat)) * Math.cos(Math.toRadians(b.lat)) * Math.sin(dLon / 2).let { it * it }
+        meters += 2 * 6_371_000.0 * Math.asin(Math.sqrt(h))
+    }
+    return meters / 1000.0
+}
 
 
 private fun Vehicle.toEntity() = VehicleEntity(

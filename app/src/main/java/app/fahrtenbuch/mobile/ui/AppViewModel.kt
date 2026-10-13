@@ -322,6 +322,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val trips = repository.trips(forceNetwork = false)
                 applyLocalData(vehicles, trips, loading = false)
                 _state.value = _state.value.copy(error = null, vehiclesLoadedFromServer = false)
+                resolveTripDetails()
             }
             return
         }
@@ -434,6 +435,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
                 .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
+        }
+    }
+
+    /** Adressen und Strecke für Fahrten auf dem Gerät ergänzen und die Liste danach aktualisieren. */
+    private suspend fun resolveTripDetails() {
+        val changed = runCatching { repository.resolveLocalTripDetails() }.getOrDefault(false)
+        if (changed) {
+            val trips = repository.trips(forceNetwork = false)
+            _state.value = _state.value.copy(trips = trips)
         }
     }
 
@@ -563,6 +573,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value = _state.value.copy(tracking = false)
                     onStopped()
                     refresh()
+                    // Auch im Server-Modus: Adressen schon anzeigen, solange die Fahrt noch nicht hochgeladen ist.
+                    if (!store.isLocalMode) viewModelScope.launch { resolveTripDetails() }
                 }
                 .onFailure {
                     _state.value = _state.value.copy(
