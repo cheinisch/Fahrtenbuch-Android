@@ -47,19 +47,9 @@ private const val SOURCE_URL = "https://github.com/cheinisch/Fahrtenbuch-Android
 private const val LICENSE_URL = "$SOURCE_URL/blob/master/LICENSE"
 private const val ISSUES_URL = "$SOURCE_URL/issues"
 
-/** Direkte Abhängigkeiten der App und ihre Lizenzen (Stand: app/build.gradle.kts). */
-private val libraries = listOf(
-    "AndroidX, Jetpack Compose, Room, WorkManager, DataStore" to "Apache 2.0",
-    "Kotlin Coroutines" to "Apache 2.0",
-    "Retrofit, OkHttp, Moshi" to "Apache 2.0",
-    "MapLibre Native" to "BSD 2-Clause",
-    "ZXing Android Embedded" to "Apache 2.0",
-    "Google Play Services Location" to "Android SDK License"
-)
-
 /**
  * „Über die App“: Version und Diagnose (kopierbar für Fehlerberichte), Server-Version
- * über GET /health, Lizenz der App (GNU AGPL v3), verwendete Bibliotheken, Kartenquellen
+ * über GET /health, Lizenz der App (GNU AGPL v3), alle Open-Source-Bibliotheken (AboutLibraries), Kartenquellen
  * sowie Links zu Datenschutz, Quellcode und Fehlermeldung.
  */
 @Composable
@@ -67,6 +57,7 @@ fun AboutDialog(
     serverMode: Boolean,
     serverUrl: String,
     loadServerHealth: suspend () -> HealthResponse?,
+    onShowLibraries: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -152,12 +143,8 @@ fun AboutDialog(
 
                 // Bibliotheken
                 AboutSection(stringResource(R.string.about_libraries_title)) {
-                    libraries.forEach { (name, license) ->
-                        Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(name, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                            Text(license, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
+                    Text(stringResource(R.string.about_libraries_text), style = MaterialTheme.typography.bodySmall)
+                    AboutLink(stringResource(R.string.about_libraries_show), onShowLibraries)
                 }
 
                 // Kartenquellen

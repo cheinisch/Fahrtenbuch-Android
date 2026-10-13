@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+    // Erzeugt beim Build die Liste aller Bibliotheken samt Lizenzen (res/raw/aboutlibraries.json)
+    id("com.mikepenz.aboutlibraries.plugin.android")
 }
 
 android {
@@ -63,6 +65,8 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("org.maplibre.gl:android-sdk:13.5.3")
+    implementation("com.mikepenz:aboutlibraries-core:15.2.0")
+    implementation("com.mikepenz:aboutlibraries-compose-m3:15.2.0")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
     implementation("androidx.room:room-runtime:2.8.5")
     implementation("androidx.room:room-ktx:2.8.5")

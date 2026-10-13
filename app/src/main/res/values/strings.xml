@@ -309,4 +309,6 @@
     <string name="about_libraries_title">Open-source libraries</string>
     <string name="about_map_data_title">Map data</string>
     <string name="about_map_data_text">Maps: © OpenStreetMap contributors (ODbL), OpenMapTiles, tiles by OpenFreeMap.</string>
+    <string name="about_libraries_text">All libraries used by the app and their licenses, generated automatically with every build.</string>
+    <string name="about_libraries_show">Show all licenses</string>
 </resources>

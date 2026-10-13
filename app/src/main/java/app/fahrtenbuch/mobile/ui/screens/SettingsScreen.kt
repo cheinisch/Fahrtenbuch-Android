@@ -64,6 +64,7 @@ import app.fahrtenbuch.mobile.ui.permissions.rememberPermissionStatus
 import app.fahrtenbuch.mobile.ui.screens.settings.AboutDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.FormatPreferencesDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.OpenSourceLicensesDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.PermissionsDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.ProfileEditDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.SegmentedSelector
@@ -74,7 +75,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -340,8 +341,11 @@ fun SettingsScreen(
             serverMode = isServerMode,
             serverUrl = appState.serverUrl,
             loadServerHealth = { viewModel.serverHealth() },
+            onShowLibraries = { dialog = SettingsDialog.LIBRARIES },
             onDismiss = { dialog = SettingsDialog.NONE }
         )
+        // Zurück aus der Lizenzliste führt wieder zu „Über die App“
+        SettingsDialog.LIBRARIES -> OpenSourceLicensesDialog(onDismiss = { dialog = SettingsDialog.ABOUT })
         SettingsDialog.NONE -> Unit
     }
 }
