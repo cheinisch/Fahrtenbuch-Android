@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-13
+
+Version code 24.
+
 ### Added
 
 - Default vehicle: loaded from the server (`isDefault`), preselected for new trips and listed first on the home screen.
 - Vehicles screen shows a "Default" badge and lets you set another vehicle as default (`PUT /vehicles/{id}/default` in server mode, stored on the device in local mode; the first local vehicle becomes the default automatically).
 - `README.md`, `AGENTS.md` and `CLAUDE.md` with project overview, build instructions and contributor/agent conventions.
+- `CHANGELOG.md` following Keep a Changelog.
 
 ### Changed
 
@@ -73,7 +78,8 @@ Version codes 21 and 22.
 
 Version code 20. State before the changes listed above.
 
-[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/721d319...HEAD
+[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/937f08b...HEAD
+[0.4.2]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/721d319...937f08b
 [0.4.1]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/0179389...721d319
 [0.4.0]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/4fed1e4...0179389
 [0.3.6]: https://github.com/cheinisch/Fahrtenbuch-Android/commit/4fed1e4
