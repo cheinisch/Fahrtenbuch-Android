@@ -125,4 +125,35 @@
         <item quantity="one">%d Fahrt</item>
         <item quantity="other">%d Fahrten</item>
     </plurals>
+    <string name="settings_section_connection">Verbindung</string>
+    <string name="settings_server">Server</string>
+    <string name="settings_server_settings">Server-Einstellungen</string>
+    <string name="settings_security">Verbindungssicherheit</string>
+    <string name="settings_security_verified">HTTPS, Zertifikat geprüft</string>
+    <string name="settings_security_unverified">HTTPS, Zertifikat ungeprüft</string>
+    <string name="settings_security_http">Unverschlüsselt (HTTP)</string>
+    <string name="settings_cert_warning">Nur für selbstsignierte oder ungültige Zertifikate.</string>
+    <string name="settings_http_warning">HTTP ist unverschlüsselt. Nur im eigenen Netzwerk verwenden.</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Hell</string>
+    <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_no_vehicles">Noch kein Fahrzeug</string>
+    <string name="settings_seconds_short">%d s</string>
+    <string name="settings_gps_hint">Kürzere Intervalle zeichnen die Route genauer auf, brauchen aber mehr Akku.</string>
+    <string name="settings_section_about">Über die App</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_build">Build %1$d · %2$s</string>
+    <string name="settings_logout">Abmelden</string>
+    <string name="settings_logout_confirm_title">Abmelden?</string>
+    <string name="settings_logout_confirm_text">Um deine Fahrten zu synchronisieren, musst du dich danach erneut anmelden.</string>
+    <string name="settings_saving">Speichern …</string>
+    <string name="settings_last_login">Letzte Anmeldung: %1$s</string>
+    <plurals name="settings_vehicle_count">
+        <item quantity="one">%d Fahrzeug</item>
+        <item quantity="other">%d Fahrzeuge</item>
+    </plurals>
+    <plurals name="settings_gps_every">
+        <item quantity="one">Alle %d Sekunde</item>
+        <item quantity="other">Alle %d Sekunden</item>
+    </plurals>
 </resources>

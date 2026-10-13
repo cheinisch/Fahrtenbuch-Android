@@ -130,4 +130,35 @@
         <item quantity="one">%d trip</item>
         <item quantity="other">%d trips</item>
     </plurals>
+    <string name="settings_section_connection">Connection</string>
+    <string name="settings_server">Server</string>
+    <string name="settings_server_settings">Server settings</string>
+    <string name="settings_security">Connection security</string>
+    <string name="settings_security_verified">HTTPS, certificate verified</string>
+    <string name="settings_security_unverified">HTTPS, certificate not verified</string>
+    <string name="settings_security_http">Unencrypted (HTTP)</string>
+    <string name="settings_cert_warning">Only for self-signed or invalid certificates.</string>
+    <string name="settings_http_warning">HTTP is unencrypted. Only use it within your own network.</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_no_vehicles">No vehicle yet</string>
+    <string name="settings_seconds_short">%d s</string>
+    <string name="settings_gps_hint">Shorter intervals record the route more precisely but use more battery.</string>
+    <string name="settings_section_about">About the app</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_build">Build %1$d · %2$s</string>
+    <string name="settings_logout">Sign out</string>
+    <string name="settings_logout_confirm_title">Sign out?</string>
+    <string name="settings_logout_confirm_text">You will need to sign in again to sync your trips.</string>
+    <string name="settings_saving">Saving …</string>
+    <string name="settings_last_login">Last sign-in: %1$s</string>
+    <plurals name="settings_vehicle_count">
+        <item quantity="one">%d vehicle</item>
+        <item quantity="other">%d vehicles</item>
+    </plurals>
+    <plurals name="settings_gps_every">
+        <item quantity="one">Every %d second</item>
+        <item quantity="other">Every %d seconds</item>
+    </plurals>
 </resources>

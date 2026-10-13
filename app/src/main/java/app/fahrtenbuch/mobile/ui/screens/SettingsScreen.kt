@@ -1,28 +1,36 @@
 package app.fahrtenbuch.mobile.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import app.fahrtenbuch.mobile.R
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,13 +41,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.fahrtenbuch.mobile.BuildConfig
-import app.fahrtenbuch.mobile.data.api.SessionStore
+import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.api.AppMode
+import app.fahrtenbuch.mobile.data.api.SessionStore
+import app.fahrtenbuch.mobile.data.model.User
 import app.fahrtenbuch.mobile.ui.AppViewModel
+import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.ProfileEditDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.SegmentedSelector
+import app.fahrtenbuch.mobile.ui.screens.settings.ServerSettingsDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.SettingsCard
+import app.fahrtenbuch.mobile.ui.screens.settings.SettingsDivider
+import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
+import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
+
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT }
+
+private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
 @Composable
 fun SettingsScreen(
@@ -49,353 +74,292 @@ fun SettingsScreen(
     onOpenVehicles: () -> Unit = {}
 ) {
     val appState by viewModel.state.collectAsState()
-    var editingAccount by rememberSaveable { mutableStateOf(false) }
-    var displayName by rememberSaveable { mutableStateOf("") }
-    var username by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var serverUrl by rememberSaveable { mutableStateOf(appState.serverUrl) }
     val context = LocalContext.current
     val sessionStore = remember { SessionStore(context) }
-    var allowInvalidCertificates by rememberSaveable {
-        mutableStateOf(sessionStore.allowInvalidCertificates)
-    }
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
+    var dialog by rememberSaveable { mutableStateOf(SettingsDialog.NONE) }
+    val isServerMode = appState.appMode == AppMode.SERVER
 
     LaunchedEffect(Unit) { viewModel.loadAccount() }
-    LaunchedEffect(appState.user?.id, editingAccount) {
-        if (!editingAccount) {
-            displayName = appState.user?.displayName.orEmpty()
-            username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
-            email = appState.user?.email.orEmpty()
-            serverUrl = appState.serverUrl
-        }
-    }
 
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp)
+            .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         Text(
-            "Einstellungen",
+            stringResource(R.string.settings),
+            modifier = Modifier.padding(start = 4.dp),
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.ExtraBold
         )
 
-        Text(
-            "Konto",
-            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-            fontWeight = FontWeight.SemiBold
-        )
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                AccountInfoRow("Anzeigename", appState.user?.displayName ?: "–")
-                AccountInfoRow(
-                    "Anmeldename",
-                    appState.user?.loginName ?: appState.user?.username ?: "–"
-                )
-                AccountInfoRow("E-Mail", appState.user?.email ?: "–")
-                AccountInfoRow("Rolle", appState.user?.role ?: "–")
-                AccountInfoRow("Server", appState.serverUrl)
-                if (appState.serverUrl.startsWith("https://", ignoreCase = true)) {
-                    AccountInfoRow(
-                        "Zertifikatsprüfung",
-                        if (sessionStore.allowInvalidCertificates) "Deaktiviert" else "Aktiv"
-                    )
-                }
-                appState.user?.lastLoginAt?.let { AccountInfoRow("Letzte Anmeldung", it) }
-                OutlinedButton(
-                    onClick = { editingAccount = true },
-                    modifier = Modifier.padding(top = 12.dp)
-                ) {
-                    Text(stringResource(R.string.edit_profile))
-                }
-            }
-        }
-
-        if (appState.appMode == AppMode.LOCAL) {
-            Text(
-                stringResource(R.string.storage_mode),
-                modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-                fontWeight = FontWeight.SemiBold
+        if (isServerMode) {
+            ProfileCard(
+                user = appState.user,
+                modifier = Modifier.padding(top = 20.dp),
+                onClick = { dialog = SettingsDialog.PROFILE }
             )
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.local_mode_title), fontWeight = FontWeight.SemiBold)
-                    Text(
-                        stringResource(R.string.local_mode_migration_help),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+
+            SettingsSectionLabel(stringResource(R.string.settings_section_connection))
+            SettingsCard {
+                SettingsRow(
+                    icon = Icons.Default.Dns,
+                    title = stringResource(R.string.settings_server),
+                    subtitle = serverHost(appState.serverUrl),
+                    onClick = { dialog = SettingsDialog.SERVER }
+                )
+                SettingsDivider()
+                val https = appState.serverUrl.startsWith("https://", ignoreCase = true)
+                val certChecked = https && !sessionStore.allowInvalidCertificates
+                SettingsRow(
+                    icon = if (certChecked) Icons.Default.Lock else Icons.Default.LockOpen,
+                    title = stringResource(R.string.settings_security),
+                    subtitle = stringResource(
+                        when {
+                            !https -> R.string.settings_security_http
+                            certChecked -> R.string.settings_security_verified
+                            else -> R.string.settings_security_unverified
+                        }
                     )
-                    OutlinedButton(onClick = { viewModel.startServerMigrationSetup() }) {
-                        Text(stringResource(R.string.migrate_to_server))
+                )
+            }
+        } else if (appState.appMode == AppMode.LOCAL) {
+            SettingsSectionLabel(stringResource(R.string.storage_mode))
+            SettingsCard {
+                SettingsRow(
+                    icon = Icons.Default.CloudUpload,
+                    title = stringResource(R.string.local_mode_title),
+                    subtitle = stringResource(R.string.local_mode_migration_help)
+                )
+                OutlinedButton(
+                    onClick = { viewModel.startServerMigrationSetup() },
+                    modifier = Modifier.padding(start = 70.dp, end = 16.dp, bottom = 16.dp)
+                ) {
+                    Text(stringResource(R.string.migrate_to_server))
+                }
+            }
+        }
+
+        SettingsSectionLabel(stringResource(R.string.appearance))
+        SegmentedSelector(
+            options = ThemeMode.entries,
+            selected = themeMode,
+            label = { mode ->
+                stringResource(
+                    when (mode) {
+                        ThemeMode.SYSTEM -> R.string.settings_theme_system
+                        ThemeMode.LIGHT -> R.string.settings_theme_light
+                        ThemeMode.DARK -> R.string.settings_theme_dark
                     }
+                )
+            },
+            onSelect = onThemeModeChange
+        )
+
+        SettingsSectionLabel(stringResource(R.string.vehicles))
+        SettingsCard {
+            SettingsRow(
+                icon = Icons.Default.DirectionsCar,
+                title = stringResource(R.string.vehicles_bluetooth),
+                subtitle = if (appState.vehicles.isEmpty()) {
+                    stringResource(R.string.settings_no_vehicles)
+                } else {
+                    pluralStringResource(R.plurals.settings_vehicle_count, appState.vehicles.size, appState.vehicles.size) +
+                        " · " + appState.vehicles.joinToString(", ") { it.name }
+                },
+                onClick = onOpenVehicles
+            )
+        }
+
+        SettingsSectionLabel(stringResource(R.string.tracking_title))
+        SettingsCard {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.gps_interval), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        pluralStringResource(R.plurals.settings_gps_every, trackingInterval, trackingInterval),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
-            }
-        }
-
-        Text(
-            "Darstellung",
-            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            ThemeMode.entries.forEach { mode ->
-                ThemeModeRow(
-                    label = when (mode) {
-                        ThemeMode.SYSTEM -> "Systemeinstellung"
-                        ThemeMode.LIGHT -> "Hell"
-                        ThemeMode.DARK -> "Dunkel"
-                    },
-                    selected = themeMode == mode,
-                    onClick = { onThemeModeChange(mode) }
-                )
-            }
-        }
-
-        Text(
-            "Fahrzeuge",
-            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-            fontWeight = FontWeight.SemiBold
-        )
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text(stringResource(R.string.vehicles_bluetooth), fontWeight = FontWeight.SemiBold)
-                Text(
-                    "Fahrzeuge vom Server laden und ein gekoppeltes Bluetooth-Gerät zuweisen.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-                )
-                OutlinedButton(onClick = onOpenVehicles) {
-                    Text(stringResource(R.string.manage_vehicles))
-                }
-            }
-        }
-
-        Text(
-            "Tracking",
-            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-            fontWeight = FontWeight.SemiBold
-        )
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text(stringResource(R.string.gps_interval), fontWeight = FontWeight.SemiBold)
-                Text(
-                    "Nach dem ersten GPS-Fix wird die Position in diesem Intervall gespeichert.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
-                )
-                listOf(5, 10, 15, 30, 60).forEach { seconds ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = trackingInterval == seconds,
-                            onClick = {
-                                trackingInterval = seconds
-                                sessionStore.trackingIntervalSeconds = seconds
-                            }
-                        )
-                        Text(if (seconds < 60) "$seconds Sekunden" else "60 Sekunden")
+                SegmentedSelector(
+                    options = trackingIntervals,
+                    selected = trackingInterval,
+                    label = { stringResource(R.string.settings_seconds_short, it) },
+                    onSelect = { seconds ->
+                        trackingInterval = seconds
+                        sessionStore.trackingIntervalSeconds = seconds
                     }
-                }
+                )
+                Text(
+                    stringResource(R.string.settings_gps_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
-        Text(
-            "Versionsinformationen",
-            modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-            fontWeight = FontWeight.SemiBold
-        )
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 20.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                VersionInfoRow("App-Version", BuildConfig.VERSION_NAME)
-                VersionInfoRow("Build", BuildConfig.VERSION_CODE.toString())
-                VersionInfoRow("Paket", BuildConfig.APPLICATION_ID)
+        SettingsSectionLabel(stringResource(R.string.settings_section_about))
+        SettingsCard {
+            SettingsRow(
+                icon = Icons.Default.Info,
+                title = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
+                subtitle = stringResource(R.string.settings_build, BuildConfig.VERSION_CODE, BuildConfig.APPLICATION_ID)
+            )
+        }
+
+        if (isServerMode) {
+            OutlinedButton(
+                onClick = { dialog = SettingsDialog.LOGOUT },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp)
+                    .height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(
+                    stringResource(R.string.settings_logout),
+                    modifier = Modifier.padding(start = 8.dp),
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
 
-    if (editingAccount) {
-        AlertDialog(
-            onDismissRequest = {
-                if (!appState.loading) editingAccount = false
-            },
-            title = { Text(stringResource(R.string.edit_profile)) },
-            text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+    when (dialog) {
+        SettingsDialog.PROFILE -> ProfileEditDialog(
+            user = appState.user,
+            loading = appState.loading,
+            error = appState.error,
+            onDismiss = { dialog = SettingsDialog.NONE },
+            onSave = { displayName, username, email ->
+                viewModel.updateAccount(
+                    displayName,
+                    username,
+                    email,
+                    appState.serverUrl,
+                    sessionStore.allowInvalidCertificates
+                ) { dialog = SettingsDialog.NONE }
+            }
+        )
+        SettingsDialog.SERVER -> ServerSettingsDialog(
+            serverUrl = appState.serverUrl,
+            allowInvalidCertificates = sessionStore.allowInvalidCertificates,
+            loading = appState.loading,
+            error = appState.error,
+            onDismiss = { dialog = SettingsDialog.NONE },
+            onSave = { serverUrl, allowInvalid ->
+                val user = appState.user
+                viewModel.updateAccount(
+                    user?.displayName,
+                    user?.loginName ?: user?.username,
+                    user?.email,
+                    serverUrl,
+                    allowInvalid
+                ) { dialog = SettingsDialog.NONE }
+            }
+        )
+        SettingsDialog.LOGOUT -> LogoutConfirmDialog(
+            onDismiss = { dialog = SettingsDialog.NONE },
+            onConfirm = {
+                dialog = SettingsDialog.NONE
+                viewModel.logout()
+            }
+        )
+        SettingsDialog.NONE -> Unit
+    }
+}
+
+@Composable
+private fun ProfileCard(user: User?, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val name = user?.displayName?.takeIf { it.isNotBlank() } ?: user?.loginName ?: user?.username ?: "–"
+    SettingsCard(modifier = modifier, onClick = onClick) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    initials(name),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedTextField(
-                        value = displayName,
-                        onValueChange = { displayName = it },
-                        label = { Text(stringResource(R.string.display_name)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                    Text(
+                        name,
+                        modifier = Modifier.weight(1f, fill = false),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text(stringResource(R.string.login_name)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text(stringResource(R.string.email_address)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = serverUrl,
-                        onValueChange = { serverUrl = it },
-                        label = { Text(stringResource(R.string.server_address)) },
-                        supportingText = { Text(stringResource(R.string.protocol_note)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (serverUrl.trim().startsWith("https://", ignoreCase = true)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(stringResource(R.string.disable_cert_check), fontWeight = FontWeight.Medium)
-                                Text(
-                                    "Nur für selbstsignierte oder ungültige Zertifikate.",
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                            Switch(
-                                checked = allowInvalidCertificates,
-                                onCheckedChange = { allowInvalidCertificates = it }
+                    user?.role?.takeIf { it.isNotBlank() }?.let { role ->
+                        Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surfaceVariant) {
+                            Text(
+                                role.replaceFirstChar { it.titlecase() },
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = !appState.loading && username.isNotBlank() && email.isNotBlank(),
-                    onClick = {
-                        viewModel.updateAccount(
-                            displayName,
-                            username,
-                            email,
-                            serverUrl,
-                            allowInvalidCertificates
-                        ) {
-                            editingAccount = false
-                        }
-                    }
-                ) {
-                    Text(if (appState.loading) "Speichern …" else "Speichern")
+                user?.email?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    enabled = !appState.loading,
-                    onClick = {
-                        editingAccount = false
-                        displayName = appState.user?.displayName.orEmpty()
-                        username = (appState.user?.loginName ?: appState.user?.username).orEmpty()
-                        email = appState.user?.email.orEmpty()
-                        serverUrl = appState.serverUrl
-                        allowInvalidCertificates = sessionStore.allowInvalidCertificates
-                    }
-                ) {
-                    Text("Abbrechen")
-                }
+                Text(
+                    stringResource(R.string.edit_profile),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-        )
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
-@Composable
-private fun ThemeModeRow(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Spacer(Modifier.width(8.dp))
-        Text(label, color = MaterialTheme.colorScheme.onSurface)
-    }
-}
+private fun initials(name: String): String =
+    name.split(" ", "-", ".", "_")
+        .filter { it.isNotBlank() }
+        .take(2)
+        .joinToString("") { it.first().uppercase() }
+        .ifBlank { "?" }
 
-@Composable
-private fun VersionInfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            label,
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            value,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-private fun AccountInfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            label,
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            value,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
+private fun serverHost(url: String): String =
+    runCatching { java.net.URI(url.trim()).host }.getOrNull()?.takeIf { it.isNotBlank() } ?: url
