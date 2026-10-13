@@ -100,4 +100,14 @@
     <string name="location_notice_title">Standortzugriff für die automatische Fahrtenaufzeichnung</string>
     <string name="location_notice_text">Fahrtenbuch verwendet deinen Standort, um während einer Fahrt Route, Entfernung sowie Start und Ziel aufzuzeichnen. Für die automatische Fahrtenaufzeichnung kann der Standort auch im Hintergrund erfasst werden, wenn die App nicht sichtbar oder das Display ausgeschaltet ist. Standortdaten werden nur für die Fahrtenaufzeichnung verwendet.</string>
     <string name="location_notice_continue">Weiter</string>
+    <string name="trip_detail_distance">Strecke</string>
+    <string name="trip_detail_duration">Dauer</string>
+    <string name="trip_detail_avg_speed">Ø Tempo</string>
+    <string name="trip_detail_start_unknown">Start unbekannt</string>
+    <string name="trip_detail_end_unknown">Ziel unbekannt</string>
+    <string name="trip_detail_purpose">Fahrtzweck</string>
+    <string name="trip_detail_contact">Kontakt</string>
+    <string name="trip_detail_note">Notiz</string>
+    <string name="trip_detail_purpose_missing">Kein Fahrtzweck hinterlegt</string>
+    <string name="trip_detail_back">Zurück</string>
 </resources>

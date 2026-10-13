@@ -105,4 +105,14 @@
     <string name="location_notice_title">Location access for automatic trip tracking</string>
     <string name="location_notice_text">Fahrtenbuch uses your location to record routes, distance, start and destination during a trip. For automatic trip tracking, location may also be accessed in the background when the app is not visible or the display is off. Location is only recorded for trip tracking.</string>
     <string name="location_notice_continue">Continue</string>
+    <string name="trip_detail_distance">Distance</string>
+    <string name="trip_detail_duration">Duration</string>
+    <string name="trip_detail_avg_speed">Avg. speed</string>
+    <string name="trip_detail_start_unknown">Start unknown</string>
+    <string name="trip_detail_end_unknown">Destination unknown</string>
+    <string name="trip_detail_purpose">Purpose</string>
+    <string name="trip_detail_contact">Contact</string>
+    <string name="trip_detail_note">Note</string>
+    <string name="trip_detail_purpose_missing">No purpose recorded</string>
+    <string name="trip_detail_back">Back</string>
 </resources>
