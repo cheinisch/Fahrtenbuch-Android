@@ -3,23 +3,28 @@ package app.fahrtenbuch.mobile.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.fahrtenbuch.mobile.R
+import app.fahrtenbuch.mobile.ui.navigation.AppBottomBar
+import app.fahrtenbuch.mobile.ui.navigation.BottomDestination
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -34,18 +39,14 @@ import app.fahrtenbuch.mobile.ui.screens.PairConfirmationScreen
 import app.fahrtenbuch.mobile.ui.screens.QrPairingScreen
 import app.fahrtenbuch.mobile.ui.screens.SettingsScreen
 import app.fahrtenbuch.mobile.ui.screens.StatisticsScreen
+import app.fahrtenbuch.mobile.ui.screens.TripsRequest
 import app.fahrtenbuch.mobile.ui.screens.TripsScreen
 import app.fahrtenbuch.mobile.ui.screens.WelcomeScreen
+import app.fahrtenbuch.mobile.ui.screens.LocationDisclosureScreen
 import app.fahrtenbuch.mobile.ui.screens.VehiclesScreen
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
 import app.fahrtenbuch.mobile.data.api.AppMode
-
-private data class Destination(
-    val route: String,
-    val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
-)
 
 @Composable
 fun FahrtenbuchApp(
@@ -72,34 +73,42 @@ fun FahrtenbuchApp(
 
     val navController = rememberNavController()
     val destinations = listOf(
-        Destination("tracking", stringResource(R.string.tracking_title), Icons.Default.LocationOn),
-        Destination("trips", stringResource(R.string.trips), Icons.Default.ListAlt),
-        Destination("statistics", stringResource(R.string.statistics), Icons.Default.BarChart),
-        Destination("settings", stringResource(R.string.settings), Icons.Default.Settings)
+        BottomDestination(
+            "tracking",
+            stringResource(R.string.nav_home),
+            Icons.Default.LocationOn,
+            showRecordingDot = state.tracking
+        ),
+        BottomDestination("trips", stringResource(R.string.trips), Icons.AutoMirrored.Filled.ListAlt),
+        BottomDestination("statistics", stringResource(R.string.statistics), Icons.Default.BarChart),
+        BottomDestination("settings", stringResource(R.string.settings), Icons.Default.Tune)
     )
+    var tripsRequest by remember { mutableStateOf<TripsRequest?>(null) }
+    val openTrips: (TripsRequest) -> Unit = { request ->
+        tripsRequest = request
+        navController.navigate("trips") {
+            popUpTo(navController.graph.startDestinationId) { saveState = true }
+            launchSingleTop = true
+        }
+    }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                destinations.forEach { destination ->
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == destination.route
-                        } == true,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(destination.icon, contentDescription = destination.label) },
-                        label = { Text(destination.label) }
-                    )
+            AppBottomBar(
+                destinations = destinations,
+                isSelected = { destination ->
+                    currentDestination?.hierarchy?.any { it.route == destination.route } == true
+                },
+                onSelect = { destination ->
+                    navController.navigate(destination.route) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
-            }
+            )
         }
     ) { padding ->
         NavHost(
@@ -107,8 +116,21 @@ fun FahrtenbuchApp(
             startDestination = "tracking",
             modifier = Modifier.padding(padding)
         ) {
-            composable("tracking") { DashboardScreen(appViewModel) }
-            composable("trips") { TripsScreen(appViewModel) }
+            composable("tracking") {
+                DashboardScreen(
+                    viewModel = appViewModel,
+                    onOpenTrips = { category -> openTrips(TripsRequest(category = category)) },
+                    onOpenTrip = { trip -> openTrips(TripsRequest(tripId = trip.id)) },
+                    onSetupVehicle = { navController.navigate("vehicles") }
+                )
+            }
+            composable("trips") {
+                TripsScreen(
+                    viewModel = appViewModel,
+                    request = tripsRequest,
+                    onRequestHandled = { tripsRequest = null }
+                )
+            }
             composable("statistics") { StatisticsScreen(appViewModel) }
             composable("vehicles") { VehiclesScreen(appViewModel) }
             composable("settings") {
@@ -128,7 +150,14 @@ private fun FirstStartNavigation(viewModel: AppViewModel) {
     val navController = rememberNavController()
     var pendingPairPayloadJson by rememberSaveable { mutableStateOf<String?>(null) }
 
-    NavHost(navController = navController, startDestination = "welcome") {
+    NavHost(navController = navController, startDestination = "location-disclosure") {
+        composable("location-disclosure") {
+            LocationDisclosureScreen(onContinue = {
+                navController.navigate("welcome") {
+                    popUpTo("location-disclosure") { inclusive = true }
+                }
+            })
+        }
         composable("welcome") {
             WelcomeScreen(
                 onLocal = { viewModel.chooseLocalMode() },

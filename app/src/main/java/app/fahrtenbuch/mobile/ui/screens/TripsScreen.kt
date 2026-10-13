@@ -1,68 +1,106 @@
 package app.fahrtenbuch.mobile.ui.screens
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Notes
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import app.fahrtenbuch.mobile.R
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
+import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
-import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.ui.AppViewModel
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
+import app.fahrtenbuch.mobile.ui.common.CategoryChip
+import app.fahrtenbuch.mobile.ui.common.CategoryIcon
+import app.fahrtenbuch.mobile.ui.common.formatDistance
+import app.fahrtenbuch.mobile.ui.common.formatLocalDate
+import app.fahrtenbuch.mobile.ui.common.formatTripTimeRange
+import app.fahrtenbuch.mobile.ui.common.localizedTripType
+import app.fahrtenbuch.mobile.ui.common.shortRoute
+import app.fahrtenbuch.mobile.ui.common.tripLocalDate
+import app.fahrtenbuch.mobile.ui.screens.trips.PeriodFilterDialog
+import java.time.LocalDate
+
+/** Anfrage von außen (z. B. Startseite): Liste vorfiltern oder eine Fahrt direkt öffnen. */
+data class TripsRequest(val category: TripType? = null, val tripId: String? = null)
 
 @Composable
-private fun FilterMenu(label: String, options: List<Pair<String, String>>, value: String, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(options.firstOrNull { it.first == value }?.second ?: label)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { (id, name) ->
-                DropdownMenuItem(text = { Text(name) }, onClick = {
-                    onSelect(id)
-                    expanded = false
-                })
-            }
-        }
-    }
-}
-
-@Composable
-fun TripsScreen(viewModel: AppViewModel) {
+fun TripsScreen(
+    viewModel: AppViewModel,
+    request: TripsRequest? = null,
+    onRequestHandled: () -> Unit = {}
+) {
     val state by viewModel.state.collectAsState()
-    var vehicleFilter by remember { mutableStateOf("") }
-    var tagFilter by remember { mutableStateOf("") }
-    var fromDate by remember { mutableStateOf("") }
-    var toDate by remember { mutableStateOf("") }
+    var vehicleFilter by rememberSaveable { mutableStateOf("") }
+    var tagFilter by rememberSaveable { mutableStateOf("") }
+    var categoryFilter by rememberSaveable { mutableStateOf<TripType?>(null) }
+    var fromEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    var toEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    var showPeriodDialog by rememberSaveable { mutableStateOf(false) }
     var selectedTripId by rememberSaveable { mutableStateOf<String?>(null) }
-    val selectedTrip = state.trips.firstOrNull { it.id == selectedTripId }
 
+    LaunchedEffect(request) {
+        val pending = request ?: return@LaunchedEffect
+        categoryFilter = pending.category
+        pending.tripId?.let { id ->
+            selectedTripId = id
+            state.trips.firstOrNull { it.id == id }?.let(viewModel::loadTripDetails)
+        }
+        onRequestHandled()
+    }
+
+    val selectedTrip = state.trips.firstOrNull { it.id == selectedTripId }
     if (selectedTrip != null) {
         TripDetailsScreen(
             trip = selectedTrip,
@@ -75,391 +113,382 @@ fun TripsScreen(viewModel: AppViewModel) {
         return
     }
 
-    val filtered = state.trips.filter { trip ->
+    val fromDate = fromEpochDay?.let(LocalDate::ofEpochDay)
+    val toDate = toEpochDay?.let(LocalDate::ofEpochDay)
+    // Laufende Aufzeichnungen zeigt die Startseite, nicht die Liste.
+    val completed = state.trips.filter { it.status != "recording" }
+    val filtered = completed.filter { trip ->
+        val day = tripLocalDate(trip.startedAt)
         (vehicleFilter.isBlank() || trip.vehicleId == vehicleFilter) &&
-        (tagFilter.isBlank() || tagFilter in trip.tags) &&
-        (fromDate.isBlank() || trip.startedAt.take(10) >= fromDate) &&
-        (toDate.isBlank() || trip.startedAt.take(10) <= toDate)
+            (tagFilter.isBlank() || tagFilter in trip.tags) &&
+            (categoryFilter == null || trip.tripType == categoryFilter) &&
+            (fromDate == null || (day != null && !day.isBefore(fromDate))) &&
+            (toDate == null || (day != null && !day.isAfter(toDate)))
     }
-    val tags = state.trips.flatMap { it.tags }.distinct().sorted()
+    val groups = filtered.groupBy { tripLocalDate(it.startedAt) }.toList()
+    val tags = completed.flatMap { it.tags }.distinct().sorted()
+    val vehicleName: (Trip) -> String = { trip ->
+        state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()
+    }
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.trips), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                IconButton(onClick = viewModel::syncNow, enabled = !state.loading) {
-                    if (state.loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-                    else Icon(Icons.Default.Sync, contentDescription = "Fahrten synchronisieren")
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 16.dp, top = 24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(R.string.trips), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                Surface(
+                    onClick = viewModel::syncNow,
+                    enabled = !state.loading,
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (state.loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        else Icon(Icons.Default.Sync, contentDescription = stringResource(R.string.trips_sync))
+                    }
                 }
             }
         }
+
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterMenu("Fahrzeug", listOf("" to "Alle Fahrzeuge") + state.vehicles.map { it.id to it.name }, vehicleFilter) { vehicleFilter = it }
-                    FilterMenu("Tag", listOf("" to "Alle Tags") + tags.map { it to it }, tagFilter) { tagFilter = it }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(fromDate, { fromDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text(stringResource(R.string.date_from)) }, singleLine = true)
-                    OutlinedTextField(toDate, { toDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text(stringResource(R.string.date_to)) }, singleLine = true)
-                }
-                Text("${filtered.size} Fahrten", style = MaterialTheme.typography.labelMedium)
-            }
-        }
-        state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
-        items(filtered, key = { it.id }) { trip ->
-            Card(Modifier.fillMaxWidth().clickable {
-                selectedTripId = trip.id
-                viewModel.loadTripDetails(trip)
-            }) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("${trip.startAddress ?: "Start"} → ${trip.endAddress ?: "Ziel"}", fontWeight = FontWeight.Bold)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("${localizedTripType(trip.tripType)} · ${state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()}")
-                        Surface(
-                            shape = RoundedCornerShape(50),
-                            color = if (trip.syncState == "SYNCED") MaterialTheme.colorScheme.secondaryContainer
-                                else MaterialTheme.colorScheme.errorContainer
-                        ) {
-                            Text(
-                                when (trip.syncState) {
-                                    "SYNCED" -> "Gesynct"
-                                    "FAILED" -> "Sync fehlgeschlagen"
-                                    else -> "Ausstehend"
-                                },
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterButton(
+                    icon = Icons.Default.CalendarMonth,
+                    label = periodLabel(fromDate, toDate),
+                    active = fromDate != null,
+                    onClick = { showPeriodDialog = true },
+                    modifier = Modifier.weight(1f)
+                )
+                Box(Modifier.weight(1f)) {
+                    var expanded by remember { mutableStateOf(false) }
+                    FilterButton(
+                        icon = Icons.Default.DirectionsCar,
+                        label = state.vehicles.firstOrNull { it.id == vehicleFilter }?.name
+                            ?: stringResource(R.string.filter_all_vehicles),
+                        active = vehicleFilter.isNotBlank(),
+                        onClick = { expanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.filter_all_vehicles)) },
+                            onClick = { vehicleFilter = ""; expanded = false }
+                        )
+                        state.vehicles.forEach { vehicle ->
+                            DropdownMenuItem(
+                                text = { Text(vehicle.name) },
+                                onClick = { vehicleFilter = vehicle.id; expanded = false }
                             )
                         }
                     }
-                    Text("${trip.distanceKm ?: 0.0} km · ${trip.startedAt}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (tags.isNotEmpty()) {
+                    Box {
+                        var expanded by remember { mutableStateOf(false) }
+                        FilterIconButton(
+                            icon = Icons.AutoMirrored.Filled.Label,
+                            contentDescription = stringResource(R.string.trips_filter_tags),
+                            active = tagFilter.isNotBlank(),
+                            onClick = { expanded = true }
+                        )
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.filter_all_tags)) },
+                                onClick = { tagFilter = ""; expanded = false }
+                            )
+                            tags.forEach { tag ->
+                                DropdownMenuItem(text = { Text(tag) }, onClick = { tagFilter = tag; expanded = false })
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            CategoryFilterRow(selected = categoryFilter, onSelect = { categoryFilter = it })
+        }
+
+        item {
+            val km = filtered.sumOf { it.distanceKm ?: 0.0 }
+            Text(
+                pluralStringResource(R.plurals.trip_count, filtered.size, filtered.size) + " · " + formatDistance(km) + " km",
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 14.dp),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        state.error?.let { message ->
+            item {
+                Text(
+                    message,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+
+        if (filtered.isEmpty()) {
+            item {
+                Text(
+                    stringResource(if (completed.isEmpty()) R.string.trips_empty else R.string.trips_empty_filtered),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 32.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        groups.forEach { (day, dayTrips) ->
+            item(key = "header-${day ?: "unknown"}") {
+                DayHeader(day, dayTrips.sumOf { it.distanceKm ?: 0.0 })
+            }
+            item(key = "group-${day ?: "unknown"}") {
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(22.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                ) {
+                    Column {
+                        dayTrips.forEachIndexed { index, trip ->
+                            if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            TripRow(
+                                trip = trip,
+                                vehicleName = vehicleName(trip),
+                                onClick = {
+                                    selectedTripId = trip.id
+                                    viewModel.loadTripDetails(trip)
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
     }
+
+    if (showPeriodDialog) {
+        PeriodFilterDialog(
+            initialFrom = fromDate,
+            initialTo = toDate,
+            onDismiss = { showPeriodDialog = false },
+            onConfirm = { from, to ->
+                fromEpochDay = from?.toEpochDay()
+                toEpochDay = (to ?: from)?.toEpochDay()
+                showPeriodDialog = false
+            }
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TripDetailsScreen(
-    trip: Trip,
-    points: List<TrackPoint>,
-    loading: Boolean,
-    error: String?,
-    onBack: () -> Unit,
-    onCategory: (TripType) -> Unit
+private fun periodLabel(from: LocalDate?, to: LocalDate?): String {
+    if (from == null) return stringResource(R.string.trips_filter_all_periods)
+    val end = to ?: from
+    return when {
+        from == end -> formatLocalDate(from, "dMMMyyyy")
+        from.dayOfMonth == 1 && end == from.withDayOfMonth(from.lengthOfMonth()) -> formatLocalDate(from, "MMMMyyyy")
+        from.year == end.year -> "${formatLocalDate(from, "dMMM")} – ${formatLocalDate(end, "dMMMyyyy")}"
+        else -> "${formatLocalDate(from, "dMMMyyyy")} – ${formatLocalDate(end, "dMMMyyyy")}"
+    }
+}
+
+@Composable
+private fun FilterButton(
+    icon: ImageVector,
+    label: String,
+    active: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    BackHandler(onBack = onBack)
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(44.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = if (active) colors.primaryContainer else colors.surfaceContainer,
+        border = BorderStroke(1.dp, if (active) colors.primary.copy(alpha = 0.5f) else colors.outlineVariant.copy(alpha = 0.5f))
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            when {
-                points.isNotEmpty() -> TripRouteMap(points, Modifier.fillMaxSize())
-                loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-                else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.no_gps_route))
-                }
-            }
+            Icon(icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(18.dp))
+            Text(
+                label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        }
+    }
+}
 
+@Composable
+private fun FilterIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    active: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.size(44.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = if (active) colors.primaryContainer else colors.surfaceContainer,
+        border = BorderStroke(1.dp, if (active) colors.primary.copy(alpha = 0.5f) else colors.outlineVariant.copy(alpha = 0.5f))
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = contentDescription, tint = if (active) colors.primary else colors.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun CategoryFilterRow(selected: TripType?, onSelect: (TripType?) -> Unit) {
+    val options: List<TripType?> = listOf(null) + TripType.entries
+    val colors = MaterialTheme.colorScheme
+    LazyRow(
+        modifier = Modifier.padding(top = 10.dp).selectableGroup(),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(options) { option ->
+            val isSelected = option == selected
             Surface(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp),
-                shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
-                shadowElevation = 8.dp
+                selected = isSelected,
+                onClick = { onSelect(option) },
+                modifier = Modifier.height(36.dp).semantics { role = Role.RadioButton },
+                shape = RoundedCornerShape(50),
+                color = if (isSelected) colors.primary else Color.Transparent,
+                contentColor = if (isSelected) colors.onPrimary else colors.onSurface,
+                border = if (isSelected) null else BorderStroke(1.dp, colors.outlineVariant)
             ) {
-                Row(
-                    modifier = Modifier.padding(end = 18.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
-                    }
+                Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
                     Text(
-                        stringResource(R.string.trip_details),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
+                        option?.let { localizedTripType(it) } ?: stringResource(R.string.filter_all_categories),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
                     )
                 }
             }
         }
-
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                TripMetric("${formatDistance(trip.distanceKm)} km", "Strecke", Modifier.weight(1f))
-                TripMetric(formatDuration(trip.durationSeconds), "Dauer", Modifier.weight(1f))
-                TripMetric(localizedTripType(trip.tripType), stringResource(R.string.category), Modifier.weight(1f))
-            }
-
-            TripPlacesCard(trip)
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                tonalElevation = 1.dp
-            ) {
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    DetailCategoryRow(trip.tripType, onCategory)
-                    trip.vehicleName?.takeIf { it.isNotBlank() }?.let {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        DetailIconLine(Icons.Default.DirectionsCar, "Fahrzeug", it)
-                    }
-                    trip.purpose?.takeIf { it.isNotBlank() }?.let {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        DetailIconLine(Icons.Default.Flag, "Zweck", it)
-                    }
-                    trip.note?.takeIf { it.isNotBlank() }?.let {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        DetailIconLine(Icons.Default.Notes, "Notiz", it)
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    DetailIconLine(Icons.Default.LocationOn, "Startzeit", formatTripDateTime(trip.startedAt))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    DetailIconLine(Icons.Default.Flag, "Endzeit", formatTripDateTime(trip.endedAt))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    DetailIconLine(Icons.Default.LocationOn, "Dauer", formatDuration(trip.durationSeconds))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    DetailIconLine(Icons.Default.LocationOn, "Strecke", "${formatDistance(trip.distanceKm)} km")
-                }
-            }
-
-            if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
-            error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        }
-        Spacer(Modifier.height(24.dp))
     }
 }
 
 @Composable
-private fun TripMetric(value: String, label: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 1.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-            Spacer(Modifier.height(3.dp))
-            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+private fun DayHeader(day: LocalDate?, totalKm: Double) {
+    val today = LocalDate.now()
+    val label = when {
+        day == null -> "–"
+        day == today -> stringResource(R.string.trips_today)
+        day == today.minusDays(1) -> stringResource(R.string.trips_yesterday)
+        day.year == today.year -> formatLocalDate(day, "EEEEdMMMM")
+        else -> formatLocalDate(day, "EEEEdMMMMyyyy")
     }
-}
-
-@Composable
-private fun TripPlacesCard(trip: Trip) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 1.dp
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            TripPlaceRow(
-                icon = Icons.Default.LocationOn,
-                title = "Start",
-                time = formatTripDateTime(trip.startedAt),
-                address = trip.startAddress ?: "Start unbekannt"
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 52.dp),
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-            TripPlaceRow(
-                icon = Icons.Default.Flag,
-                title = "Ziel",
-                time = formatTripDateTime(trip.endedAt),
-                address = trip.endAddress ?: "Ziel unbekannt"
-            )
-        }
-    }
-}
-
-@Composable
-private fun TripPlaceRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    time: String,
-    address: String
-) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(10.dp).size(20.dp)
-            )
-        }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(title, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(time, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
-            }
-            Text(address, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
-@Composable
-private fun DetailCategoryRow(type: TripType, onCategory: (TripType) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Default.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
-            stringResource(R.string.category),
-            modifier = Modifier.padding(start = 12.dp).weight(1f),
+            label.uppercase(),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.8.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Box {
-            TextButton(onClick = { expanded = true }) {
-                Text(localizedTripType(type), fontWeight = FontWeight.SemiBold)
-            }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                TripType.entries.forEach { entry ->
-                    DropdownMenuItem(
-                        text = { Text(localizedTripType(entry)) },
-                        onClick = {
-                            expanded = false
-                            onCategory(entry)
-                        }
-                    )
-                }
-            }
-        }
+        Text(
+            "${formatDistance(totalKm)} km",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
 @Composable
-private fun DetailIconLine(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    value: String
-) {
+private fun TripRow(trip: Trip, vehicleName: String, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 13.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-        Text(label, modifier = Modifier.padding(start = 12.dp).weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
+        CategoryIcon(trip.tripType)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(
+                shortRoute(
+                    trip.startAddress,
+                    trip.endAddress,
+                    stringResource(R.string.trip_start),
+                    stringResource(R.string.trip_destination)
+                ),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    listOf(formatTripTimeRange(trip.startedAt, trip.endedAt), vehicleName)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                SyncBadge(trip.syncState)
+            }
+            CategoryChip(trip.tripType)
+        }
+        Text(
+            buildAnnotatedString {
+                append(formatDistance(trip.distanceKm))
+                withStyle(SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurfaceVariant)) {
+                    append(" km")
+                }
+            },
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 1
+        )
     }
 }
 
-private fun formatDistance(distanceKm: Double?): String =
-    distanceKm?.let { String.format(java.util.Locale.getDefault(), "%.2f", it) } ?: "–"
-
-private fun formatDuration(seconds: Int?): String {
-    if (seconds == null) return "–"
-    val hours = seconds / 3600
-    val minutes = (seconds % 3600) / 60
-    return if (hours > 0) "${hours} h ${minutes} min" else "${minutes} min"
-}
-
-private fun formatTripDateTime(value: String?): String {
-    if (value.isNullOrBlank()) return "–"
-    return runCatching {
-        val instant = java.time.Instant.parse(value)
-        java.time.format.DateTimeFormatter
-            .ofPattern("dd.MM.yyyy, HH:mm")
-            .withZone(java.time.ZoneId.systemDefault())
-            .format(instant)
-    }.getOrElse { value }
-}
-
+/** Nur sichtbar, wenn etwas aussteht oder fehlgeschlagen ist – synchronisierte und lokale Fahrten bleiben ruhig. */
 @Composable
-private fun TripRouteMap(
-    points: List<TrackPoint>,
-    modifier: Modifier = Modifier.fillMaxWidth().height(240.dp)
-) {
-    val geoPoints = remember(points) { points.map { GeoPoint(it.lat, it.lon) } }
-
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            MapView(context).apply {
-                setMultiTouchControls(true)
-                minZoomLevel = 3.0
-                maxZoomLevel = 20.0
-            }
-        },
-        update = { map ->
-            map.overlays.clear()
-
-            if (geoPoints.isNotEmpty()) {
-                val route = Polyline(map).apply {
-                    setPoints(geoPoints)
-                    outlinePaint.strokeWidth = 8f
-                    outlinePaint.color = android.graphics.Color.rgb(14, 165, 233)
-                }
-                map.overlays.add(route)
-
-                Marker(map).apply {
-                    position = geoPoints.first()
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    title = "Start"
-                    map.overlays.add(this)
-                }
-
-                if (geoPoints.size > 1) {
-                    Marker(map).apply {
-                        position = geoPoints.last()
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        title = "Ziel"
-                        map.overlays.add(this)
-                    }
-                }
-
-                if (geoPoints.size == 1) {
-                    map.controller.setZoom(16.0)
-                    map.controller.setCenter(geoPoints.first())
-                } else {
-                    map.post {
-                        map.zoomToBoundingBox(route.bounds, true, 64)
-                    }
-                }
-            }
-
-            map.invalidate()
-        }
-    )
-}
-
-@Composable
-private fun localizedTripType(type: TripType): String = when (type) {
-    TripType.BUSINESS -> stringResource(R.string.trip_business)
-    TripType.PRIVATE -> stringResource(R.string.trip_private)
-    TripType.COMMUTE -> stringResource(R.string.trip_commute)
-    TripType.UNCLASSIFIED -> stringResource(R.string.trip_unclassified)
+private fun SyncBadge(syncState: String) {
+    val (icon, text, color) = when (syncState) {
+        "PENDING" -> Triple(Icons.Default.Schedule, stringResource(R.string.sync_state_pending), Color(0xFFD99A2B))
+        "FAILED" -> Triple(Icons.Default.ErrorOutline, stringResource(R.string.sync_state_failed), MaterialTheme.colorScheme.error)
+        else -> return
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(14.dp))
+        Text(text, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = color, maxLines = 1)
+    }
 }

@@ -542,6 +542,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onSuccess {
                     _state.value = _state.value.copy(tracking = true, error = null)
                     onStarted()
+                    // Lädt die laufende Fahrt in die Liste, damit die Startseite Startzeit und Dauer zeigen kann.
+                    refresh()
                 }
                 .onFailure {
                     _state.value = _state.value.copy(
