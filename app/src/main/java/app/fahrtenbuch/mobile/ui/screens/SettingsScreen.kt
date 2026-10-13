@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -52,7 +54,9 @@ import app.fahrtenbuch.mobile.data.api.AppMode
 import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.model.User
 import app.fahrtenbuch.mobile.ui.AppViewModel
+import app.fahrtenbuch.mobile.ui.permissions.rememberPermissionStatus
 import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.PermissionsDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.ProfileEditDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.SegmentedSelector
 import app.fahrtenbuch.mobile.ui.screens.settings.ServerSettingsDialog
@@ -62,7 +66,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -79,6 +83,7 @@ fun SettingsScreen(
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
     var dialog by rememberSaveable { mutableStateOf(SettingsDialog.NONE) }
     val isServerMode = appState.appMode == AppMode.SERVER
+    val (permissionStatus, refreshPermissions) = rememberPermissionStatus()
 
     LaunchedEffect(Unit) { viewModel.loadAccount() }
 
@@ -209,6 +214,25 @@ fun SettingsScreen(
             }
         }
 
+        SettingsSectionLabel(stringResource(R.string.permissions_settings_title))
+        SettingsCard {
+            SettingsRow(
+                icon = Icons.Default.Shield,
+                title = stringResource(R.string.permissions_settings_row),
+                subtitle = if (permissionStatus.allGranted) stringResource(R.string.permissions_all_granted)
+                    else pluralStringResource(R.plurals.permissions_missing, permissionStatus.missingCount, permissionStatus.missingCount),
+                trailing = {
+                    if (!permissionStatus.allGranted) {
+                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                    }
+                },
+                onClick = {
+                    refreshPermissions()
+                    dialog = SettingsDialog.PERMISSIONS
+                }
+            )
+        }
+
         SettingsSectionLabel(stringResource(R.string.settings_section_about))
         SettingsCard {
             SettingsRow(
@@ -278,6 +302,11 @@ fun SettingsScreen(
                 dialog = SettingsDialog.NONE
                 viewModel.logout()
             }
+        )
+        SettingsDialog.PERMISSIONS -> PermissionsDialog(
+            status = permissionStatus,
+            onChanged = refreshPermissions,
+            onDismiss = { dialog = SettingsDialog.NONE }
         )
         SettingsDialog.NONE -> Unit
     }

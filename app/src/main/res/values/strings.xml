@@ -270,4 +270,13 @@
     <string name="permissions_open_settings">Open settings</string>
     <string name="permissions_granted">Granted</string>
     <string name="permissions_continue_later">Continue without (set up later)</string>
+    <string name="permissions_settings_title">Permissions</string>
+    <string name="permissions_settings_row">Location, Bluetooth &amp; notifications</string>
+    <string name="permissions_all_granted">All granted</string>
+    <string name="permissions_settings_hint">To revoke a permission, open the app settings in Android.</string>
+    <string name="permissions_app_settings">App settings</string>
+    <plurals name="permissions_missing">
+        <item quantity="one">%d permission missing</item>
+        <item quantity="other">%d permissions missing</item>
+    </plurals>
 </resources>

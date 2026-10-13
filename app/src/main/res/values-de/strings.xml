@@ -265,4 +265,13 @@
     <string name="permissions_open_settings">Einstellungen öffnen</string>
     <string name="permissions_granted">Erteilt</string>
     <string name="permissions_continue_later">Ohne weiter (später einrichten)</string>
+    <string name="permissions_settings_title">Berechtigungen</string>
+    <string name="permissions_settings_row">Standort, Bluetooth &amp; Benachrichtigungen</string>
+    <string name="permissions_all_granted">Alle erteilt</string>
+    <string name="permissions_settings_hint">Um eine Berechtigung zu entziehen, öffne die App-Einstellungen in Android.</string>
+    <string name="permissions_app_settings">App-Einstellungen</string>
+    <plurals name="permissions_missing">
+        <item quantity="one">%d Berechtigung fehlt</item>
+        <item quantity="other">%d Berechtigungen fehlen</item>
+    </plurals>
 </resources>
