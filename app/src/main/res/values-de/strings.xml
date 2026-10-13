@@ -13,6 +13,11 @@
     <string name="close">Schließen</string>
     <string name="statistics">Statistik</string>
     <string name="statistics_subtitle">Auswertung deiner aufgezeichneten Fahrten</string>
+    <string name="statistics_total">Gesamt</string>
+    <string name="statistics_trips">Fahrten</string>
+    <string name="statistics_business">Dienstlich</string>
+    <string name="statistics_private">Privat</string>
+    <string name="statistics_commute">Arbeitsweg</string>
     <string name="vehicles">Fahrzeuge</string>
     <string name="vehicles_subtitle">Fahrzeuge laden und Bluetooth zuweisen</string>
     <string name="setup_first_vehicle">Erstes Fahrzeug einrichten</string>
@@ -304,4 +309,6 @@
     <string name="about_libraries_title">Open-Source-Bibliotheken</string>
     <string name="about_map_data_title">Kartendaten</string>
     <string name="about_map_data_text">Karten: © OpenStreetMap-Mitwirkende (ODbL), OpenMapTiles, Kacheln von OpenFreeMap.</string>
+    <string name="about_libraries_text">Alle in der App verwendeten Bibliotheken und ihre Lizenzen, bei jedem Build automatisch erzeugt.</string>
+    <string name="about_libraries_show">Alle Lizenzen anzeigen</string>
 </resources>
