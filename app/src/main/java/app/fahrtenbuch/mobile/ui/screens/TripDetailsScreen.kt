@@ -62,6 +62,7 @@ import app.fahrtenbuch.mobile.ui.common.splitDuration
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlin.math.roundToInt
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
@@ -487,6 +488,7 @@ private fun TripRouteMap(
         modifier = modifier,
         factory = { context ->
             MapView(context).apply {
+                setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(true)
                 zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
                 minZoomLevel = 3.0
