@@ -182,19 +182,23 @@ data class ApiError(
 
 enum class DistanceUnit(val apiValue: String) { KM("km"), MI("mi") }
 enum class SpeedUnit(val apiValue: String) { KMH("kmh"), MPH("mph") }
-/** EU: 13.10.2026, 16:12 · US: 10/13/2026, 4:12 PM */
+/** EU: 13.10.2026 · US: 10/13/2026 */
 enum class DateFormatPreference(val apiValue: String) { EU("EU"), US("US") }
+/** 24h: 16:12 · 12h: 4:12 PM */
+enum class TimeFormatPreference(val apiValue: String) { H24("24h"), H12("12h") }
 
 data class UserPreferences(
     val distanceUnit: DistanceUnit = DistanceUnit.KM,
     val speedUnit: SpeedUnit = SpeedUnit.KMH,
-    val dateFormat: DateFormatPreference = DateFormatPreference.EU
+    val dateFormat: DateFormatPreference = DateFormatPreference.EU,
+    val timeFormat: TimeFormatPreference = TimeFormatPreference.H24
 ) {
     companion object {
-        fun fromApi(distance: String?, speed: String?, date: String?) = UserPreferences(
+        fun fromApi(distance: String?, speed: String?, date: String?, time: String?) = UserPreferences(
             distanceUnit = DistanceUnit.entries.firstOrNull { it.apiValue == distance } ?: DistanceUnit.KM,
             speedUnit = SpeedUnit.entries.firstOrNull { it.apiValue == speed } ?: SpeedUnit.KMH,
-            dateFormat = DateFormatPreference.entries.firstOrNull { it.apiValue == date } ?: DateFormatPreference.EU
+            dateFormat = DateFormatPreference.entries.firstOrNull { it.apiValue == date } ?: DateFormatPreference.EU,
+            timeFormat = TimeFormatPreference.entries.firstOrNull { it.apiValue == time } ?: TimeFormatPreference.H24
         )
     }
 }
@@ -206,5 +210,6 @@ data class MeSettingsResponse(val settings: UserSettingsDto? = null)
 data class UserSettingsDto(
     val distanceUnit: String? = null,
     val speedUnit: String? = null,
-    val dateFormat: String? = null
+    val dateFormat: String? = null,
+    val timeFormat: String? = null
 )

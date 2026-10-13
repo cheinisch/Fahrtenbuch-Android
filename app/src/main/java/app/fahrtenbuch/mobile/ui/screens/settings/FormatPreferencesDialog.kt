@@ -25,6 +25,7 @@ import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.model.DateFormatPreference
 import app.fahrtenbuch.mobile.data.model.DistanceUnit
 import app.fahrtenbuch.mobile.data.model.SpeedUnit
+import app.fahrtenbuch.mobile.data.model.TimeFormatPreference
 import app.fahrtenbuch.mobile.data.model.UserPreferences
 import app.fahrtenbuch.mobile.ui.common.formatDistanceWithUnit
 import app.fahrtenbuch.mobile.ui.common.formatSpeed
@@ -48,8 +49,9 @@ fun FormatPreferencesDialog(
     var distanceUnit by rememberSaveable { mutableStateOf(current.distanceUnit) }
     var speedUnit by rememberSaveable { mutableStateOf(current.speedUnit) }
     var dateFormat by rememberSaveable { mutableStateOf(current.dateFormat) }
+    var timeFormat by rememberSaveable { mutableStateOf(current.timeFormat) }
     var submitted by rememberSaveable { mutableStateOf(false) }
-    val draft = UserPreferences(distanceUnit, speedUnit, dateFormat)
+    val draft = UserPreferences(distanceUnit, speedUnit, dateFormat, timeFormat)
 
     AlertDialog(
         onDismissRequest = { if (!loading) onDismiss() },
@@ -79,6 +81,13 @@ fun FormatPreferencesDialog(
                     selected = dateFormat,
                     label = { stringResource(if (it == DateFormatPreference.EU) R.string.format_date_eu else R.string.format_date_us) },
                     onSelect = { dateFormat = it }
+                )
+                Text(stringResource(R.string.format_time), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                SegmentedSelector(
+                    options = TimeFormatPreference.entries,
+                    selected = timeFormat,
+                    label = { stringResource(if (it == TimeFormatPreference.H24) R.string.format_time_24 else R.string.format_time_12) },
+                    onSelect = { timeFormat = it }
                 )
 
                 // Vorschau mit einer Beispielfahrt

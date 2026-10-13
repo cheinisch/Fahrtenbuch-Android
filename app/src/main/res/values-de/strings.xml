@@ -285,4 +285,7 @@
     <string name="format_preview">Vorschau</string>
     <string name="format_hint_server">Wird in deinem Benutzerkonto gespeichert und gilt auch im Web-Fahrtenbuch. Gespeicherte Fahrten bleiben unverändert.</string>
     <string name="format_hint_local">Wird auf diesem Gerät gespeichert. Gespeicherte Fahrten bleiben unverändert.</string>
+    <string name="format_time">Uhrzeitformat</string>
+    <string name="format_time_24">24 Stunden</string>
+    <string name="format_time_12">12 Stunden (AM/PM)</string>
 </resources>

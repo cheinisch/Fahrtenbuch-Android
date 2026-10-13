@@ -3,6 +3,7 @@ package app.fahrtenbuch.mobile.ui.common
 import app.fahrtenbuch.mobile.data.model.DateFormatPreference
 import app.fahrtenbuch.mobile.data.model.DistanceUnit
 import app.fahrtenbuch.mobile.data.model.SpeedUnit
+import app.fahrtenbuch.mobile.data.model.TimeFormatPreference
 import app.fahrtenbuch.mobile.data.model.UserPreferences
 import java.time.Instant
 import java.time.LocalDate
@@ -85,13 +86,19 @@ private fun formatTripInstant(value: String?, formatter: DateTimeFormatter): Str
 internal fun formatTripDate(value: String?): String? =
     formatTripInstant(value, DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL))
 
-// Uhrzeit nach Datumsformat-Einstellung: EU „16:12“ · US „4:12 PM“
-internal fun formatTripTime(value: String?, prefs: UserPreferences): String =
-    formatTripPattern(value, if (prefs.dateFormat == DateFormatPreference.US) "h:mm a" else "HH:mm") ?: "–"
+private fun timePattern(prefs: UserPreferences): String =
+    if (prefs.timeFormat == TimeFormatPreference.H12) "h:mm a" else "HH:mm"
 
-// Datum und Uhrzeit: EU „13.10.2026, 16:12“ · US „10/13/2026, 4:12 PM“
+private fun datePattern(prefs: UserPreferences): String =
+    if (prefs.dateFormat == DateFormatPreference.US) "MM/dd/yyyy" else "dd.MM.yyyy"
+
+// Uhrzeit nach Uhrzeitformat: 24h „16:12“ · 12h „4:12 PM“
+internal fun formatTripTime(value: String?, prefs: UserPreferences): String =
+    formatTripPattern(value, timePattern(prefs)) ?: "–"
+
+// Datum und Uhrzeit, z. B. EU + 24h „13.10.2026, 16:12“ · US + 12h „10/13/2026, 4:12 PM“
 internal fun formatTripDateTime(value: String?, prefs: UserPreferences): String? =
-    formatTripPattern(value, if (prefs.dateFormat == DateFormatPreference.US) "MM/dd/yyyy, h:mm a" else "dd.MM.yyyy, HH:mm")
+    formatTripPattern(value, "${datePattern(prefs)}, ${timePattern(prefs)}")
 
 /** Festes Zahlenformat (Locale.US, damit AM/PM und Ziffern unabhängig von der Sprache stabil sind). */
 private fun formatTripPattern(value: String?, pattern: String): String? {

@@ -56,6 +56,7 @@ import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.model.DateFormatPreference
 import app.fahrtenbuch.mobile.data.model.DistanceUnit
 import app.fahrtenbuch.mobile.data.model.SpeedUnit
+import app.fahrtenbuch.mobile.data.model.TimeFormatPreference
 import app.fahrtenbuch.mobile.data.model.User
 import app.fahrtenbuch.mobile.data.model.UserPreferences
 import app.fahrtenbuch.mobile.ui.AppViewModel
@@ -346,7 +347,8 @@ private fun FormatPreferencesRow(preferences: UserPreferences, modifier: Modifie
             subtitle = listOf(
                 stringResource(if (preferences.distanceUnit == DistanceUnit.KM) R.string.format_km else R.string.format_mi),
                 if (preferences.speedUnit == SpeedUnit.KMH) "km/h" else "mph",
-                stringResource(if (preferences.dateFormat == DateFormatPreference.EU) R.string.format_date_eu else R.string.format_date_us)
+                stringResource(if (preferences.dateFormat == DateFormatPreference.EU) R.string.format_date_eu else R.string.format_date_us),
+                stringResource(if (preferences.timeFormat == TimeFormatPreference.H24) R.string.format_time_24 else R.string.format_time_12)
             ).joinToString(" · "),
             onClick = onClick
         )

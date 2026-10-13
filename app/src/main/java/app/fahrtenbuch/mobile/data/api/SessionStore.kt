@@ -111,6 +111,10 @@ class SessionStore(context: Context) {
         get() = prefs.getString("date_format", "EU") ?: "EU"
         set(value) { prefs.edit().putString("date_format", value).apply() }
 
+    var timeFormat: String
+        get() = prefs.getString("time_format", "24h") ?: "24h"
+        set(value) { prefs.edit().putString("time_format", value).apply() }
+
     var trackingIntervalSeconds: Int
         get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
         set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }

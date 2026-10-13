@@ -113,7 +113,7 @@ class FahrtenbuchRepository(
 
     /** Zuletzt bekannte Anzeige-Einstellungen (sofort verfügbar, auch offline). */
     fun cachedPreferences(): UserPreferences =
-        UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat)
+        UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat)
 
     /** Im Server-Modus vom Server laden und lokal merken; sonst bzw. bei Fehlern der lokale Stand. */
     suspend fun preferences(): UserPreferences {
@@ -129,7 +129,8 @@ class FahrtenbuchRepository(
                 mapOf(
                     "distanceUnit" to preferences.distanceUnit.apiValue,
                     "speedUnit" to preferences.speedUnit.apiValue,
-                    "dateFormat" to preferences.dateFormat.apiValue
+                    "dateFormat" to preferences.dateFormat.apiValue,
+                    "timeFormat" to preferences.timeFormat.apiValue
                 )
             )
             cacheSettings(saved)
@@ -137,6 +138,7 @@ class FahrtenbuchRepository(
             store.distanceUnit = preferences.distanceUnit.apiValue
             store.speedUnit = preferences.speedUnit.apiValue
             store.dateFormat = preferences.dateFormat.apiValue
+            store.timeFormat = preferences.timeFormat.apiValue
         }
         return cachedPreferences()
     }
@@ -145,6 +147,7 @@ class FahrtenbuchRepository(
         settings.distanceUnit?.let { store.distanceUnit = it }
         settings.speedUnit?.let { store.speedUnit = it }
         settings.dateFormat?.let { store.dateFormat = it }
+        settings.timeFormat?.let { store.timeFormat = it }
     }
 
     suspend fun updateProfile(

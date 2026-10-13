@@ -290,4 +290,7 @@
     <string name="format_preview">Preview</string>
     <string name="format_hint_server">Saved in your account and also used in the web logbook. Stored trips are not changed.</string>
     <string name="format_hint_local">Saved on this device. Stored trips are not changed.</string>
+    <string name="format_time">Time format</string>
+    <string name="format_time_24">24 hours</string>
+    <string name="format_time_12">12 hours (AM/PM)</string>
 </resources>
