@@ -161,4 +161,29 @@
         <item quantity="one">Every %d second</item>
         <item quantity="other">Every %d seconds</item>
     </plurals>
+    <string name="trips_filter_all_periods">All periods</string>
+    <string name="trips_filter_tags">Filter by tag</string>
+    <string name="filter_all_categories">All</string>
+    <string name="trips_today">Today</string>
+    <string name="trips_yesterday">Yesterday</string>
+    <string name="trips_empty">No trips yet</string>
+    <string name="trips_empty_filtered">No trips match this filter</string>
+    <string name="period_apply">Apply</string>
+    <string name="period_reset">Reset</string>
+    <string name="home_ready">Ready to drive</string>
+    <string name="home_recording_title">Trip in progress</string>
+    <string name="home_recording_status">Recording</string>
+    <string name="home_recording_since">since %1$s · %2$s</string>
+    <string name="home_start_trip">Start trip</string>
+    <string name="home_stop_trip">End trip</string>
+    <string name="home_vehicle_locked">locked during the trip</string>
+    <string name="home_no_vehicle">No vehicle set up yet</string>
+    <string name="home_bluetooth_auto">Auto-start via Bluetooth</string>
+    <string name="home_no_bluetooth">No Bluetooth</string>
+    <string name="home_unclassified_action">Assign a category now</string>
+    <string name="home_all_trips">All trips</string>
+    <plurals name="home_unclassified_title">
+        <item quantity="one">%d trip not categorized</item>
+        <item quantity="other">%d trips not categorized</item>
+    </plurals>
 </resources>

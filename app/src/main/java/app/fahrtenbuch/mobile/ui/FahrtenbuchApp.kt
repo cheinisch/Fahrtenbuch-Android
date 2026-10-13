@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ import app.fahrtenbuch.mobile.ui.screens.PairConfirmationScreen
 import app.fahrtenbuch.mobile.ui.screens.QrPairingScreen
 import app.fahrtenbuch.mobile.ui.screens.SettingsScreen
 import app.fahrtenbuch.mobile.ui.screens.StatisticsScreen
+import app.fahrtenbuch.mobile.ui.screens.TripsRequest
 import app.fahrtenbuch.mobile.ui.screens.TripsScreen
 import app.fahrtenbuch.mobile.ui.screens.WelcomeScreen
 import app.fahrtenbuch.mobile.ui.screens.LocationDisclosureScreen
@@ -80,6 +82,14 @@ fun FahrtenbuchApp(
         Destination("statistics", stringResource(R.string.statistics), Icons.Default.BarChart),
         Destination("settings", stringResource(R.string.settings), Icons.Default.Settings)
     )
+    var tripsRequest by remember { mutableStateOf<TripsRequest?>(null) }
+    val openTrips: (TripsRequest) -> Unit = { request ->
+        tripsRequest = request
+        navController.navigate("trips") {
+            popUpTo(navController.graph.startDestinationId) { saveState = true }
+            launchSingleTop = true
+        }
+    }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -117,8 +127,21 @@ fun FahrtenbuchApp(
             startDestination = "tracking",
             modifier = Modifier.padding(padding)
         ) {
-            composable("tracking") { DashboardScreen(appViewModel) }
-            composable("trips") { TripsScreen(appViewModel) }
+            composable("tracking") {
+                DashboardScreen(
+                    viewModel = appViewModel,
+                    onOpenTrips = { category -> openTrips(TripsRequest(category = category)) },
+                    onOpenTrip = { trip -> openTrips(TripsRequest(tripId = trip.id)) },
+                    onSetupVehicle = { navController.navigate("vehicles") }
+                )
+            }
+            composable("trips") {
+                TripsScreen(
+                    viewModel = appViewModel,
+                    request = tripsRequest,
+                    onRequestHandled = { tripsRequest = null }
+                )
+            }
             composable("statistics") { StatisticsScreen(appViewModel) }
             composable("vehicles") { VehiclesScreen(appViewModel) }
             composable("settings") {

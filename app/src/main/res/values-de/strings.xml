@@ -156,4 +156,29 @@
         <item quantity="one">Alle %d Sekunde</item>
         <item quantity="other">Alle %d Sekunden</item>
     </plurals>
+    <string name="trips_filter_all_periods">Alle Zeiträume</string>
+    <string name="trips_filter_tags">Nach Tag filtern</string>
+    <string name="filter_all_categories">Alle</string>
+    <string name="trips_today">Heute</string>
+    <string name="trips_yesterday">Gestern</string>
+    <string name="trips_empty">Noch keine Fahrten</string>
+    <string name="trips_empty_filtered">Keine Fahrten für diesen Filter</string>
+    <string name="period_apply">Übernehmen</string>
+    <string name="period_reset">Zurücksetzen</string>
+    <string name="home_ready">Bereit zur Fahrt</string>
+    <string name="home_recording_title">Fahrt läuft</string>
+    <string name="home_recording_status">Aufzeichnung läuft</string>
+    <string name="home_recording_since">seit %1$s · %2$s</string>
+    <string name="home_start_trip">Fahrt starten</string>
+    <string name="home_stop_trip">Fahrt beenden</string>
+    <string name="home_vehicle_locked">während der Fahrt gesperrt</string>
+    <string name="home_no_vehicle">Noch kein Fahrzeug eingerichtet</string>
+    <string name="home_bluetooth_auto">Auto-Start per Bluetooth</string>
+    <string name="home_no_bluetooth">Ohne Bluetooth</string>
+    <string name="home_unclassified_action">Jetzt Kategorie vergeben</string>
+    <string name="home_all_trips">Alle Fahrten</string>
+    <plurals name="home_unclassified_title">
+        <item quantity="one">%d Fahrt nicht zugeordnet</item>
+        <item quantity="other">%d Fahrten nicht zugeordnet</item>
+    </plurals>
 </resources>
