@@ -115,4 +115,6 @@
     <string name="trip_detail_note">Note</string>
     <string name="trip_detail_purpose_missing">No purpose recorded</string>
     <string name="trip_detail_back">Back</string>
+    <string name="trip_detail_fullscreen">Expand map</string>
+    <string name="trip_detail_close_map">Close map</string>
 </resources>

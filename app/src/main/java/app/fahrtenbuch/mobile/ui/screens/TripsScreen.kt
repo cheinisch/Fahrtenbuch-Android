@@ -17,7 +17,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Sync
@@ -174,6 +176,13 @@ private fun TripDetailsScreen(
     onCategory: (TripType) -> Unit
 ) {
     BackHandler(onBack = onBack)
+    var mapFullscreen by rememberSaveable(trip.id) { mutableStateOf(false) }
+    // Später registriert und damit vorrangig: Zurück schließt zuerst die Vollbildkarte.
+    BackHandler(enabled = mapFullscreen) { mapFullscreen = false }
+    if (mapFullscreen && points.isNotEmpty()) {
+        FullscreenTripMap(points = points, onClose = { mapFullscreen = false })
+        return
+    }
     val scrollState = rememberScrollState()
     val colors = MaterialTheme.colorScheme
     val start = remember(trip.startAddress) { parseAddress(trip.startAddress) }
@@ -234,6 +243,15 @@ private fun TripDetailsScreen(
                 }
             }
 
+            if (points.isNotEmpty()) {
+                MapOverlayButton(
+                    icon = Icons.Default.Fullscreen,
+                    contentDescription = stringResource(R.string.trip_detail_fullscreen),
+                    onClick = { mapFullscreen = true },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+                )
+            }
+
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -276,6 +294,43 @@ private fun TripDetailsScreen(
             TripPurposeCard(trip)
         }
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun MapOverlayButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        shadowElevation = 4.dp
+    ) {
+        IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
+            Icon(icon, contentDescription = contentDescription)
+        }
+    }
+}
+
+@Composable
+private fun FullscreenTripMap(points: List<TrackPoint>, onClose: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        TripRouteMap(points, Modifier.fillMaxSize())
+        MapOverlayButton(
+            icon = Icons.Default.Close,
+            contentDescription = stringResource(R.string.trip_detail_close_map),
+            onClick = onClose,
+            modifier = Modifier.align(Alignment.TopStart).padding(16.dp)
+        )
     }
 }
 
