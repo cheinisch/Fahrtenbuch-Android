@@ -13,9 +13,13 @@ dependencyResolutionManagement {
         // direkt von Maven Central, ohne vergebliche Anfragen an dl.google.com.
         google {
             content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
+                // Nur Gruppen, die tatsächlich bei Google liegen. Gson, ZXing usw. tragen
+                // zwar „com.google“ im Namen, kommen aber von Maven Central.
+                includeGroupByRegex("androidx\\..*")
+                includeGroupByRegex("com\\.android\\..*")
+                includeGroupByRegex("com\\.google\\.android\\..*")
+                includeGroupByRegex("com\\.google\\.firebase.*")
+                includeGroupByRegex("com\\.google\\.testing\\..*")
             }
         }
         mavenCentral()
