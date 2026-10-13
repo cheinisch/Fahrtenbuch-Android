@@ -53,6 +53,8 @@ import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.ParsedAddress
+import app.fahrtenbuch.mobile.ui.map.MapPadding
+import app.fahrtenbuch.mobile.ui.map.TripRouteMap
 import app.fahrtenbuch.mobile.ui.common.formatDistance
 import app.fahrtenbuch.mobile.ui.common.formatTripDate
 import app.fahrtenbuch.mobile.ui.common.formatTripTime
@@ -62,13 +64,6 @@ import app.fahrtenbuch.mobile.ui.common.splitDuration
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlin.math.roundToInt
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.CustomZoomButtonsController
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
-import org.osmdroid.views.overlay.TilesOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +112,13 @@ internal fun TripDetailsScreen(
                 .background(colors.surfaceContainer)
         ) {
             when {
-                points.isNotEmpty() -> TripRouteMap(points, Modifier.fillMaxSize())
+                points.isNotEmpty() -> TripRouteMap(
+                    points = points,
+                    modifier = Modifier.fillMaxSize(),
+                    // Oben schwebende Buttons, unten Titel und Verlauf über der Karte
+                    contentPadding = MapPadding(top = 88.dp, bottom = 150.dp),
+                    attributionTopOffset = 64.dp
+                )
                 loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -229,7 +230,7 @@ private fun FullscreenTripMap(points: List<TrackPoint>, onClose: () -> Unit) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceContainer)
     ) {
-        TripRouteMap(points, Modifier.fillMaxSize())
+        TripRouteMap(points = points, modifier = Modifier.fillMaxSize(), contentPadding = MapPadding(top = 88.dp))
         MapOverlayButton(
             icon = Icons.Default.Close,
             contentDescription = stringResource(R.string.trip_detail_close_map),
@@ -471,87 +472,3 @@ private fun TripPurposeCard(trip: Trip) {
         }
     }
 }
-
-@Composable
-private fun TripRouteMap(
-    points: List<TrackPoint>,
-    modifier: Modifier = Modifier.fillMaxWidth().height(240.dp)
-) {
-    val geoPoints = remember(points) { points.map { GeoPoint(it.lat, it.lon) } }
-    val routeColor = MaterialTheme.colorScheme.primary.toArgb()
-    val ringColor = MaterialTheme.colorScheme.background.toArgb()
-    val darkMap = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val startTitle = stringResource(R.string.trip_start)
-    val destinationTitle = stringResource(R.string.trip_destination)
-
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            MapView(context).apply {
-                setTileSource(TileSourceFactory.MAPNIK)
-                setMultiTouchControls(true)
-                zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
-                minZoomLevel = 3.0
-                maxZoomLevel = 20.0
-            }
-        },
-        update = { map ->
-            map.overlayManager.tilesOverlay.setColorFilter(if (darkMap) TilesOverlay.INVERT_COLORS else null)
-            map.overlays.clear()
-
-            if (geoPoints.isNotEmpty()) {
-                val density = map.resources.displayMetrics.density
-                val route = Polyline(map).apply {
-                    setPoints(geoPoints)
-                    outlinePaint.apply {
-                        strokeWidth = 5f * density
-                        color = routeColor
-                        strokeCap = android.graphics.Paint.Cap.ROUND
-                        strokeJoin = android.graphics.Paint.Join.ROUND
-                        isAntiAlias = true
-                    }
-                }
-                map.overlays.add(route)
-
-                Marker(map).apply {
-                    position = geoPoints.first()
-                    icon = routeDot(fill = ringColor, stroke = routeColor, density = density)
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                    title = startTitle
-                    map.overlays.add(this)
-                }
-
-                if (geoPoints.size > 1) {
-                    Marker(map).apply {
-                        position = geoPoints.last()
-                        icon = routeDot(fill = routeColor, stroke = ringColor, density = density)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                        title = destinationTitle
-                        map.overlays.add(this)
-                    }
-                }
-
-                if (geoPoints.size == 1) {
-                    map.controller.setZoom(16.0)
-                    map.controller.setCenter(geoPoints.first())
-                } else {
-                    map.post {
-                        // Etwas mehr Rand, weil unten Titel und Verlauf über der Karte liegen.
-                        map.zoomToBoundingBox(route.bounds, true, (48 * density).toInt())
-                    }
-                }
-            }
-
-            map.invalidate()
-        }
-    )
-}
-
-private fun routeDot(fill: Int, stroke: Int, density: Float): GradientDrawable =
-    GradientDrawable().apply {
-        shape = GradientDrawable.OVAL
-        setColor(fill)
-        setStroke((4 * density).toInt(), stroke)
-        val size = (20 * density).toInt()
-        setSize(size, size)
-    }

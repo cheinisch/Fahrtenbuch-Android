@@ -2,7 +2,7 @@ package app.fahrtenbuch.mobile
 
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import android.os.Bundle
-import org.osmdroid.config.Configuration
+import org.maplibre.android.MapLibre
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,7 +20,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SyncScheduler.schedulePeriodic(this)
-        configureOsmdroid()
+        // MapLibre einmalig initialisieren, bevor die erste Karte angezeigt wird.
+        MapLibre.getInstance(applicationContext)
         enableEdgeToEdge()
         themePreferences = ThemePreferences(this)
         selectedThemeMode = themePreferences.themeMode
@@ -35,18 +36,6 @@ class MainActivity : ComponentActivity() {
                     }
                 )
             }
-        }
-    }
-
-    /**
-     * osmdroid muss vor der ersten MapView konfiguriert werden. Ohne eigenen User-Agent
-     * sendet osmdroid „osmdroid“, und die OpenStreetMap-Kachelserver lehnen solche
-     * Anfragen ab – die Karte bleibt dann ein graues Raster.
-     */
-    private fun configureOsmdroid() {
-        Configuration.getInstance().apply {
-            load(applicationContext, getSharedPreferences("osmdroid", MODE_PRIVATE))
-            userAgentValue = "${BuildConfig.APPLICATION_ID}/${BuildConfig.VERSION_NAME}"
         }
     }
 }
