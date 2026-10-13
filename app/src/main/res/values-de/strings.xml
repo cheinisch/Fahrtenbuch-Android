@@ -251,4 +251,18 @@
     <string name="qr_missing_token">Im QR-Code fehlt der einmalige Pairing-Token.</string>
     <string name="qr_unsupported_version">Diese Version des Anmelde-QR-Codes wird nicht unterstützt.</string>
     <string name="qr_expired">Der Anmelde-QR-Code ist abgelaufen.</string>
+    <string name="permissions_title">Berechtigungen für die automatische Aufzeichnung</string>
+    <string name="permissions_intro">Erteile diese Berechtigungen, damit Fahrten zuverlässig aufgezeichnet werden – auch wenn die App geschlossen ist. Du kannst sie später in den Systemeinstellungen ändern.</string>
+    <string name="permissions_location_title">Standort während der Nutzung</string>
+    <string name="permissions_location_text">Nötig, um Route, Strecke sowie Start und Ziel aufzuzeichnen.</string>
+    <string name="permissions_background_title">Standort im Hintergrund</string>
+    <string name="permissions_background_text">Wähle „Immer zulassen“, damit Fahrten auch bei ausgeschaltetem Display weiterlaufen und per Bluetooth automatisch starten.</string>
+    <string name="permissions_background_needs_location">Erlaube zuerst den Standort während der Nutzung.</string>
+    <string name="permissions_extras_title">Bluetooth und Benachrichtigungen</string>
+    <string name="permissions_extras_text">Bluetooth erkennt dein Auto für den Auto-Start, die Benachrichtigung zeigt, dass gerade aufgezeichnet wird.</string>
+    <string name="permissions_allow">Erlauben</string>
+    <string name="permissions_allow_always">Immer zulassen</string>
+    <string name="permissions_open_settings">Einstellungen öffnen</string>
+    <string name="permissions_granted">Erteilt</string>
+    <string name="permissions_continue_later">Ohne weiter (später einrichten)</string>
 </resources>

@@ -256,4 +256,18 @@
     <string name="qr_missing_token">The QR code is missing the one-time pairing token.</string>
     <string name="qr_unsupported_version">This version of the sign-in QR code is not supported.</string>
     <string name="qr_expired">The sign-in QR code has expired.</string>
+    <string name="permissions_title">Permissions for automatic tracking</string>
+    <string name="permissions_intro">Grant these permissions so trips are recorded reliably, even when the app is closed. You can change them later in the system settings.</string>
+    <string name="permissions_location_title">Location while using the app</string>
+    <string name="permissions_location_text">Needed to record route, distance, start and destination.</string>
+    <string name="permissions_background_title">Location in the background</string>
+    <string name="permissions_background_text">Choose “Allow all the time” so trips continue to be recorded with the display off and start automatically via Bluetooth.</string>
+    <string name="permissions_background_needs_location">Allow location while using the app first.</string>
+    <string name="permissions_extras_title">Bluetooth and notifications</string>
+    <string name="permissions_extras_text">Bluetooth detects your car for auto-start; the notification shows that a trip is being recorded.</string>
+    <string name="permissions_allow">Allow</string>
+    <string name="permissions_allow_always">Allow all the time</string>
+    <string name="permissions_open_settings">Open settings</string>
+    <string name="permissions_granted">Granted</string>
+    <string name="permissions_continue_later">Continue without (set up later)</string>
 </resources>

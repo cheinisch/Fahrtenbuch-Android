@@ -75,7 +75,7 @@ fun LocationDisclosureScreen(onContinue: () -> Unit) {
  * Tastatur, damit auch auf kleinen Displays nichts abgeschnitten wird.
  */
 @Composable
-private fun CenteredOnboardingLayout(
+internal fun CenteredOnboardingLayout(
     actions: @Composable ColumnScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {

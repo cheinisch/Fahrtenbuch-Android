@@ -43,6 +43,7 @@ import app.fahrtenbuch.mobile.ui.screens.TripsRequest
 import app.fahrtenbuch.mobile.ui.screens.TripsScreen
 import app.fahrtenbuch.mobile.ui.screens.WelcomeScreen
 import app.fahrtenbuch.mobile.ui.screens.LocationDisclosureScreen
+import app.fahrtenbuch.mobile.ui.screens.LocationPermissionScreen
 import app.fahrtenbuch.mobile.ui.screens.VehiclesScreen
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
@@ -153,8 +154,15 @@ private fun FirstStartNavigation(viewModel: AppViewModel) {
     NavHost(navController = navController, startDestination = "location-disclosure") {
         composable("location-disclosure") {
             LocationDisclosureScreen(onContinue = {
-                navController.navigate("welcome") {
+                navController.navigate("location-permission") {
                     popUpTo("location-disclosure") { inclusive = true }
+                }
+            })
+        }
+        composable("location-permission") {
+            LocationPermissionScreen(onContinue = {
+                navController.navigate("welcome") {
+                    popUpTo("location-permission") { inclusive = true }
                 }
             })
         }
