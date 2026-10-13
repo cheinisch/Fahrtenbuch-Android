@@ -213,3 +213,10 @@ data class UserSettingsDto(
     val dateFormat: String? = null,
     val timeFormat: String? = null
 )
+
+/** GET /health – Systemstatus und Version des Servers. */
+data class HealthResponse(
+    val status: String? = null,
+    val version: String? = null,
+    val database: String? = null
+)

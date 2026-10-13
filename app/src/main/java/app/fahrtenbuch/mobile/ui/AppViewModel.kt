@@ -253,6 +253,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Für „Über die App“: Version und Status des Servers. */
+    suspend fun serverHealth(): app.fahrtenbuch.mobile.data.model.HealthResponse? = repository.serverHealth()
+
     /** Anzeige-Einstellungen laden (Server-Modus: vom Server, sonst lokal). */
     fun loadPreferences() {
         viewModelScope.launch {

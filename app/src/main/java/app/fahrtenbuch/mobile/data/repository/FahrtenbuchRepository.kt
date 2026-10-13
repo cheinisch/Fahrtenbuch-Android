@@ -111,6 +111,10 @@ class FahrtenbuchRepository(
 
     suspend fun me(): User = api.me()
 
+    /** Serverstatus und -version (nur Server-Modus); null, wenn nicht erreichbar. */
+    suspend fun serverHealth(): HealthResponse? =
+        if (store.isServerMode) runCatching { api.health() }.getOrNull() else null
+
     /** Zuletzt bekannte Anzeige-Einstellungen (sofort verfügbar, auch offline). */
     fun cachedPreferences(): UserPreferences =
         UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat)

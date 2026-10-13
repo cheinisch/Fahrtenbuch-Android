@@ -288,4 +288,20 @@
     <string name="format_time">Uhrzeitformat</string>
     <string name="format_time_24">24 Stunden</string>
     <string name="format_time_12">12 Stunden (AM/PM)</string>
+    <string name="about_row_subtitle">Lizenzen, Datenschutz, Quellcode &amp; Diagnose</string>
+    <string name="about_mode_local">Modus: nur auf diesem Gerät</string>
+    <string name="about_server_checking">Server wird geprüft …</string>
+    <string name="about_server_version">Server %1$s · Status: %2$s</string>
+    <string name="about_server_unreachable">Server nicht erreichbar</string>
+    <string name="about_copy_diagnostics">Diagnose kopieren</string>
+    <string name="about_copied">Kopiert</string>
+    <string name="about_privacy">Datenschutzerklärung</string>
+    <string name="about_source_code">Quellcode auf GitHub</string>
+    <string name="about_report_issue">Problem melden</string>
+    <string name="about_license_title">Lizenz</string>
+    <string name="about_license_text">Fahrtenbuch ist freie Software unter der GNU Affero General Public License v3. Du darfst sie nach deren Bedingungen nutzen, verändern und weitergeben; der Quellcode ist auf GitHub verfügbar.</string>
+    <string name="about_license_show">Lizenztext anzeigen</string>
+    <string name="about_libraries_title">Open-Source-Bibliotheken</string>
+    <string name="about_map_data_title">Kartendaten</string>
+    <string name="about_map_data_text">Karten: © OpenStreetMap-Mitwirkende (ODbL), OpenMapTiles, Kacheln von OpenFreeMap.</string>
 </resources>

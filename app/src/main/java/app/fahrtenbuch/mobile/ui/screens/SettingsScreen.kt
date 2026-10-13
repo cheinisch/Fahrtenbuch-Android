@@ -61,6 +61,7 @@ import app.fahrtenbuch.mobile.data.model.User
 import app.fahrtenbuch.mobile.data.model.UserPreferences
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.permissions.rememberPermissionStatus
+import app.fahrtenbuch.mobile.ui.screens.settings.AboutDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.FormatPreferencesDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.PermissionsDialog
@@ -73,7 +74,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -256,7 +257,8 @@ fun SettingsScreen(
             SettingsRow(
                 icon = Icons.Default.Info,
                 title = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
-                subtitle = stringResource(R.string.settings_build, BuildConfig.VERSION_CODE, BuildConfig.APPLICATION_ID)
+                subtitle = stringResource(R.string.about_row_subtitle),
+                onClick = { dialog = SettingsDialog.ABOUT }
             )
         }
 
@@ -333,6 +335,12 @@ fun SettingsScreen(
             error = appState.error,
             onDismiss = { dialog = SettingsDialog.NONE },
             onSave = { preferences -> viewModel.updatePreferences(preferences) { dialog = SettingsDialog.NONE } }
+        )
+        SettingsDialog.ABOUT -> AboutDialog(
+            serverMode = isServerMode,
+            serverUrl = appState.serverUrl,
+            loadServerHealth = { viewModel.serverHealth() },
+            onDismiss = { dialog = SettingsDialog.NONE }
         )
         SettingsDialog.NONE -> Unit
     }

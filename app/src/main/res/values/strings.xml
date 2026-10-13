@@ -293,4 +293,20 @@
     <string name="format_time">Time format</string>
     <string name="format_time_24">24 hours</string>
     <string name="format_time_12">12 hours (AM/PM)</string>
+    <string name="about_row_subtitle">Licenses, privacy, source code &amp; diagnostics</string>
+    <string name="about_mode_local">Mode: on this device only</string>
+    <string name="about_server_checking">Checking server …</string>
+    <string name="about_server_version">Server %1$s · status: %2$s</string>
+    <string name="about_server_unreachable">Server not reachable</string>
+    <string name="about_copy_diagnostics">Copy diagnostics</string>
+    <string name="about_copied">Copied</string>
+    <string name="about_privacy">Privacy policy</string>
+    <string name="about_source_code">Source code on GitHub</string>
+    <string name="about_report_issue">Report a problem</string>
+    <string name="about_license_title">License</string>
+    <string name="about_license_text">Fahrtenbuch is free software under the GNU Affero General Public License v3. You may use, modify and redistribute it under its terms; the source code is available on GitHub.</string>
+    <string name="about_license_show">Show license text</string>
+    <string name="about_libraries_title">Open-source libraries</string>
+    <string name="about_map_data_title">Map data</string>
+    <string name="about_map_data_text">Maps: © OpenStreetMap contributors (ODbL), OpenMapTiles, tiles by OpenFreeMap.</string>
 </resources>

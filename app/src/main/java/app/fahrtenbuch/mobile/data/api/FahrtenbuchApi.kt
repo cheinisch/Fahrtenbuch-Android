@@ -38,6 +38,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
+import app.fahrtenbuch.mobile.data.model.HealthResponse
 import app.fahrtenbuch.mobile.data.model.MeSettingsResponse
 import app.fahrtenbuch.mobile.data.model.UserSettingsDto
 import retrofit2.http.POST
@@ -350,6 +351,9 @@ interface FahrtenbuchApi {
     // ---------------------------------------------------------------------
     // Einstellungen
     // ---------------------------------------------------------------------
+
+    @GET("health")
+    suspend fun health(): HealthResponse
 
     @GET("users/me/settings")
     suspend fun mySettings(): MeSettingsResponse
