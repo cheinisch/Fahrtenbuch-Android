@@ -7,6 +7,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -33,11 +35,17 @@ import org.json.JSONObject
 
 @Composable
 fun LocationDisclosureScreen(onContinue: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    CenteredOnboardingLayout(
+        actions = {
+            Button(
+                onClick = onContinue,
+                modifier = Modifier.fillMaxWidth().height(58.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(stringResource(R.string.location_notice_continue), fontWeight = FontWeight.SemiBold)
+            }
+        }
     ) {
-        Spacer(Modifier.weight(1f))
         Icon(
             Icons.Outlined.LocationOn,
             contentDescription = null,
@@ -58,25 +66,61 @@ fun LocationDisclosureScreen(onContinue: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.weight(1f))
-        Button(
-            onClick = onContinue,
-            modifier = Modifier.fillMaxWidth().height(58.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(stringResource(R.string.location_notice_continue), fontWeight = FontWeight.SemiBold)
+    }
+}
+
+/**
+ * Layout für die Einrichtungs-Screens: Inhalt mittig und bei Bedarf scrollbar, Buttons
+ * unten fest. Hält Abstand zu Status- und Navigationsleiste (Edge-to-Edge) und zur
+ * Tastatur, damit auch auf kleinen Displays nichts abgeschnitten wird.
+ */
+@Composable
+private fun CenteredOnboardingLayout(
+    actions: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .safeDrawingPadding()
+            .padding(horizontal = 28.dp)
+    ) {
+        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            val minHeight = maxHeight
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = minHeight)
+                    .padding(vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                content = content
+            )
         }
-        Spacer(Modifier.height(18.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = actions
+        )
     }
 }
 
 @Composable
 fun WelcomeScreen(onLocal: () -> Unit, onConnect: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    CenteredOnboardingLayout(
+        actions = {
+            Button(onClick = onLocal, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
+                Text(stringResource(R.string.use_local_only), fontWeight = FontWeight.SemiBold)
+            }
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(onClick = onConnect, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
+                Text(stringResource(R.string.connect_server), fontWeight = FontWeight.SemiBold)
+            }
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.local_mode_help), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        }
     ) {
-        Spacer(Modifier.weight(1f))
         Icon(Icons.Outlined.DirectionsCar, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(62.dp))
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
@@ -89,23 +133,12 @@ fun WelcomeScreen(onLocal: () -> Unit, onConnect: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.weight(1f))
-        Button(onClick = onLocal, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
-            Text(stringResource(R.string.use_local_only), fontWeight = FontWeight.SemiBold)
-        }
-        Spacer(Modifier.height(12.dp))
-        OutlinedButton(onClick = onConnect, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp)) {
-            Text(stringResource(R.string.connect_server), fontWeight = FontWeight.SemiBold)
-        }
-        Spacer(Modifier.height(16.dp))
-        Text(stringResource(R.string.local_mode_help), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(18.dp))
     }
 }
 
 @Composable
 fun ConnectServerScreen(onBack: () -> Unit, onQrCode: () -> Unit, onManual: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp)) {
+    Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 18.dp)) {
         BackButton(onBack)
         Spacer(Modifier.height(32.dp))
         Text(stringResource(R.string.connect_your_server), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
@@ -146,7 +179,7 @@ fun ManualServerSetupScreen(onBack: () -> Unit, onSave: (String) -> Result<Unit>
     var serverUrl by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     val invalidServer = stringResource(R.string.error_invalid_server)
-    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp)) {
+    Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 18.dp)) {
         BackButton(onBack)
         Spacer(Modifier.height(32.dp))
         Text(stringResource(R.string.manual_server_setup), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
@@ -216,7 +249,7 @@ fun QrPairingScreen(
 
     LaunchedEffect(Unit) { startScan() }
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 18.dp)) {
+    Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 18.dp)) {
         BackButton(onBack)
         Spacer(Modifier.height(32.dp))
         Text(stringResource(R.string.pair_device), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
@@ -307,6 +340,7 @@ fun PairConfirmationScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 18.dp)
         ) {
             BackButton(onBack)

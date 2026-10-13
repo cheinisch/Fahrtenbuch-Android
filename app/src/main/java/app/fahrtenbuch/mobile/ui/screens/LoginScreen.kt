@@ -4,6 +4,8 @@ import androidx.compose.ui.res.stringResource
 import app.fahrtenbuch.mobile.R
 import android.os.Build
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -53,12 +55,16 @@ fun LoginScreen(viewModel: AppViewModel) {
     var resetRequested by rememberSaveable { mutableStateOf(false) }
     var resetChanged by rememberSaveable { mutableStateOf(false) }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
+        val minHeight = maxHeight
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = minHeight)
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -317,6 +323,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                 }
             }
         }
+    }
     }
 }
 
