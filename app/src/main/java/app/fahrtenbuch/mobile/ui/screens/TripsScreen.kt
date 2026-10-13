@@ -42,6 +42,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import app.fahrtenbuch.mobile.R
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +58,8 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.TilesOverlay
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import kotlin.math.roundToInt
 
 @Composable
@@ -115,21 +118,21 @@ fun TripsScreen(viewModel: AppViewModel) {
                 Text(stringResource(R.string.trips), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 IconButton(onClick = viewModel::syncNow, enabled = !state.loading) {
                     if (state.loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-                    else Icon(Icons.Default.Sync, contentDescription = "Fahrten synchronisieren")
+                    else Icon(Icons.Default.Sync, contentDescription = stringResource(R.string.trips_sync))
                 }
             }
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterMenu("Fahrzeug", listOf("" to "Alle Fahrzeuge") + state.vehicles.map { it.id to it.name }, vehicleFilter) { vehicleFilter = it }
-                    FilterMenu("Tag", listOf("" to "Alle Tags") + tags.map { it to it }, tagFilter) { tagFilter = it }
+                    FilterMenu(stringResource(R.string.vehicle), listOf("" to stringResource(R.string.filter_all_vehicles)) + state.vehicles.map { it.id to it.name }, vehicleFilter) { vehicleFilter = it }
+                    FilterMenu(stringResource(R.string.filter_tag), listOf("" to stringResource(R.string.filter_all_tags)) + tags.map { it to it }, tagFilter) { tagFilter = it }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(fromDate, { fromDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text(stringResource(R.string.date_from)) }, singleLine = true)
                     OutlinedTextField(toDate, { toDate = it.take(10) }, modifier = Modifier.weight(1f), label = { Text(stringResource(R.string.date_to)) }, singleLine = true)
                 }
-                Text("${filtered.size} Fahrten", style = MaterialTheme.typography.labelMedium)
+                Text(pluralStringResource(R.plurals.trip_count, filtered.size, filtered.size), style = MaterialTheme.typography.labelMedium)
             }
         }
         state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
@@ -139,7 +142,7 @@ fun TripsScreen(viewModel: AppViewModel) {
                 viewModel.loadTripDetails(trip)
             }) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("${trip.startAddress ?: "Start"} → ${trip.endAddress ?: "Ziel"}", fontWeight = FontWeight.Bold)
+                    Text("${trip.startAddress ?: stringResource(R.string.trip_start)} → ${trip.endAddress ?: stringResource(R.string.trip_destination)}", fontWeight = FontWeight.Bold)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("${localizedTripType(trip.tripType)} · ${state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()}")
                         Surface(
@@ -149,16 +152,16 @@ fun TripsScreen(viewModel: AppViewModel) {
                         ) {
                             Text(
                                 when (trip.syncState) {
-                                    "SYNCED" -> "Gesynct"
-                                    "FAILED" -> "Sync fehlgeschlagen"
-                                    else -> "Ausstehend"
+                                    "SYNCED" -> stringResource(R.string.sync_state_synced)
+                                    "FAILED" -> stringResource(R.string.sync_state_failed)
+                                    else -> stringResource(R.string.sync_state_pending)
                                 },
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                 style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
-                    Text("${trip.distanceKm ?: 0.0} km · ${trip.startedAt}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${formatDistance(trip.distanceKm ?: 0.0)} km · ${formatTripDateTime(trip.startedAt) ?: trip.startedAt}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -443,7 +446,7 @@ private fun TimelineRow(time: String, title: String, subtitle: String?, isLast: 
     ) {
         Text(
             time,
-            modifier = Modifier.width(46.dp),
+            modifier = Modifier.widthIn(min = 46.dp),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold
         )
@@ -603,19 +606,28 @@ private fun splitDuration(seconds: Int?): Pair<String, String> {
     return if (hours > 0) "$hours:${minutes.toString().padStart(2, '0')}" to "h" else "$minutes" to "min"
 }
 
-private fun formatTripInstant(value: String?, pattern: String): String? {
+/** Formatiert einen ISO-Zeitstempel im Format der aktuellen Sprache und Zeitzone. */
+private fun formatTripInstant(value: String?, formatter: DateTimeFormatter): String? {
     if (value.isNullOrBlank()) return null
     return runCatching {
-        java.time.format.DateTimeFormatter
-            .ofPattern(pattern, java.util.Locale.getDefault())
+        formatter
+            .withLocale(java.util.Locale.getDefault())
             .withZone(java.time.ZoneId.systemDefault())
             .format(java.time.Instant.parse(value))
     }.getOrNull()
 }
 
-private fun formatTripDate(value: String?): String? = formatTripInstant(value, "EEE, d. MMM yyyy")
+// de: „Dienstag, 13. Oktober 2026“ · en: „Tuesday, October 13, 2026“
+private fun formatTripDate(value: String?): String? =
+    formatTripInstant(value, DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL))
 
-private fun formatTripTime(value: String?): String = formatTripInstant(value, "HH:mm") ?: "–"
+// de: „16:12“ · en: „4:12 PM“
+private fun formatTripTime(value: String?): String =
+    formatTripInstant(value, DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) ?: "–"
+
+// de: „13.10.2026, 16:12“ · en: „Oct 13, 2026, 4:12 PM“
+private fun formatTripDateTime(value: String?): String? =
+    formatTripInstant(value, DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT))
 
 @Composable
 private fun TripRouteMap(
@@ -626,6 +638,8 @@ private fun TripRouteMap(
     val routeColor = MaterialTheme.colorScheme.primary.toArgb()
     val ringColor = MaterialTheme.colorScheme.background.toArgb()
     val darkMap = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val startTitle = stringResource(R.string.trip_start)
+    val destinationTitle = stringResource(R.string.trip_destination)
 
     AndroidView(
         modifier = modifier,
@@ -659,7 +673,7 @@ private fun TripRouteMap(
                     position = geoPoints.first()
                     icon = routeDot(fill = ringColor, stroke = routeColor, density = density)
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                    title = "Start"
+                    title = startTitle
                     map.overlays.add(this)
                 }
 
@@ -668,7 +682,7 @@ private fun TripRouteMap(
                         position = geoPoints.last()
                         icon = routeDot(fill = routeColor, stroke = ringColor, density = density)
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                        title = "Ziel"
+                        title = destinationTitle
                         map.overlays.add(this)
                     }
                 }

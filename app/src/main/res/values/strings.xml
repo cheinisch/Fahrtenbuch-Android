@@ -117,4 +117,17 @@
     <string name="trip_detail_back">Back</string>
     <string name="trip_detail_fullscreen">Expand map</string>
     <string name="trip_detail_close_map">Close map</string>
+    <string name="trips_sync">Sync trips</string>
+    <string name="filter_all_vehicles">All vehicles</string>
+    <string name="filter_tag">Tag</string>
+    <string name="filter_all_tags">All tags</string>
+    <string name="trip_start">Start</string>
+    <string name="trip_destination">Destination</string>
+    <string name="sync_state_synced">Synced</string>
+    <string name="sync_state_failed">Sync failed</string>
+    <string name="sync_state_pending">Pending</string>
+    <plurals name="trip_count">
+        <item quantity="one">%d trip</item>
+        <item quantity="other">%d trips</item>
+    </plurals>
 </resources>

@@ -112,4 +112,17 @@
     <string name="trip_detail_back">Zurück</string>
     <string name="trip_detail_fullscreen">Karte vergrößern</string>
     <string name="trip_detail_close_map">Karte schließen</string>
+    <string name="trips_sync">Fahrten synchronisieren</string>
+    <string name="filter_all_vehicles">Alle Fahrzeuge</string>
+    <string name="filter_tag">Tag</string>
+    <string name="filter_all_tags">Alle Tags</string>
+    <string name="trip_start">Start</string>
+    <string name="trip_destination">Ziel</string>
+    <string name="sync_state_synced">Gesynct</string>
+    <string name="sync_state_failed">Sync fehlgeschlagen</string>
+    <string name="sync_state_pending">Ausstehend</string>
+    <plurals name="trip_count">
+        <item quantity="one">%d Fahrt</item>
+        <item quantity="other">%d Fahrten</item>
+    </plurals>
 </resources>
