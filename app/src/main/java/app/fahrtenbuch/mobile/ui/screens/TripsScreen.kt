@@ -63,7 +63,10 @@ import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.CategoryChip
 import app.fahrtenbuch.mobile.ui.common.CategoryIcon
+import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
+import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatDistance
+import app.fahrtenbuch.mobile.ui.common.formatDistanceWithUnit
 import app.fahrtenbuch.mobile.ui.common.formatLocalDate
 import app.fahrtenbuch.mobile.ui.common.formatTripTimeRange
 import app.fahrtenbuch.mobile.ui.common.localizedTripType
@@ -223,7 +226,7 @@ fun TripsScreen(
         item {
             val km = filtered.sumOf { it.distanceKm ?: 0.0 }
             Text(
-                pluralStringResource(R.plurals.trip_count, filtered.size, filtered.size) + " · " + formatDistance(km) + " km",
+                pluralStringResource(R.plurals.trip_count, filtered.size, filtered.size) + " · " + formatDistanceWithUnit(km, LocalUserPreferences.current),
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 14.dp),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -417,7 +420,7 @@ private fun DayHeader(day: LocalDate?, totalKm: Double) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            "${formatDistance(totalKm)} km",
+            formatDistanceWithUnit(totalKm, LocalUserPreferences.current),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -452,7 +455,7 @@ private fun TripRow(trip: Trip, vehicleName: String, onClick: () -> Unit) {
             )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    listOf(formatTripTimeRange(trip.startedAt, trip.endedAt), vehicleName)
+                    listOf(formatTripTimeRange(trip.startedAt, trip.endedAt, LocalUserPreferences.current), vehicleName)
                         .filter { it.isNotBlank() }
                         .joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,
@@ -467,9 +470,9 @@ private fun TripRow(trip: Trip, vehicleName: String, onClick: () -> Unit) {
         }
         Text(
             buildAnnotatedString {
-                append(formatDistance(trip.distanceKm))
+                append(formatDistance(trip.distanceKm, LocalUserPreferences.current))
                 withStyle(SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurfaceVariant)) {
-                    append(" km")
+                    append(" " + distanceUnitLabel(LocalUserPreferences.current))
                 }
             },
             style = MaterialTheme.typography.titleMedium,

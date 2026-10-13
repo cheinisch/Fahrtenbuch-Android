@@ -74,7 +74,10 @@ import app.fahrtenbuch.mobile.location.TripTrackingService
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.CategoryChip
 import app.fahrtenbuch.mobile.ui.common.CategoryIcon
+import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
+import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatDistance
+import app.fahrtenbuch.mobile.ui.common.formatDistanceWithUnit
 import app.fahrtenbuch.mobile.ui.common.formatLocalDate
 import app.fahrtenbuch.mobile.ui.common.formatTripTime
 import app.fahrtenbuch.mobile.ui.common.formatTripTimeRange
@@ -293,7 +296,7 @@ private fun RecordingStatus(trip: Trip?, vehicleName: String?) {
                 Text(stringResource(R.string.home_recording_status), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
                 if (started != null) {
                     Text(
-                        stringResource(R.string.home_recording_since, formatTripTime(trip?.startedAt), vehicleName.orEmpty()).trimEnd(' ', '·'),
+                        stringResource(R.string.home_recording_since, formatTripTime(trip?.startedAt, LocalUserPreferences.current), vehicleName.orEmpty()).trimEnd(' ', '·'),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 } else if (vehicleName != null) {
@@ -313,6 +316,7 @@ private fun RecordingStatus(trip: Trip?, vehicleName: String?) {
 
 @Composable
 private fun StatTile(label: String, km: Double, count: Int, modifier: Modifier = Modifier) {
+    val prefs = LocalUserPreferences.current
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(22.dp),
@@ -330,9 +334,9 @@ private fun StatTile(label: String, km: Double, count: Int, modifier: Modifier =
             )
             Text(
                 buildAnnotatedString {
-                    append(formatDistance(km))
+                    append(formatDistance(km, prefs))
                     withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                        append(" km")
+                        append(" " + distanceUnitLabel(prefs))
                     }
                 },
                 style = MaterialTheme.typography.headlineSmall,
@@ -407,7 +411,7 @@ private fun LatestTripCard(trip: Trip, points: List<TrackPoint>?, onClick: () ->
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "${formatTripTimeRange(trip.startedAt, trip.endedAt)} · ${formatDistance(trip.distanceKm)} km",
+                    "${formatTripTimeRange(trip.startedAt, trip.endedAt, LocalUserPreferences.current)} · ${formatDistanceWithUnit(trip.distanceKm, LocalUserPreferences.current)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -175,3 +175,36 @@ data class ApiError(
     val message: String? = null,
     val errors: Map<String, List<String>>? = null
 )
+
+// ---------------------------------------------------------------------
+// Anzeige-Einstellungen (Server: GET/PATCH /users/me/settings)
+// ---------------------------------------------------------------------
+
+enum class DistanceUnit(val apiValue: String) { KM("km"), MI("mi") }
+enum class SpeedUnit(val apiValue: String) { KMH("kmh"), MPH("mph") }
+/** EU: 13.10.2026, 16:12 · US: 10/13/2026, 4:12 PM */
+enum class DateFormatPreference(val apiValue: String) { EU("EU"), US("US") }
+
+data class UserPreferences(
+    val distanceUnit: DistanceUnit = DistanceUnit.KM,
+    val speedUnit: SpeedUnit = SpeedUnit.KMH,
+    val dateFormat: DateFormatPreference = DateFormatPreference.EU
+) {
+    companion object {
+        fun fromApi(distance: String?, speed: String?, date: String?) = UserPreferences(
+            distanceUnit = DistanceUnit.entries.firstOrNull { it.apiValue == distance } ?: DistanceUnit.KM,
+            speedUnit = SpeedUnit.entries.firstOrNull { it.apiValue == speed } ?: SpeedUnit.KMH,
+            dateFormat = DateFormatPreference.entries.firstOrNull { it.apiValue == date } ?: DateFormatPreference.EU
+        )
+    }
+}
+
+/** Antwort von GET /users/me/settings (weitere Felder werden ignoriert). */
+data class MeSettingsResponse(val settings: UserSettingsDto? = null)
+
+/** Persönliche Einstellungen; PATCH /users/me/settings liefert dieses Objekt direkt zurück. */
+data class UserSettingsDto(
+    val distanceUnit: String? = null,
+    val speedUnit: String? = null,
+    val dateFormat: String? = null
+)

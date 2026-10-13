@@ -111,6 +111,42 @@ class FahrtenbuchRepository(
 
     suspend fun me(): User = api.me()
 
+    /** Zuletzt bekannte Anzeige-Einstellungen (sofort verfügbar, auch offline). */
+    fun cachedPreferences(): UserPreferences =
+        UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat)
+
+    /** Im Server-Modus vom Server laden und lokal merken; sonst bzw. bei Fehlern der lokale Stand. */
+    suspend fun preferences(): UserPreferences {
+        if (store.isServerMode && store.hasAuthenticatedSession) {
+            runCatching { api.mySettings().settings }.getOrNull()?.let(::cacheSettings)
+        }
+        return cachedPreferences()
+    }
+
+    suspend fun updatePreferences(preferences: UserPreferences): UserPreferences {
+        if (store.isServerMode) {
+            val saved = api.updateMySettings(
+                mapOf(
+                    "distanceUnit" to preferences.distanceUnit.apiValue,
+                    "speedUnit" to preferences.speedUnit.apiValue,
+                    "dateFormat" to preferences.dateFormat.apiValue
+                )
+            )
+            cacheSettings(saved)
+        } else {
+            store.distanceUnit = preferences.distanceUnit.apiValue
+            store.speedUnit = preferences.speedUnit.apiValue
+            store.dateFormat = preferences.dateFormat.apiValue
+        }
+        return cachedPreferences()
+    }
+
+    private fun cacheSettings(settings: UserSettingsDto) {
+        settings.distanceUnit?.let { store.distanceUnit = it }
+        settings.speedUnit?.let { store.speedUnit = it }
+        settings.dateFormat?.let { store.dateFormat = it }
+    }
+
     suspend fun updateProfile(
         displayName: String?,
         username: String?,

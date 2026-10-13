@@ -274,4 +274,15 @@
         <item quantity="one">%d Berechtigung fehlt</item>
         <item quantity="other">%d Berechtigungen fehlen</item>
     </plurals>
+    <string name="format_title">Einheiten &amp; Datumsformat</string>
+    <string name="format_distance">Strecke</string>
+    <string name="format_speed">Geschwindigkeit</string>
+    <string name="format_date">Datumsformat</string>
+    <string name="format_km">Kilometer</string>
+    <string name="format_mi">Meilen</string>
+    <string name="format_date_eu">TT.MM.JJJJ</string>
+    <string name="format_date_us">MM/TT/JJJJ</string>
+    <string name="format_preview">Vorschau</string>
+    <string name="format_hint_server">Wird in deinem Benutzerkonto gespeichert und gilt auch im Web-Fahrtenbuch. Gespeicherte Fahrten bleiben unverändert.</string>
+    <string name="format_hint_local">Wird auf diesem Gerät gespeichert. Gespeicherte Fahrten bleiben unverändert.</string>
 </resources>

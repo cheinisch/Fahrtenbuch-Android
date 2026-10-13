@@ -38,7 +38,8 @@ data class AppUiState(
     val serverUrl: String = "",
     val loggedIn: Boolean = false,
     val vehiclesLoadedFromServer: Boolean = false,
-    val user: app.fahrtenbuch.mobile.data.model.User? = null
+    val user: app.fahrtenbuch.mobile.data.model.User? = null,
+    val preferences: app.fahrtenbuch.mobile.data.model.UserPreferences = app.fahrtenbuch.mobile.data.model.UserPreferences()
 )
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
@@ -53,7 +54,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             appMode = store.appMode,
             serverConfigured = store.serverConfigured,
             serverUrl = store.baseUrl,
-            loggedIn = store.refreshToken != null
+            loggedIn = store.refreshToken != null,
+            preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat)
         )
     )
     val state: StateFlow<AppUiState> = _state.asStateFlow()
@@ -251,7 +253,33 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Anzeige-Einstellungen laden (Server-Modus: vom Server, sonst lokal). */
+    fun loadPreferences() {
+        viewModelScope.launch {
+            val preferences = repository.preferences()
+            _state.value = _state.value.copy(preferences = preferences)
+        }
+    }
+
+    fun updatePreferences(
+        preferences: app.fahrtenbuch.mobile.data.model.UserPreferences,
+        onSaved: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.updatePreferences(preferences) }
+                .onSuccess { saved ->
+                    _state.value = _state.value.copy(loading = false, preferences = saved)
+                    onSaved()
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(loading = false, error = ApiFactory.readableError(error))
+                }
+        }
+    }
+
     fun loadAccount() {
+        loadPreferences()
         if (!store.hasAuthenticatedSession) return
         viewModelScope.launch {
             runCatching { repository.me() }
@@ -316,6 +344,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refresh() {
+        loadPreferences()
         if (store.isLocalMode) {
             viewModelScope.launch {
                 val vehicles = repository.vehicles(forceNetwork = false)

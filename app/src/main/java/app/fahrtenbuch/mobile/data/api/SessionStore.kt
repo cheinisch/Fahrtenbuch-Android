@@ -99,6 +99,18 @@ class SessionStore(context: Context) {
             .putString("refresh_token", refreshToken)
             .commit()
 
+    var distanceUnit: String
+        get() = prefs.getString("distance_unit", "km") ?: "km"
+        set(value) { prefs.edit().putString("distance_unit", value).apply() }
+
+    var speedUnit: String
+        get() = prefs.getString("speed_unit", "kmh") ?: "kmh"
+        set(value) { prefs.edit().putString("speed_unit", value).apply() }
+
+    var dateFormat: String
+        get() = prefs.getString("date_format", "EU") ?: "EU"
+        set(value) { prefs.edit().putString("date_format", value).apply() }
+
     var trackingIntervalSeconds: Int
         get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
         set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }

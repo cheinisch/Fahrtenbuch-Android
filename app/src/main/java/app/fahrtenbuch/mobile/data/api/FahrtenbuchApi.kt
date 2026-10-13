@@ -37,6 +37,9 @@ import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
+import app.fahrtenbuch.mobile.data.model.MeSettingsResponse
+import app.fahrtenbuch.mobile.data.model.UserSettingsDto
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -347,6 +350,14 @@ interface FahrtenbuchApi {
     // ---------------------------------------------------------------------
     // Einstellungen
     // ---------------------------------------------------------------------
+
+    @GET("users/me/settings")
+    suspend fun mySettings(): MeSettingsResponse
+
+    @PATCH("users/me/settings")
+    suspend fun updateMySettings(
+        @Body body: Map<String, String>
+    ): UserSettingsDto
 
     @GET("settings")
     suspend fun settings(): Map<String, Any?>

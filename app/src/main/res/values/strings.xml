@@ -279,4 +279,15 @@
         <item quantity="one">%d permission missing</item>
         <item quantity="other">%d permissions missing</item>
     </plurals>
+    <string name="format_title">Units &amp; date format</string>
+    <string name="format_distance">Distance</string>
+    <string name="format_speed">Speed</string>
+    <string name="format_date">Date format</string>
+    <string name="format_km">Kilometers</string>
+    <string name="format_mi">Miles</string>
+    <string name="format_date_eu">DD.MM.YYYY</string>
+    <string name="format_date_us">MM/DD/YYYY</string>
+    <string name="format_preview">Preview</string>
+    <string name="format_hint_server">Saved in your account and also used in the web logbook. Stored trips are not changed.</string>
+    <string name="format_hint_local">Saved on this device. Stored trips are not changed.</string>
 </resources>

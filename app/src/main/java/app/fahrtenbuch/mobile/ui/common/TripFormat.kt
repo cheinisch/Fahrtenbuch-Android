@@ -1,5 +1,9 @@
 package app.fahrtenbuch.mobile.ui.common
 
+import app.fahrtenbuch.mobile.data.model.DateFormatPreference
+import app.fahrtenbuch.mobile.data.model.DistanceUnit
+import app.fahrtenbuch.mobile.data.model.SpeedUnit
+import app.fahrtenbuch.mobile.data.model.UserPreferences
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -32,8 +36,31 @@ internal fun parseAddress(raw: String?): ParsedAddress? {
     }
 }
 
-internal fun formatDistance(distanceKm: Double?): String =
-    distanceKm?.let { String.format(java.util.Locale.getDefault(), "%.1f", it) } ?: "–"
+private const val KM_PER_MILE = 1.609344
+
+/** Strecke als Zahl in der gewählten Einheit (km oder Meilen), eine Nachkommastelle. */
+internal fun formatDistance(distanceKm: Double?, prefs: UserPreferences): String =
+    distanceKm?.let {
+        val value = if (prefs.distanceUnit == DistanceUnit.MI) it / KM_PER_MILE else it
+        String.format(java.util.Locale.getDefault(), "%.1f", value)
+    } ?: "–"
+
+internal fun distanceUnitLabel(prefs: UserPreferences): String =
+    if (prefs.distanceUnit == DistanceUnit.MI) "mi" else "km"
+
+/** Strecke mit Einheit, z. B. „110,8 km“ oder „68,9 mi“. */
+internal fun formatDistanceWithUnit(distanceKm: Double?, prefs: UserPreferences): String =
+    "${formatDistance(distanceKm, prefs)} ${distanceUnitLabel(prefs)}"
+
+/** Geschwindigkeit als ganze Zahl in km/h oder mph. */
+internal fun formatSpeed(speedKmh: Double?, prefs: UserPreferences): String =
+    speedKmh?.let {
+        val value = if (prefs.speedUnit == SpeedUnit.MPH) it / KM_PER_MILE else it
+        Math.round(value).toString()
+    } ?: "–"
+
+internal fun speedUnitLabel(prefs: UserPreferences): String =
+    if (prefs.speedUnit == SpeedUnit.MPH) "mph" else "km/h"
 
 /** Liefert Wert und Einheit, z. B. „2:12“ + „h“ oder „45“ + „min“. */
 internal fun splitDuration(seconds: Int?): Pair<String, String> {
@@ -58,23 +85,33 @@ private fun formatTripInstant(value: String?, formatter: DateTimeFormatter): Str
 internal fun formatTripDate(value: String?): String? =
     formatTripInstant(value, DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL))
 
-// de: „16:12“ · en: „4:12 PM“
-internal fun formatTripTime(value: String?): String =
-    formatTripInstant(value, DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) ?: "–"
+// Uhrzeit nach Datumsformat-Einstellung: EU „16:12“ · US „4:12 PM“
+internal fun formatTripTime(value: String?, prefs: UserPreferences): String =
+    formatTripPattern(value, if (prefs.dateFormat == DateFormatPreference.US) "h:mm a" else "HH:mm") ?: "–"
 
-// de: „13.10.2026, 16:12“ · en: „Oct 13, 2026, 4:12 PM“
-internal fun formatTripDateTime(value: String?): String? =
-    formatTripInstant(value, DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT))
+// Datum und Uhrzeit: EU „13.10.2026, 16:12“ · US „10/13/2026, 4:12 PM“
+internal fun formatTripDateTime(value: String?, prefs: UserPreferences): String? =
+    formatTripPattern(value, if (prefs.dateFormat == DateFormatPreference.US) "MM/dd/yyyy, h:mm a" else "dd.MM.yyyy, HH:mm")
+
+/** Festes Zahlenformat (Locale.US, damit AM/PM und Ziffern unabhängig von der Sprache stabil sind). */
+private fun formatTripPattern(value: String?, pattern: String): String? {
+    if (value.isNullOrBlank()) return null
+    return runCatching {
+        DateTimeFormatter.ofPattern(pattern, java.util.Locale.US)
+            .withZone(ZoneId.systemDefault())
+            .format(Instant.parse(value))
+    }.getOrNull()
+}
 
 /** Lokales Datum (Gerätezeitzone) eines ISO-Zeitstempels. */
 internal fun tripLocalDate(value: String?): LocalDate? =
     value?.let { runCatching { Instant.parse(it).atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull() }
 
 /** Zeitspanne einer Fahrt, z. B. „16:12 – 18:25“. */
-internal fun formatTripTimeRange(startedAt: String?, endedAt: String?): String =
+internal fun formatTripTimeRange(startedAt: String?, endedAt: String?, prefs: UserPreferences): String =
     listOfNotNull(
-        formatTripTime(startedAt).takeIf { it != "–" },
-        endedAt?.let { formatTripTime(it) }?.takeIf { it != "–" }
+        formatTripTime(startedAt, prefs).takeIf { it != "–" },
+        endedAt?.let { formatTripTime(it, prefs) }?.takeIf { it != "–" }
     ).joinToString(" – ").ifBlank { "–" }
 
 /** Kurze Route aus Ortsnamen, z. B. „Frankfurt am Main → Stephanshausen“. */

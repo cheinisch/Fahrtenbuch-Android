@@ -1,5 +1,7 @@
 package app.fahrtenbuch.mobile.ui.screens
 
+import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
+import app.fahrtenbuch.mobile.ui.common.formatDistanceWithUnit
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,18 +42,18 @@ fun StatisticsScreen(viewModel: AppViewModel) {
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatisticCard(stringResource(R.string.statistics_total), "%.1f km".format(totalKm), Modifier.weight(1f))
+                StatisticCard(stringResource(R.string.statistics_total), formatDistanceWithUnit(totalKm, LocalUserPreferences.current), Modifier.weight(1f))
                 StatisticCard(stringResource(R.string.statistics_trips), state.trips.size.toString(), Modifier.weight(1f))
             }
         }
         item {
-            StatisticCard(stringResource(R.string.statistics_business), "%.1f km".format(businessKm), Modifier.fillMaxWidth())
+            StatisticCard(stringResource(R.string.statistics_business), formatDistanceWithUnit(businessKm, LocalUserPreferences.current), Modifier.fillMaxWidth())
         }
         item {
-            StatisticCard(stringResource(R.string.statistics_private), "%.1f km".format(privateKm), Modifier.fillMaxWidth())
+            StatisticCard(stringResource(R.string.statistics_private), formatDistanceWithUnit(privateKm, LocalUserPreferences.current), Modifier.fillMaxWidth())
         }
         item {
-            StatisticCard(stringResource(R.string.statistics_commute), "%.1f km".format(commuteKm), Modifier.fillMaxWidth())
+            StatisticCard(stringResource(R.string.statistics_commute), formatDistanceWithUnit(commuteKm, LocalUserPreferences.current), Modifier.fillMaxWidth())
         }
     }
 }

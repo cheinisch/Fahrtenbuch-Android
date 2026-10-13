@@ -55,7 +55,11 @@ import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.ParsedAddress
 import app.fahrtenbuch.mobile.ui.map.MapPadding
 import app.fahrtenbuch.mobile.ui.map.TripRouteMap
+import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
+import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatDistance
+import app.fahrtenbuch.mobile.ui.common.formatSpeed
+import app.fahrtenbuch.mobile.ui.common.speedUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatTripDate
 import app.fahrtenbuch.mobile.ui.common.formatTripTime
 import app.fahrtenbuch.mobile.ui.common.localizedTripType
@@ -266,10 +270,11 @@ private fun SectionLabel(text: String) {
 
 @Composable
 private fun TripMetricsCard(trip: Trip) {
-    val avgSpeed = remember(trip.distanceKm, trip.durationSeconds) {
+    val prefs = LocalUserPreferences.current
+    val avgSpeedKmh = remember(trip.distanceKm, trip.durationSeconds) {
         val km = trip.distanceKm
         val seconds = trip.durationSeconds
-        if (km != null && seconds != null && seconds >= 60) (km / (seconds / 3600.0)).roundToInt() else null
+        if (km != null && seconds != null && seconds >= 60) km / (seconds / 3600.0) else null
     }
     val duration = splitDuration(trip.durationSeconds)
     DetailCard {
@@ -279,11 +284,11 @@ private fun TripMetricsCard(trip: Trip) {
                 .height(IntrinsicSize.Min)
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            MetricItem(formatDistance(trip.distanceKm), "km", stringResource(R.string.trip_detail_distance), Modifier.weight(1f))
+            MetricItem(formatDistance(trip.distanceKm, prefs), distanceUnitLabel(prefs), stringResource(R.string.trip_detail_distance), Modifier.weight(1f))
             MetricDivider()
             MetricItem(duration.first, duration.second, stringResource(R.string.trip_detail_duration), Modifier.weight(1f))
             MetricDivider()
-            MetricItem(avgSpeed?.toString() ?: "–", "km/h", stringResource(R.string.trip_detail_avg_speed), Modifier.weight(1f))
+            MetricItem(formatSpeed(avgSpeedKmh, prefs), speedUnitLabel(prefs), stringResource(R.string.trip_detail_avg_speed), Modifier.weight(1f))
         }
     }
 }
@@ -324,13 +329,13 @@ private fun TripTimelineCard(trip: Trip, start: ParsedAddress?, end: ParsedAddre
     DetailCard {
         Column(Modifier.padding(20.dp)) {
             TimelineRow(
-                time = formatTripTime(trip.startedAt),
+                time = formatTripTime(trip.startedAt, LocalUserPreferences.current),
                 title = start?.name ?: stringResource(R.string.trip_detail_start_unknown),
                 subtitle = start?.detail,
                 isLast = false
             )
             TimelineRow(
-                time = formatTripTime(trip.endedAt),
+                time = formatTripTime(trip.endedAt, LocalUserPreferences.current),
                 title = end?.name ?: stringResource(R.string.trip_detail_end_unknown),
                 subtitle = end?.detail,
                 isLast = true

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,9 +53,14 @@ import app.fahrtenbuch.mobile.BuildConfig
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.api.AppMode
 import app.fahrtenbuch.mobile.data.api.SessionStore
+import app.fahrtenbuch.mobile.data.model.DateFormatPreference
+import app.fahrtenbuch.mobile.data.model.DistanceUnit
+import app.fahrtenbuch.mobile.data.model.SpeedUnit
 import app.fahrtenbuch.mobile.data.model.User
+import app.fahrtenbuch.mobile.data.model.UserPreferences
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.permissions.rememberPermissionStatus
+import app.fahrtenbuch.mobile.ui.screens.settings.FormatPreferencesDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.PermissionsDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.ProfileEditDialog
@@ -66,7 +72,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -105,6 +111,12 @@ fun SettingsScreen(
                 user = appState.user,
                 modifier = Modifier.padding(top = 20.dp),
                 onClick = { dialog = SettingsDialog.PROFILE }
+            )
+            // Einheiten und Datumsformat gehören im Server-Modus zum Benutzerkonto
+            FormatPreferencesRow(
+                preferences = appState.preferences,
+                modifier = Modifier.padding(top = 10.dp),
+                onClick = { dialog = SettingsDialog.FORMAT }
             )
 
             SettingsSectionLabel(stringResource(R.string.settings_section_connection))
@@ -145,6 +157,11 @@ fun SettingsScreen(
                     Text(stringResource(R.string.migrate_to_server))
                 }
             }
+        }
+
+        if (!isServerMode) {
+            SettingsSectionLabel(stringResource(R.string.format_title))
+            FormatPreferencesRow(preferences = appState.preferences, onClick = { dialog = SettingsDialog.FORMAT })
         }
 
         SettingsSectionLabel(stringResource(R.string.appearance))
@@ -308,7 +325,31 @@ fun SettingsScreen(
             onChanged = refreshPermissions,
             onDismiss = { dialog = SettingsDialog.NONE }
         )
+        SettingsDialog.FORMAT -> FormatPreferencesDialog(
+            current = appState.preferences,
+            serverMode = isServerMode,
+            loading = appState.loading,
+            error = appState.error,
+            onDismiss = { dialog = SettingsDialog.NONE },
+            onSave = { preferences -> viewModel.updatePreferences(preferences) { dialog = SettingsDialog.NONE } }
+        )
         SettingsDialog.NONE -> Unit
+    }
+}
+
+@Composable
+private fun FormatPreferencesRow(preferences: UserPreferences, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    SettingsCard(modifier = modifier) {
+        SettingsRow(
+            icon = Icons.Default.Straighten,
+            title = stringResource(R.string.format_title),
+            subtitle = listOf(
+                stringResource(if (preferences.distanceUnit == DistanceUnit.KM) R.string.format_km else R.string.format_mi),
+                if (preferences.speedUnit == SpeedUnit.KMH) "km/h" else "mph",
+                stringResource(if (preferences.dateFormat == DateFormatPreference.EU) R.string.format_date_eu else R.string.format_date_us)
+            ).joinToString(" · "),
+            onClick = onClick
+        )
     }
 }
 
