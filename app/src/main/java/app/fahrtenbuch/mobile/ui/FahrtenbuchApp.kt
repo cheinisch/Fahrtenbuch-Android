@@ -3,9 +3,9 @@ package app.fahrtenbuch.mobile.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -23,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.fahrtenbuch.mobile.R
+import app.fahrtenbuch.mobile.ui.navigation.AppBottomBar
+import app.fahrtenbuch.mobile.ui.navigation.BottomDestination
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -45,12 +47,6 @@ import app.fahrtenbuch.mobile.ui.screens.VehiclesScreen
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 import app.fahrtenbuch.mobile.data.model.PairQrPayload
 import app.fahrtenbuch.mobile.data.api.AppMode
-
-private data class Destination(
-    val route: String,
-    val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
-)
 
 @Composable
 fun FahrtenbuchApp(
@@ -77,10 +73,15 @@ fun FahrtenbuchApp(
 
     val navController = rememberNavController()
     val destinations = listOf(
-        Destination("tracking", stringResource(R.string.tracking_title), Icons.Default.LocationOn),
-        Destination("trips", stringResource(R.string.trips), Icons.Default.ListAlt),
-        Destination("statistics", stringResource(R.string.statistics), Icons.Default.BarChart),
-        Destination("settings", stringResource(R.string.settings), Icons.Default.Settings)
+        BottomDestination(
+            "tracking",
+            stringResource(R.string.nav_home),
+            Icons.Default.LocationOn,
+            showRecordingDot = state.tracking
+        ),
+        BottomDestination("trips", stringResource(R.string.trips), Icons.AutoMirrored.Filled.ListAlt),
+        BottomDestination("statistics", stringResource(R.string.statistics), Icons.Default.BarChart),
+        BottomDestination("settings", stringResource(R.string.settings), Icons.Default.Tune)
     )
     var tripsRequest by remember { mutableStateOf<TripsRequest?>(null) }
     val openTrips: (TripsRequest) -> Unit = { request ->
@@ -95,31 +96,19 @@ fun FahrtenbuchApp(
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                destinations.forEach { destination ->
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == destination.route
-                        } == true,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(destination.icon, contentDescription = destination.label) },
-                        label = { Text(destination.label) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
+            AppBottomBar(
+                destinations = destinations,
+                isSelected = { destination ->
+                    currentDestination?.hierarchy?.any { it.route == destination.route } == true
+                },
+                onSelect = { destination ->
+                    navController.navigate(destination.route) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
-            }
+            )
         }
     ) { padding ->
         NavHost(

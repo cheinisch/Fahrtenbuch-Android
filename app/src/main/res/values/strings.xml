@@ -186,4 +186,6 @@
         <item quantity="one">%d trip not categorized</item>
         <item quantity="other">%d trips not categorized</item>
     </plurals>
+    <string name="nav_home">Home</string>
+    <string name="nav_recording_active">Recording in progress</string>
 </resources>

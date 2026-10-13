@@ -181,4 +181,6 @@
         <item quantity="one">%d Fahrt nicht zugeordnet</item>
         <item quantity="other">%d Fahrten nicht zugeordnet</item>
     </plurals>
+    <string name="nav_home">Start</string>
+    <string name="nav_recording_active">Aufzeichnung läuft</string>
 </resources>
