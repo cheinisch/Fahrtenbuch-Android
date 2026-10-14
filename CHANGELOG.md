@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-14
+
+Version code 27.
+
 ### Added
 
 - Settings › Permissions also checks battery optimization: the app shows whether Android may put it to sleep (battery optimization or "Restricted" background usage) and opens the app's system settings to set battery usage to "Unrestricted". On Samsung devices a hint explains how to remove the app from "Sleeping apps"; other devices get a general hint about vendor power-saving settings.
@@ -132,7 +136,8 @@ Version codes 21 and 22.
 
 Version code 20. State before the changes listed above.
 
-[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/721d319...937f08b
