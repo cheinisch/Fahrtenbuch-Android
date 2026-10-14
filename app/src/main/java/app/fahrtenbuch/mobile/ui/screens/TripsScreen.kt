@@ -115,7 +115,8 @@ fun TripsScreen(
             error = state.tripDetailsError,
             onBack = { selectedTripId = null },
             onCategory = { viewModel.updateTripCategory(selectedTrip, it) },
-            onSpecialCategory = { viewModel.updateTripCategory(selectedTrip, selectedTrip.tripType, it) }
+            onSpecialCategory = { viewModel.updateTripCategory(selectedTrip, selectedTrip.tripType, it) },
+            onPurpose = { purpose, contact, note, onDone -> viewModel.updateTripPurpose(selectedTrip, purpose, contact, note, onDone) }
         )
         return
     }

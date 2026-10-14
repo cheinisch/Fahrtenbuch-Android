@@ -362,6 +362,28 @@ class FahrtenbuchRepository(
         return updated
     }
 
+    /** Fahrtzweck, Kontakt und Notiz ändern; leere Felder werden gelöscht. */
+    suspend fun updateTripPurpose(trip: Trip, purpose: String?, contact: String?, note: String?): Trip {
+        val p = purpose?.trim()?.takeIf { it.isNotEmpty() }
+        val c = contact?.trim()?.takeIf { it.isNotEmpty() }
+        val n = note?.trim()?.takeIf { it.isNotEmpty() }
+        if (store.isLocalMode) {
+            dao.setLocalPurpose(trip.id, p, c, n)
+            return trip.copy(purpose = p, contact = c, note = n, syncState = "LOCAL")
+        }
+        // Über /classify, damit GPS-Daten, Zeiten und Adressen unangetastet bleiben
+        val body = JSONObject()
+            .put("category", trip.tripType.apiValue)
+            .put("purpose", p ?: JSONObject.NULL)
+            .put("contact", c ?: JSONObject.NULL)
+            .put("notes", n ?: JSONObject.NULL)
+            .toString()
+            .toRequestBody("application/json".toMediaType())
+        val updated = api.classifyTripJson(trip.id, body)
+        dao.putTripRecord(updated.toEntity())
+        return updated
+    }
+
     suspend fun dashboard(): Dashboard = api.dashboard()
 
     /** Starts immediately without requiring a network connection. */
@@ -450,6 +472,9 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     specialCategory = specialCategory,
     startTimeZone = startTimeZone,
     endTimeZone = endTimeZone ?: startTimeZone,
+    purpose = purpose,
+    contact = contact,
+    note = notes,
     durationSeconds = end?.let {
         runCatching { java.time.Duration.between(Instant.parse(startedAt), Instant.parse(it)).seconds.toInt() }.getOrNull()
     },

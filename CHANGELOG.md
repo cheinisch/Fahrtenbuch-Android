@@ -18,10 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Special category chip in the trip list and on the latest trip card; statistics card "By special category".
 - Statistics: category filter also offers special categories.
 - Statistics: export button. Choose a period (prefilled from the statistics filter) and PDF (default) or CSV; vehicle and category filters are applied. In server mode the server creates the tax report (`GET /export/pdf`, `GET /export/csv`); in local mode – or if the server is not reachable – the app creates the PDF/CSV on the device. The file is saved via the Android file picker and can be shared directly.
+- Trip details: purpose, contact and note can be edited (tap the purpose card). Saved via `PUT /trips/{id}/classify` in server mode (requires the matching backend, which now applies `purpose`, `contact` and `notes` there) and on the device in local mode; values entered offline are sent before the trip is completed on the server.
 
 ### Changed
 
-- Local database schema version 7 (`specialCategory`, `startTimeZone` and `endTimeZone` for synced and offline trips, with migrations).
+- Local database schema version 8 (`specialCategory`, `startTimeZone` and `endTimeZone` for synced and offline trips; `purpose`, `contact` and `notes` for offline trips, with migrations).
 - Redesigned statistics: filters for year, month, category and vehicle; total distance with trip count, driving time and average per trip; distance by category with bars; distance per month (tap a bar to filter) or per day.
 
 ### Fixed

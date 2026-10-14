@@ -114,6 +114,10 @@
     <string name="trip_detail_contact">Kontakt</string>
     <string name="trip_detail_note">Notiz</string>
     <string name="trip_detail_purpose_missing">Kein Fahrtzweck hinterlegt</string>
+    <string name="trip_purpose_edit_title">Fahrtzweck bearbeiten</string>
+    <string name="trip_purpose_add">Hinzufügen</string>
+    <string name="trip_purpose_hint">z. B. Kundentermin</string>
+    <string name="trip_contact_hint">z. B. Firma oder Ansprechpartner</string>
     <string name="trip_detail_back">Zurück</string>
     <string name="trip_detail_fullscreen">Karte vergrößern</string>
     <string name="trip_detail_close_map">Karte schließen</string>

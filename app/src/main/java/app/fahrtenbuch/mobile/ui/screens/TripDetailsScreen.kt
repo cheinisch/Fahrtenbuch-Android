@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Notes
@@ -63,6 +64,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import app.fahrtenbuch.mobile.ui.map.MapPadding
+import app.fahrtenbuch.mobile.ui.screens.trips.TripPurposeDialog
 import app.fahrtenbuch.mobile.ui.map.TripRouteMap
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
 import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
@@ -87,9 +89,20 @@ internal fun TripDetailsScreen(
     error: String?,
     onBack: () -> Unit,
     onCategory: (TripType) -> Unit,
-    onSpecialCategory: (SpecialCategory?) -> Unit
+    onSpecialCategory: (SpecialCategory?) -> Unit,
+    onPurpose: (purpose: String, contact: String, note: String, onDone: () -> Unit) -> Unit
 ) {
     BackHandler(onBack = onBack)
+    var editPurpose by rememberSaveable(trip.id) { mutableStateOf(false) }
+    if (editPurpose) {
+        TripPurposeDialog(
+            trip = trip,
+            saving = loading,
+            error = error,
+            onSave = { purpose, contact, note -> onPurpose(purpose, contact, note) { editPurpose = false } },
+            onDismiss = { editPurpose = false }
+        )
+    }
     var mapFullscreen by rememberSaveable(trip.id) { mutableStateOf(false) }
     // Später registriert und damit vorrangig: Zurück schließt zuerst die Vollbildkarte.
     BackHandler(enabled = mapFullscreen) { mapFullscreen = false }
@@ -218,7 +231,7 @@ internal fun TripDetailsScreen(
             )
 
             SectionLabel(stringResource(R.string.trip_detail_purpose))
-            TripPurposeCard(trip)
+            TripPurposeCard(trip, enabled = !loading, onEdit = { editPurpose = true })
         }
         Spacer(Modifier.height(24.dp))
     }
@@ -501,13 +514,17 @@ private fun CategorySelector(selected: TripType, enabled: Boolean, onSelect: (Tr
 }
 
 @Composable
-private fun TripPurposeCard(trip: Trip) {
+private fun TripPurposeCard(trip: Trip, enabled: Boolean, onEdit: () -> Unit) {
     val rows = listOfNotNull(
         trip.purpose?.takeIf { it.isNotBlank() }?.let { Triple(Icons.Default.Flag, stringResource(R.string.trip_detail_purpose), it) },
         trip.contact?.takeIf { it.isNotBlank() }?.let { Triple(Icons.Default.Person, stringResource(R.string.trip_detail_contact), it) },
         trip.note?.takeIf { it.isNotBlank() }?.let { Triple(Icons.Default.Notes, stringResource(R.string.trip_detail_note), it) }
     )
-    DetailCard {
+    val editLabel = stringResource(R.string.trip_purpose_edit_title)
+    DetailCard(
+        // Ganze Karte antippbar: öffnet den Bearbeiten-Dialog
+        Modifier.clickable(enabled = enabled, onClickLabel = editLabel, role = Role.Button, onClick = onEdit)
+    ) {
         if (rows.isEmpty()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
@@ -515,7 +532,12 @@ private fun TripPurposeCard(trip: Trip) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-                Text(stringResource(R.string.trip_detail_purpose_missing), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    stringResource(R.string.trip_detail_purpose_missing),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(stringResource(R.string.trip_purpose_add), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             }
         } else {
             rows.forEachIndexed { index, (icon, label, value) ->
@@ -525,9 +547,12 @@ private fun TripPurposeCard(trip: Trip) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(value, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    if (index == 0) {
+                        Icon(Icons.Default.Edit, contentDescription = editLabel, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     }
                 }
             }

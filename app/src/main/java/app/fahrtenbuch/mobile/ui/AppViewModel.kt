@@ -495,6 +495,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun updateTripPurpose(trip: Trip, purpose: String?, contact: String?, note: String?, onDone: () -> Unit) {
+        if (!store.isLocalMode && trip.syncState != "SYNCED") {
+            _state.value = _state.value.copy(tripDetailsError = str(R.string.error_sync_trip_first))
+            return
+        }
+        viewModelScope.launch {
+            _state.value = _state.value.copy(tripDetailsLoading = true, tripDetailsError = null)
+            runCatching { repository.updateTripPurpose(trip, purpose, contact, note) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        tripDetailsLoading = false,
+                        trips = _state.value.trips.map { if (it.id == updated.id) updated else it }
+                    )
+                    onDone()
+                }
+                .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
+        }
+    }
+
     /** Adressen und Strecke für Fahrten auf dem Gerät ergänzen und die Liste danach aktualisieren. */
     private suspend fun resolveTripDetails() {
         val changed = runCatching { repository.resolveLocalTripDetails() }.getOrDefault(false)

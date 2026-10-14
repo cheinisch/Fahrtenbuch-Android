@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import app.fahrtenbuch.mobile.data.api.ApiFactory
 import app.fahrtenbuch.mobile.data.api.SessionStore
@@ -72,6 +74,19 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                     Log.i(TAG, "tracking/points OK: localId=${local.localId} uploaded=${points.size}")
                 }
                 if (local.pendingStop && local.endedAt != null) {
+                    // Lokal erfassten Fahrtzweck/Kontakt/Notiz vor dem Stop senden: schlägt es fehl,
+                    // wird beim nächsten Lauf beides wiederholt
+                    if (local.purpose != null || local.contact != null || local.notes != null) {
+                        val body = org.json.JSONObject()
+                            .put("category", local.type)
+                            .put("specialCategory", local.specialCategory ?: org.json.JSONObject.NULL)
+                            .put("purpose", local.purpose ?: org.json.JSONObject.NULL)
+                            .put("contact", local.contact ?: org.json.JSONObject.NULL)
+                            .put("notes", local.notes ?: org.json.JSONObject.NULL)
+                            .toString()
+                            .toRequestBody("application/json".toMediaType())
+                        api.classifyTripJson(remoteId, body)
+                    }
                     Log.i(TAG, "POST tracking/stop: localId=${local.localId} remoteId=$remoteId endedAt=${local.endedAt}")
                     val completed = api.stopTracking(StopTrackingRequest(remoteId, local.endedAt, local.endTimeZone ?: local.startTimeZone))
                     dao.markTripSynced(local.localId)
