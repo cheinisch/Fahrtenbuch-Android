@@ -86,6 +86,15 @@ class FahrtenbuchRepository(
         SyncScheduler.enqueue(context)
     }
 
+    /**
+     * Anmeldeverfahren des Servers. Ältere Server ohne /auth/methods: Passwort, TOTP und
+     * Passkeys wie bisher anbieten, externe Anbieter über /auth/oauth/providers.
+     */
+    suspend fun authMethods(): AuthMethods =
+        runCatching { api.authMethods() }.getOrElse {
+            AuthMethods(oauthProviders = oauthProviders().map { provider -> provider.id })
+        }
+
     /** Auf dem Server eingerichtete externe Anmeldungen; ältere Server ohne Endpunkt: leer. */
     suspend fun oauthProviders(): List<OAuthProvider> =
         runCatching { api.oauthProviders() }.getOrDefault(emptyList()).filter { it.enabled }

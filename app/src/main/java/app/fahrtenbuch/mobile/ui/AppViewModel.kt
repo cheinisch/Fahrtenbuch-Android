@@ -35,6 +35,8 @@ data class AppUiState(
     val availableTags: List<app.fahrtenbuch.mobile.data.model.Tag> = emptyList(),
     /** Auf dem Server aktivierte Anmeldungen mit Google/Microsoft (für den Login-Bildschirm). */
     val oauthProviders: List<app.fahrtenbuch.mobile.data.model.OAuthProvider> = emptyList(),
+    /** Vom Server angebotene Anmeldeverfahren (TOTP, Passkeys); ausgeblendet, was fehlt. */
+    val authMethods: app.fahrtenbuch.mobile.data.model.AuthMethods = app.fahrtenbuch.mobile.data.model.AuthMethods(),
     /** Google/Microsoft-Anmeldung wartet auf den Zwei-Faktor-Code. */
     val oauthMfaRequired: Boolean = false,
     val tracking: Boolean = false,
@@ -211,12 +213,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private fun deviceName(): String =
         listOf(Build.MANUFACTURER, Build.MODEL).filter { it.isNotBlank() }.joinToString(" ")
 
-    /** Prüft nach Eingabe der Serveradresse, welche externen Anmeldungen der Server anbietet. */
-    fun loadOAuthProviders() {
+    /** Prüft nach Eingabe der Serveradresse, welche Anmeldeverfahren der Server anbietet. */
+    fun loadAuthMethods() {
         if (!store.isServerMode) return
         viewModelScope.launch {
-            val providers = repository.oauthProviders()
-            _state.value = _state.value.copy(oauthProviders = providers)
+            val methods = repository.authMethods()
+            val providers = methods.oauthProviders.map { id ->
+                app.fahrtenbuch.mobile.data.model.OAuthProvider(id, id.replaceFirstChar { it.uppercase() }, true)
+            }
+            _state.value = _state.value.copy(authMethods = methods, oauthProviders = providers)
         }
     }
 

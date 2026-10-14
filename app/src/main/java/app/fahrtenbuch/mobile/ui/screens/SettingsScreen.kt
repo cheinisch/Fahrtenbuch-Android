@@ -102,7 +102,11 @@ fun SettingsScreen(
     val isServerMode = appState.appMode == AppMode.SERVER
     val (permissionStatus, refreshPermissions) = rememberPermissionStatus()
 
-    LaunchedEffect(Unit) { viewModel.loadAccount() }
+    LaunchedEffect(Unit) {
+        viewModel.loadAccount()
+        // Passkey-Verwaltung nur zeigen, wenn der Server Passkeys anbietet
+        viewModel.loadAuthMethods()
+    }
 
     val windowLayout = LocalWindowLayout.current
     Column(
@@ -145,13 +149,15 @@ fun SettingsScreen(
                 SettingsDivider()
                 val https = appState.serverUrl.startsWith("https://", ignoreCase = true)
                 val certChecked = https && !sessionStore.allowInvalidCertificates
-                SettingsRow(
-                    icon = Icons.Default.Key,
-                    title = stringResource(R.string.passkeys_title),
-                    subtitle = stringResource(R.string.passkeys_row_subtitle),
-                    onClick = { dialog = SettingsDialog.PASSKEYS }
-                )
-                SettingsDivider()
+                if (appState.authMethods.passkeys) {
+                    SettingsRow(
+                        icon = Icons.Default.Key,
+                        title = stringResource(R.string.passkeys_title),
+                        subtitle = stringResource(R.string.passkeys_row_subtitle),
+                        onClick = { dialog = SettingsDialog.PASSKEYS }
+                    )
+                    SettingsDivider()
+                }
                 SettingsRow(
                     icon = if (certChecked) Icons.Default.Lock else Icons.Default.LockOpen,
                     title = stringResource(R.string.settings_security),

@@ -31,6 +31,13 @@ data class LoginRequest(
 )
 /** GET /auth/oauth/providers – Google/Microsoft, aktiv wenn auf dem Server eingerichtet. */
 data class OAuthProvider(val id: String, val name: String, val enabled: Boolean)
+/** GET /auth/methods – welche Anmeldeverfahren der Server anbietet. */
+data class AuthMethods(
+    val password: Boolean = true,
+    val totp: Boolean = true,
+    val passkeys: Boolean = true,
+    val oauthProviders: List<String> = emptyList()
+)
 data class OAuthLoginRequest(val appRedirectUri: String, val appCodeChallenge: String)
 data class OAuthAuthorizationResponse(val authorizationUrl: String)
 data class OAuthExchangeRequest(

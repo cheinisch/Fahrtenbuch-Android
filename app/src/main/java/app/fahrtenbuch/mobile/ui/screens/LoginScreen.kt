@@ -62,7 +62,7 @@ fun LoginScreen(viewModel: AppViewModel) {
     var oauthTotp by rememberSaveable { mutableStateOf("") }
 
     // Welche Anmeldearten bietet der Server an? (Google/Microsoft nur, wenn dort eingerichtet)
-    LaunchedEffect(state.serverUrl) { viewModel.loadOAuthProviders() }
+    LaunchedEffect(state.serverUrl) { viewModel.loadAuthMethods() }
     val openInBrowser: (String) -> Unit = { url ->
         runCatching {
             CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(context, Uri.parse(url))
@@ -167,15 +167,18 @@ fun LoginScreen(viewModel: AppViewModel) {
                             enabled = !state.loading,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        OutlinedTextField(
-                            value = totp,
-                            onValueChange = { totp = it.filter(Char::isDigit).take(6) },
-                            label = { Text(stringResource(R.string.totp_code)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                            singleLine = true,
-                            enabled = !state.loading,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // Nur wenn der Server Zwei-Faktor anbietet (TOTP_ENABLED)
+                        if (state.authMethods.totp) {
+                            OutlinedTextField(
+                                value = totp,
+                                onValueChange = { totp = it.filter(Char::isDigit).take(6) },
+                                label = { Text(stringResource(R.string.totp_code)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                                singleLine = true,
+                                enabled = !state.loading,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
 
                         AuthError(state.error)
 
@@ -184,7 +187,7 @@ fun LoginScreen(viewModel: AppViewModel) {
                                 viewModel.login(
                                     email.trim(),
                                     password,
-                                    totp.ifBlank { null },
+                                    totp.ifBlank { null }?.takeIf { state.authMethods.totp },
                                     deviceName
                                 )
                             },
@@ -198,39 +201,42 @@ fun LoginScreen(viewModel: AppViewModel) {
                             }
                         }
 
-                        OutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    val options = viewModel.passkeyOptions().getOrNull() ?: return@launch
-                                    try {
-                                        val result = credentialManager.getCredential(
-                                            context = context,
-                                            request = GetCredentialRequest(
-                                                listOf(GetPublicKeyCredentialOption(requestJson = options))
+                        // Nur wenn der Server Passkeys anbietet (PASSKEYS_ENABLED)
+                        if (state.authMethods.passkeys) {
+                            OutlinedButton(
+                                onClick = {
+                                    scope.launch {
+                                        val options = viewModel.passkeyOptions().getOrNull() ?: return@launch
+                                        try {
+                                            val result = credentialManager.getCredential(
+                                                context = context,
+                                                request = GetCredentialRequest(
+                                                    listOf(GetPublicKeyCredentialOption(requestJson = options))
+                                                )
                                             )
-                                        )
-                                        val credential = result.credential
-                                        if (credential is PublicKeyCredential) {
-                                            viewModel.passkeyLogin(
-                                                credential.authenticationResponseJson,
-                                                deviceName
+                                            val credential = result.credential
+                                            if (credential is PublicKeyCredential) {
+                                                viewModel.passkeyLogin(
+                                                    credential.authenticationResponseJson,
+                                                    deviceName
+                                                )
+                                            } else {
+                                                viewModel.cancelAuthLoading(context.getString(R.string.error_not_passkey))
+                                            }
+                                        } catch (error: Exception) {
+                                            viewModel.cancelAuthLoading(
+                                                error.message ?: context.getString(R.string.error_passkey_cancelled)
                                             )
-                                        } else {
-                                            viewModel.cancelAuthLoading(context.getString(R.string.error_not_passkey))
                                         }
-                                    } catch (error: Exception) {
-                                        viewModel.cancelAuthLoading(
-                                            error.message ?: context.getString(R.string.error_passkey_cancelled)
-                                        )
                                     }
-                                }
-                            },
-                            enabled = !state.loading,
-                            modifier = Modifier.fillMaxWidth().height(52.dp)
-                        ) {
-                            Icon(Icons.Outlined.Key, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.sign_in_passkey))
+                                },
+                                enabled = !state.loading,
+                                modifier = Modifier.fillMaxWidth().height(52.dp)
+                            ) {
+                                Icon(Icons.Outlined.Key, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.sign_in_passkey))
+                            }
                         }
 
                         // Externe Anmeldungen, die der Server anbietet
