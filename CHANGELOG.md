@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Special categories from the server API (`specialCategory`: medical, volunteering, education/studies, job application, moving, other) as a second classification level next to the trip type.
 - Trip details: special category selection (chips, "None" removes it); saved via `PUT /trips/{id}/classify` in server mode and on the device in local mode.
 - Special category chip in the trip list and on the latest trip card; statistics card "By special category".
+- Statistics: category filter also offers special categories.
+- Statistics: export button. Choose a period (prefilled from the statistics filter) and PDF (default) or CSV; vehicle and category filters are applied. In server mode the server creates the tax report (`GET /export/pdf`, `GET /export/csv`); in local mode – or if the server is not reachable – the app creates the PDF/CSV on the device. The file is saved via the Android file picker and can be shared directly.
 
 ### Changed
 

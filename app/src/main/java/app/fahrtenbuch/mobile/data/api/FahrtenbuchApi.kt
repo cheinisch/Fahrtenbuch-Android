@@ -45,6 +45,8 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
+import retrofit2.Response
 
 interface FahrtenbuchApi {
 
@@ -366,6 +368,30 @@ interface FahrtenbuchApi {
 
     @GET("health")
     suspend fun health(): HealthResponse
+
+    // ---------------------------------------------------------------------
+    // Export (Steuer-Report als PDF bzw. Fahrten als CSV)
+    // ---------------------------------------------------------------------
+
+    @Streaming
+    @GET("export/pdf")
+    suspend fun exportPdf(
+        @Query("from") from: String?,
+        @Query("to") to: String?,
+        @Query("vehicleId") vehicleId: Uuid?,
+        @Query("type") type: String?,
+        @Query("specialCategory") specialCategory: String?
+    ): Response<ResponseBody>
+
+    @Streaming
+    @GET("export/csv")
+    suspend fun exportCsv(
+        @Query("from") from: String?,
+        @Query("to") to: String?,
+        @Query("vehicleId") vehicleId: Uuid?,
+        @Query("type") type: String?,
+        @Query("specialCategory") specialCategory: String?
+    ): Response<ResponseBody>
 
     @GET("users/me/settings")
     suspend fun mySettings(): MeSettingsResponse

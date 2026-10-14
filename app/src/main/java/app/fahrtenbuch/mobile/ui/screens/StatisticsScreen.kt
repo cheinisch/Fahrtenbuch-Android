@@ -25,6 +25,10 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Commute
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material3.FilledTonalButton
+import app.fahrtenbuch.mobile.data.api.AppMode
+import app.fahrtenbuch.mobile.ui.screens.statistics.ExportDialog
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Work
@@ -100,15 +104,20 @@ fun StatisticsScreen(viewModel: AppViewModel) {
 
     var year by rememberSaveable { mutableIntStateOf(today.year) }
     var month by rememberSaveable { mutableStateOf<Int?>(null) }
-    var category by rememberSaveable { mutableStateOf<TripType?>(null) }
+    // Kategorie-Filter: "" = alle, "type:<api>" = Fahrttyp, "special:<api>" = Sonderkategorie
+    var categoryKey by rememberSaveable { mutableStateOf("") }
     var vehicleId by rememberSaveable { mutableStateOf("") }
+    var showExport by rememberSaveable { mutableStateOf(false) }
+    val category = TripType.entries.firstOrNull { "type:${it.apiValue}" == categoryKey }
+    val specialFilter = SpecialCategory.entries.firstOrNull { "special:${it.apiValue}" == categoryKey }
 
     // Jahr, Fahrzeug und Kategorie gelten für alles; der Monat nur für Summen und Kategorien,
     // damit das Monatsdiagramm den Jahresverlauf weiter zeigt.
     val yearTrips = completed.filter { trip ->
         tripLocalDate(trip.startedAt)?.year == year &&
             (vehicleId.isBlank() || trip.vehicleId == vehicleId) &&
-            (category == null || trip.tripType == category)
+            (category == null || trip.tripType == category) &&
+            (specialFilter == null || trip.specialCategory == specialFilter.apiValue)
     }
     val periodTrips = month?.let { m -> yearTrips.filter { tripLocalDate(it.startedAt)?.monthValue == m } } ?: yearTrips
 
@@ -126,9 +135,18 @@ fun StatisticsScreen(viewModel: AppViewModel) {
             .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(Modifier.padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(R.string.statistics), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
-            Text(subtitle, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(R.string.statistics), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                Text(subtitle, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            FilledTonalButton(onClick = { showExport = true }) {
+                Icon(Icons.Default.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.export_button), modifier = Modifier.padding(start = 6.dp))
+            }
         }
 
         // Filter
@@ -154,11 +172,14 @@ fun StatisticsScreen(viewModel: AppViewModel) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterDropdown(
                 icon = Icons.Default.Category,
-                label = category?.let { localizedTripType(it) } ?: stringResource(R.string.statistics_all_categories),
-                active = category != null,
-                options = listOf<Pair<TripType?, String>>(null to stringResource(R.string.statistics_all_categories)) +
-                    TripType.entries.map { it to localizedTripType(it) },
-                onSelect = { category = it },
+                label = category?.let { localizedTripType(it) }
+                    ?: specialFilter?.let { localizedSpecialCategory(it) }
+                    ?: stringResource(R.string.statistics_all_categories),
+                active = categoryKey.isNotEmpty(),
+                options = listOf("" to stringResource(R.string.statistics_all_categories)) +
+                    TripType.entries.map { "type:${it.apiValue}" to localizedTripType(it) } +
+                    SpecialCategory.entries.map { "special:${it.apiValue}" to "${localizedSpecialCategory(it)} (${stringResource(R.string.special_category)})" },
+                onSelect = { categoryKey = it },
                 modifier = Modifier.weight(1f)
             )
             FilterDropdown(
@@ -198,6 +219,23 @@ fun StatisticsScreen(viewModel: AppViewModel) {
                 onBarClick = null
             )
         }
+    }
+
+    if (showExport) {
+        // Zeitraum vorbelegt mit dem Statistik-Filter (ganzes Jahr bzw. gewählter Monat)
+        val periodStart = month?.let { LocalDate.of(year, it, 1) } ?: LocalDate.of(year, 1, 1)
+        val periodEnd = month?.let { YearMonth.of(year, it).atEndOfMonth() } ?: LocalDate.of(year, 12, 31)
+        ExportDialog(
+            initialFrom = periodStart,
+            initialTo = periodEnd,
+            vehicleId = vehicleId.ifBlank { null },
+            vehicleName = vehicleName,
+            tripType = category,
+            specialCategory = specialFilter,
+            serverMode = state.appMode == AppMode.SERVER,
+            onExport = { request -> viewModel.export(request) },
+            onDismiss = { showExport = false }
+        )
     }
 }
 

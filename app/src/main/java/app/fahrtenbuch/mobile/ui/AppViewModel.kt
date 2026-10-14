@@ -253,6 +253,26 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Export für die Statistik: im Server-Modus über die API (Steuer-PDF bzw. CSV), sonst – oder
+     * wenn der Server nicht erreichbar ist – auf dem Gerät aus den vorhandenen Fahrten erzeugt.
+     */
+    suspend fun export(request: app.fahrtenbuch.mobile.data.model.ExportRequest): app.fahrtenbuch.mobile.data.model.ExportResult {
+        if (store.isServerMode) {
+            runCatching { repository.serverExport(request) }.onSuccess { return it }
+        }
+        val current = _state.value
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            app.fahrtenbuch.mobile.data.export.LocalExport.create(
+                context = getApplication(),
+                request = request,
+                allTrips = current.trips,
+                vehicles = current.vehicles,
+                prefs = current.preferences
+            )
+        }
+    }
+
     /** Für „Über die App“: Version und Status des Servers. */
     suspend fun serverHealth(): app.fahrtenbuch.mobile.data.model.HealthResponse? = repository.serverHealth()
 

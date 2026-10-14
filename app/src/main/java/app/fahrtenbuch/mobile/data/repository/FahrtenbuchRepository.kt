@@ -111,6 +111,22 @@ class FahrtenbuchRepository(
 
     suspend fun me(): User = api.me()
 
+    /** Export vom Server (Steuer-PDF bzw. CSV); wirft bei Fehlern, damit der Aufrufer lokal erzeugen kann. */
+    suspend fun serverExport(request: ExportRequest): ExportResult {
+        val response = when (request.format) {
+            ExportFormat.PDF -> api.exportPdf(request.from, request.to, request.vehicleId, request.tripType?.apiValue, request.specialCategory?.apiValue)
+            ExportFormat.CSV -> api.exportCsv(request.from, request.to, request.vehicleId, request.tripType?.apiValue, request.specialCategory?.apiValue)
+        }
+        val body = response.body()
+        if (!response.isSuccessful || body == null) {
+            throw retrofit2.HttpException(response)
+        }
+        val fileName = response.headers()["Content-Disposition"]
+            ?.let { Regex("filename=\"?([^\";]+)\"?").find(it)?.groupValues?.get(1) }
+            ?: "fahrtenbuch_${request.from}_${request.to}.${request.format.extension}"
+        return ExportResult(body.bytes(), fileName, request.format.mimeType, generatedOnDevice = false)
+    }
+
     /** Serverstatus und -version (nur Server-Modus); null, wenn nicht erreichbar. */
     suspend fun serverHealth(): HealthResponse? =
         if (store.isServerMode) runCatching { api.health() }.getOrNull() else null

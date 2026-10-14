@@ -238,3 +238,30 @@ data class HealthResponse(
     val version: String? = null,
     val database: String? = null
 )
+
+// ---------------------------------------------------------------------
+// Export
+// ---------------------------------------------------------------------
+
+enum class ExportFormat(val mimeType: String, val extension: String) {
+    PDF("application/pdf", "pdf"),
+    CSV("text/csv", "csv")
+}
+
+/** Was exportiert werden soll; Datumsangaben als ISO-Datum (yyyy-MM-dd), Zeitraum inklusive. */
+data class ExportRequest(
+    val format: ExportFormat,
+    val from: String,
+    val to: String,
+    val vehicleId: Uuid? = null,
+    val tripType: TripType? = null,
+    val specialCategory: SpecialCategory? = null
+)
+
+data class ExportResult(
+    val bytes: ByteArray,
+    val fileName: String,
+    val mimeType: String,
+    /** true, wenn die Datei auf dem Gerät erzeugt wurde (lokaler Modus oder Server nicht erreichbar). */
+    val generatedOnDevice: Boolean
+)
