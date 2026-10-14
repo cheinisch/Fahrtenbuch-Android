@@ -314,4 +314,18 @@
     <string name="vehicles_default">Default</string>
     <string name="vehicles_make_default">Set as default vehicle</string>
     <string name="error_default_vehicle">Default vehicle could not be changed: %1$s</string>
+    <string name="statistics_all_months">All months</string>
+    <string name="statistics_all_categories">All categories</string>
+    <string name="statistics_total_distance">Total distance</string>
+    <string name="statistics_driving_time">Driving time</string>
+    <string name="statistics_avg_per_trip">Avg. per trip</string>
+    <string name="statistics_by_category">By category</string>
+    <string name="statistics_per_month">Distance per month</string>
+    <string name="statistics_per_day">Distance per day</string>
+    <string name="statistics_max">max. %1$s</string>
+    <string name="statistics_empty">No trips in this period.</string>
+    <plurals name="statistics_trips_label">
+        <item quantity="one">Trip</item>
+        <item quantity="other">Trips</item>
+    </plurals>
 </resources>

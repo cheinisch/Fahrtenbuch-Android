@@ -314,4 +314,18 @@
     <string name="vehicles_default">Standard</string>
     <string name="vehicles_make_default">Als Standardfahrzeug festlegen</string>
     <string name="error_default_vehicle">Standardfahrzeug konnte nicht geändert werden: %1$s</string>
+    <string name="statistics_all_months">Alle Monate</string>
+    <string name="statistics_all_categories">Alle Kategorien</string>
+    <string name="statistics_total_distance">Gesamtstrecke</string>
+    <string name="statistics_driving_time">Fahrzeit</string>
+    <string name="statistics_avg_per_trip">Ø pro Fahrt</string>
+    <string name="statistics_by_category">Nach Kategorie</string>
+    <string name="statistics_per_month">Distanz pro Monat</string>
+    <string name="statistics_per_day">Distanz pro Tag</string>
+    <string name="statistics_max">max. %1$s</string>
+    <string name="statistics_empty">Keine Fahrten in diesem Zeitraum.</string>
+    <plurals name="statistics_trips_label">
+        <item quantity="one">Fahrt</item>
+        <item quantity="other">Fahrten</item>
+    </plurals>
 </resources>
