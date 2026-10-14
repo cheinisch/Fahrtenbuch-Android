@@ -140,8 +140,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     .joinToString(" ")
                 repository.pairLogin(payload, deviceName)
             }.onSuccess {
+                // Der App-Modus muss auch im UI-Zustand auf SERVER wechseln (gespeichert ist er
+                // schon). Sonst blieb die Einrichtung nach erfolgreichem Koppeln einfach stehen.
                 _state.value = _state.value.copy(
+                    appMode = store.appMode,
                     serverConfigured = true,
+                    serverUrl = store.baseUrl,
                     loggedIn = true,
                     loading = false,
                     error = null

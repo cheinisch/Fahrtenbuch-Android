@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Settings › Permissions also checks battery optimization: the app shows whether Android may put it to sleep (battery optimization or "Restricted" background usage) and opens the app's system settings to set battery usage to "Unrestricted". On Samsung devices a hint explains how to remove the app from "Sleeping apps"; other devices get a general hint about vendor power-saving settings.
 
+### Fixed
+
+- Connecting via QR code stayed on the confirmation screen although pairing succeeded: the app mode was saved but not switched in the UI state, so the setup only finished after restarting the app.
+
 ## [0.5.0] - 2026-10-14
 
 Version code 26.
