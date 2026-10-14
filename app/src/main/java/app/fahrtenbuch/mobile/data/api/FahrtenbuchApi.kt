@@ -49,6 +49,9 @@ import retrofit2.http.Query
 import retrofit2.http.Streaming
 import retrofit2.Response
 
+// Ohne diese Annotation erzeugt Kotlin für Map<String, Any?> den Java-Typ Map<String, ?>,
+// den Retrofit zur Laufzeit ablehnt („Parameter type must not include a type variable or wildcard“).
+@JvmSuppressWildcards
 interface FahrtenbuchApi {
 
     // ---------------------------------------------------------------------
