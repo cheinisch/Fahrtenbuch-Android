@@ -290,6 +290,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         else -> str(R.string.oauth_error_generic, code)
     }
 
+    /** Zuletzt verwendeter Anmeldename (z. B. nach Wiederherstellung eines Backups). */
+    fun lastLoginName(): String = store.lastLoginName.orEmpty()
+
     fun cancelAuthLoading(message: String? = null) {
         _state.value = _state.value.copy(loading = false, error = message)
     }

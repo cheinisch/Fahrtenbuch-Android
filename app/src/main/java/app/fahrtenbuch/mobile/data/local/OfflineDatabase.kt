@@ -141,6 +141,37 @@ interface OfflineDao {
     @Query("SELECT * FROM track_points WHERE localTripId=:tripId AND uploaded=0 ORDER BY id LIMIT :limit") suspend fun pendingPoints(tripId: String, limit: Int = 500): List<TrackPointEntity>
     @Query("UPDATE track_points SET uploaded=1 WHERE id IN (:ids)") suspend fun markPointsUploaded(ids: List<Long>)
 
+    // Für Backup/Wiederherstellung (ZIP)
+    @Query("SELECT * FROM offline_trips ORDER BY startedAt") suspend fun allOfflineTrips(): List<OfflineTripEntity>
+    @Query("SELECT * FROM track_points ORDER BY id") suspend fun allPoints(): List<TrackPointEntity>
+    @Query("DELETE FROM offline_trips") suspend fun clearOfflineTrips()
+    @Query("DELETE FROM track_points") suspend fun clearPoints()
+    @Query("DELETE FROM cache") suspend fun clearCache()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putOfflineTrips(values: List<OfflineTripEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putPoints(values: List<TrackPointEntity>)
+
+    /** Ersetzt den kompletten lokalen Datenbestand durch den Inhalt eines Backups. */
+    @Transaction
+    suspend fun restoreAll(
+        vehicles: List<VehicleEntity>,
+        trips: List<TripEntity>,
+        tags: List<TagEntity>,
+        offlineTrips: List<OfflineTripEntity>,
+        points: List<TrackPointEntity>
+    ) {
+        clearPoints()
+        clearOfflineTrips()
+        clearTripRecords()
+        clearTags()
+        clearVehicles()
+        clearCache()
+        putVehicles(vehicles)
+        putTripRecords(trips)
+        putTags(tags)
+        putOfflineTrips(offlineTrips)
+        putPoints(points)
+    }
+
     @Transaction
     suspend fun replaceVehicles(values: List<VehicleEntity>) {
         clearVehicles()

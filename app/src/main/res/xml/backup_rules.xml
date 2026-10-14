@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<full-backup-content />
+<!--
+  Android-Backup bis Android 11 (fullBackupContent). Gesichert werden nur Fahrten/Fahrzeuge
+  (Room-Datenbank) und Einstellungen. Nie gesichert: fahrtenbuch_device.xml (Tokens,
+  Geräte-ID, laufende Aufzeichnung). Ob überhaupt gesichert wird, entscheidet der Nutzer
+  (FahrtenbuchBackupAgent).
+-->
+<full-backup-content>
+    <include domain="database" path="fahrtenbuch-offline.db" />
+    <include domain="sharedpref" path="fahrtenbuch_session.xml" />
+    <include domain="sharedpref" path="fahrtenbuch_theme.xml" />
+</full-backup-content>

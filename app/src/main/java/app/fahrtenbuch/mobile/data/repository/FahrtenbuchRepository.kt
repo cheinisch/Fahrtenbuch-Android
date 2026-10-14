@@ -55,6 +55,7 @@ class FahrtenbuchRepository(
         check(store.completeLogin(response.accessToken, response.refreshToken)) {
             "Die Anmeldung konnte nicht lokal gespeichert werden."
         }
+        store.lastLoginName = email
         migrateStandaloneDataIfNeeded()
         SyncScheduler.enqueue(context)
         return response.user

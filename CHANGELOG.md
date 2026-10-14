@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Backup (Settings › Backup): optional backup to the Google account via Android backup (off by default, can be switched on by the user) and a ZIP backup that can be saved and restored at any time. Both contain vehicles, trips (incl. GPS points, offline trips and tags) and settings, including server address and user name; login data is never included. After restoring on a new device you sign in again – the login form is pre-filled.
 - Sign in with Google or Microsoft: after entering the server address manually, the login screen asks the server which external sign-ins are set up (`GET /auth/oauth/providers`) and shows the matching buttons. The provider page opens in a Custom Tab; the app uses PKCE (`appCodeChallenge`/`appCodeVerifier`) and the redirect `fahrtenbuch://oauth/callback`, then exchanges the ticket via `POST /auth/oauth/exchange`. Accounts with two-factor authentication are asked for the TOTP code. The Google/Microsoft account must be linked to the Fahrtenbuch account in the web dashboard first.
 - Profile picture from Gravatar in the settings (server mode), if one exists for the account's e-mail address; otherwise the initials are shown as before. Only the SHA-256 hash of the address is sent to Gravatar. Can be switched off in the profile (synced with the server setting `gravatarEnabled`); if the server disables Gravatar (`GRAVATAR_ENABLED=false`), the app does not load it at all.
 
 ### Fixed
 
+- Android backup previously included everything, also access/refresh tokens and the device ID. Restoring such a backup on another device could reuse an already rotated refresh token and two devices shared one device ID. Tokens, device ID and the running recording now live in a separate preferences file that is never backed up (existing installations are migrated automatically).
 - Saving the profile (and other requests with free-form JSON bodies) failed with "Parameter type must not include a type variable or wildcard": Retrofit rejected the `Map<String, Any?>` parameters Kotlin compiles to wildcard types.
 
 ## [0.5.1] - 2026-10-14

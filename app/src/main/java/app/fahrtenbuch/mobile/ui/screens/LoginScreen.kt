@@ -48,7 +48,7 @@ fun LoginScreen(viewModel: AppViewModel) {
     }
 
     var mode by rememberSaveable { mutableStateOf(LoginMode.LOGIN) }
-    var email by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf(viewModel.lastLoginName()) }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var totp by rememberSaveable { mutableStateOf("") }

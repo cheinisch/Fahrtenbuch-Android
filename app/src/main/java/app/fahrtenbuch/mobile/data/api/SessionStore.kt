@@ -7,7 +7,35 @@ import java.util.UUID
 enum class AppMode { UNSET, LOCAL, SERVER }
 
 class SessionStore(context: Context) {
-    private val prefs = context.getSharedPreferences("fahrtenbuch_session", Context.MODE_PRIVATE)
+    /** Einstellungen, Server-Adresse usw. – dürfen gesichert werden (Google-Backup, ZIP). */
+    private val prefs = context.getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+
+    /**
+     * Gerätegebundenes: Zugangs-Tokens, Geräte-ID, laufende Aufzeichnung. Wird nie gesichert –
+     * Refresh-Tokens rotieren und laufen ab, und eine kopierte Geräte-ID würde zwei Geräte
+     * als eines erscheinen lassen. Nach einer Wiederherstellung meldet man sich neu an.
+     */
+    private val device = context.getSharedPreferences(PREFS_DEVICE, Context.MODE_PRIVATE)
+
+    init {
+        // Ältere Installationen hatten alles in einer Datei: gerätegebundene Werte umziehen
+        val moving = DEVICE_KEYS.filter { prefs.contains(it) }
+        if (moving.isNotEmpty()) {
+            val target = device.edit()
+            moving.forEach { key -> prefs.all[key]?.let { target.putString(key, it.toString()) } }
+            target.commit()
+            prefs.edit().apply { moving.forEach(::remove) }.commit()
+        }
+    }
+
+    companion object {
+        const val PREFS_SETTINGS = "fahrtenbuch_session"
+        const val PREFS_DEVICE = "fahrtenbuch_device"
+        private val DEVICE_KEYS = listOf(
+            "access_token", "refresh_token", "device_id", "pending_oauth_verifier",
+            "active_vehicle_id", "active_bluetooth_mac", "active_trip_id"
+        )
+    }
 
     var appMode: AppMode
         get() {
@@ -29,9 +57,8 @@ class SessionStore(context: Context) {
         prefs.edit()
             .putString("app_mode", AppMode.LOCAL.name)
             .putBoolean("server_configured", false)
-            .remove("access_token")
-            .remove("refresh_token")
             .apply()
+        device.edit().remove("access_token").remove("refresh_token").apply()
     }
 
     fun beginServerMigration() {
@@ -65,19 +92,19 @@ class SessionStore(context: Context) {
         set(value) { prefs.edit().putBoolean("server_configured", value).apply() }
 
     var accessToken: String?
-        get() = prefs.getString("access_token", null)
-        set(value) { prefs.edit().putString("access_token", value).apply() }
+        get() = device.getString("access_token", null)
+        set(value) { device.edit().putString("access_token", value).apply() }
 
     var refreshToken: String?
-        get() = prefs.getString("refresh_token", null)
-        set(value) { prefs.edit().putString("refresh_token", value).apply() }
+        get() = device.getString("refresh_token", null)
+        set(value) { device.edit().putString("refresh_token", value).apply() }
 
     val deviceId: String
         get() {
-            val existing = prefs.getString("device_id", null)
+            val existing = device.getString("device_id", null)
             if (existing != null) return existing
             val generated = UUID.randomUUID().toString()
-            prefs.edit().putString("device_id", generated).apply()
+            device.edit().putString("device_id", generated).apply()
             return generated
         }
 
@@ -86,11 +113,11 @@ class SessionStore(context: Context) {
 
     /** PKCE-Verifier einer laufenden Google/Microsoft-Anmeldung (überlebt Prozess-Neustart im Browser). */
     var pendingOAuthVerifier: String?
-        get() = prefs.getString("pending_oauth_verifier", null)
-        set(value) { prefs.edit().putString("pending_oauth_verifier", value).commit() }
+        get() = device.getString("pending_oauth_verifier", null)
+        set(value) { device.edit().putString("pending_oauth_verifier", value).commit() }
 
     fun completeLogin(accessToken: String, refreshToken: String): Boolean =
-        prefs.edit()
+        device.edit()
             .putString("access_token", accessToken)
             .putString("refresh_token", refreshToken)
             .commit()
@@ -100,9 +127,11 @@ class SessionStore(context: Context) {
             .putString("base_url", normalize(serverUrl))
             .putBoolean("server_configured", true)
             .putString("app_mode", AppMode.SERVER.name)
-            .putString("access_token", accessToken)
-            .putString("refresh_token", refreshToken)
-            .commit()
+            .commit() &&
+            device.edit()
+                .putString("access_token", accessToken)
+                .putString("refresh_token", refreshToken)
+                .commit()
 
     var distanceUnit: String
         get() = prefs.getString("distance_unit", "km") ?: "km"
@@ -138,31 +167,64 @@ class SessionStore(context: Context) {
         set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }
 
     var activeVehicleId: String?
-        get() = prefs.getString("active_vehicle_id", null)
-        set(value) { prefs.edit().putString("active_vehicle_id", value).apply() }
+        get() = device.getString("active_vehicle_id", null)
+        set(value) { device.edit().putString("active_vehicle_id", value).apply() }
 
     var activeBluetoothMac: String?
-        get() = prefs.getString("active_bluetooth_mac", null)
-        set(value) { prefs.edit().putString("active_bluetooth_mac", value).apply() }
+        get() = device.getString("active_bluetooth_mac", null)
+        set(value) { device.edit().putString("active_bluetooth_mac", value).apply() }
 
     var activeTripId: String?
-        get() = prefs.getString("active_trip_id", null)
-        set(value) { prefs.edit().putString("active_trip_id", value).apply() }
+        get() = device.getString("active_trip_id", null)
+        set(value) { device.edit().putString("active_trip_id", value).apply() }
 
-    fun clearTokens() = prefs.edit()
+    fun clearTokens() = device.edit()
         .remove("access_token")
         .remove("refresh_token")
         .remove("active_trip_id")
         .apply()
 
-    fun clearServer() = prefs.edit()
-        .remove("base_url")
-        .putBoolean("server_configured", false)
-        .remove("access_token")
-        .remove("refresh_token")
-        .remove("active_trip_id")
-        .remove("allow_invalid_certificates")
-        .apply()
+    fun clearServer() {
+        prefs.edit()
+            .remove("base_url")
+            .putBoolean("server_configured", false)
+            .remove("allow_invalid_certificates")
+            .apply()
+        clearTokens()
+    }
+
+    /** Zuletzt verwendeter Anmeldename – wird gesichert, damit der Login nach einer Wiederherstellung vorausgefüllt ist. */
+    var lastLoginName: String?
+        get() = prefs.getString("last_login_name", null)
+        set(value) { prefs.edit().putString("last_login_name", value).apply() }
+
+    /** Nutzer erlaubt die Sicherung in sein Google-Konto (Android-Backup). Standard: aus. */
+    var googleBackupEnabled: Boolean
+        get() = prefs.getBoolean("google_backup_enabled", false)
+        set(value) { prefs.edit().putBoolean("google_backup_enabled", value).commit() }
+
+    /** Alle sicherbaren Einstellungen (ohne Tokens/Geräte-ID) für das ZIP-Backup. */
+    fun exportSettings(): Map<String, Any?> = prefs.all.toMap()
+
+    /** Einstellungen aus einem ZIP-Backup übernehmen; gerätegebundene Schlüssel werden ignoriert. */
+    fun importSettings(values: Map<String, Any?>) {
+        val editor = prefs.edit().clear()
+        values.filterKeys { it !in DEVICE_KEYS }.forEach { (key, value) ->
+            when (value) {
+                is Boolean -> editor.putBoolean(key, value)
+                is Int -> editor.putInt(key, value)
+                is Long -> editor.putLong(key, value)
+                is Float -> editor.putFloat(key, value)
+                is Double -> editor.putInt(key, value.toInt())
+                is String -> editor.putString(key, value)
+                null -> {}
+                else -> editor.putString(key, value.toString())
+            }
+        }
+        editor.commit()
+        // Neue Anmeldung nötig: alte Tokens gehören nicht zum wiederhergestellten Stand
+        clearTokens()
+    }
 
     private fun normalize(value: String): String {
         val root = value.trim().trimEnd('/')

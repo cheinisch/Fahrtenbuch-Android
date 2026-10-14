@@ -406,4 +406,33 @@
     <string name="oauth_error_not_linked">This Google/Microsoft account is not linked to a Fahrtenbuch account. Sign in once with your password and link it in the web dashboard under Profile.</string>
     <string name="oauth_error_cancelled">Sign-in was cancelled.</string>
     <string name="oauth_error_generic">Sign-in failed (%1$s).</string>
+    <string name="backup_title">Backup</string>
+    <string name="backup_row_title">Back up &amp; restore</string>
+    <string name="backup_row_google_on">Google backup on · ZIP export</string>
+    <string name="backup_row_google_off">Google backup off · ZIP export</string>
+    <string name="backup_google_title">Back up to Google account</string>
+    <string name="backup_google_text_local">Vehicles, trips and settings are included in your device\'s Android backup to Google.</string>
+    <string name="backup_google_text_server">Server address, user name, settings and trips not yet synced are included in your device\'s Android backup to Google.</string>
+    <string name="backup_google_hint">Login data (access tokens, device ID) is never backed up: tokens expire and are renewed on every use, so on a new device you simply sign in again – the server address and user name are filled in. Android runs the backup automatically (usually overnight, on Wi-Fi and while charging) if backup is enabled in the system settings. Restore happens when you install the app on a new device with the same Google account.</string>
+    <string name="backup_zip_title">Backup as ZIP file</string>
+    <string name="backup_zip_text">Contains all vehicles, trips with GPS points, tags and settings – but no login data.</string>
+    <string name="backup_export">Save backup …</string>
+    <string name="backup_restore">Restore backup …</string>
+    <string name="backup_working">Please wait …</string>
+    <string name="backup_export_done">Backup saved.</string>
+    <string name="backup_error_export">The backup could not be saved.</string>
+    <string name="backup_error_restore">The backup could not be restored.</string>
+    <string name="backup_error_invalid">This file is not a Fahrtenbuch backup.</string>
+    <string name="backup_error_newer">This backup was created with a newer app version. Please update the app first.</string>
+    <string name="backup_restore_confirm_title">Restore backup?</string>
+    <string name="backup_restore_confirm_local">All vehicles, trips and settings on this device will be replaced by the content of the backup.</string>
+    <string name="backup_restore_confirm_server">Local data and settings will be replaced by the backup. Afterwards you have to sign in to the server again; trips stored there are not affected.</string>
+    <string name="backup_restore_action">Restore</string>
+    <string name="backup_restore_done_title">Backup restored</string>
+    <string name="backup_restore_done_text">The app will now restart to load the restored data.</string>
+    <string name="backup_restart">Restart app</string>
+    <plurals name="backup_summary">
+        <item quantity="one">%1$d vehicles, %2$d trip</item>
+        <item quantity="other">%1$d vehicles, %2$d trips</item>
+    </plurals>
 </resources>

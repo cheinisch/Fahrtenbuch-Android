@@ -406,4 +406,33 @@
     <string name="oauth_error_not_linked">Dieses Google-/Microsoft-Konto ist mit keinem Fahrtenbuch-Konto verknüpft. Melde dich einmal mit Passwort an und verknüpfe es im Web-Dashboard unter Profil.</string>
     <string name="oauth_error_cancelled">Die Anmeldung wurde abgebrochen.</string>
     <string name="oauth_error_generic">Anmeldung fehlgeschlagen (%1$s).</string>
+    <string name="backup_title">Sicherung</string>
+    <string name="backup_row_title">Sichern &amp; wiederherstellen</string>
+    <string name="backup_row_google_on">Google-Sicherung an · ZIP-Export</string>
+    <string name="backup_row_google_off">Google-Sicherung aus · ZIP-Export</string>
+    <string name="backup_google_title">Im Google-Konto sichern</string>
+    <string name="backup_google_text_local">Fahrzeuge, Fahrten und Einstellungen werden in die Android-Sicherung deines Geräts bei Google aufgenommen.</string>
+    <string name="backup_google_text_server">Server-Adresse, Benutzername, Einstellungen und noch nicht synchronisierte Fahrten werden in die Android-Sicherung deines Geräts bei Google aufgenommen.</string>
+    <string name="backup_google_hint">Anmeldedaten (Zugriffstokens, Geräte-ID) werden nie gesichert: Tokens laufen ab und werden bei jeder Nutzung erneuert. Auf einem neuen Gerät meldest du dich einfach neu an – Server-Adresse und Benutzername sind schon eingetragen. Android sichert automatisch (meist nachts, im WLAN und beim Laden), wenn die Sicherung in den Systemeinstellungen aktiv ist. Wiederhergestellt wird beim Installieren der App auf einem neuen Gerät mit demselben Google-Konto.</string>
+    <string name="backup_zip_title">Sicherung als ZIP-Datei</string>
+    <string name="backup_zip_text">Enthält alle Fahrzeuge, Fahrten mit GPS-Punkten, Tags und Einstellungen – aber keine Anmeldedaten.</string>
+    <string name="backup_export">Sicherung speichern …</string>
+    <string name="backup_restore">Sicherung wiederherstellen …</string>
+    <string name="backup_working">Bitte warten …</string>
+    <string name="backup_export_done">Sicherung gespeichert.</string>
+    <string name="backup_error_export">Die Sicherung konnte nicht gespeichert werden.</string>
+    <string name="backup_error_restore">Die Sicherung konnte nicht wiederhergestellt werden.</string>
+    <string name="backup_error_invalid">Diese Datei ist keine Fahrtenbuch-Sicherung.</string>
+    <string name="backup_error_newer">Diese Sicherung stammt aus einer neueren App-Version. Bitte aktualisiere zuerst die App.</string>
+    <string name="backup_restore_confirm_title">Sicherung wiederherstellen?</string>
+    <string name="backup_restore_confirm_local">Alle Fahrzeuge, Fahrten und Einstellungen auf diesem Gerät werden durch den Inhalt der Sicherung ersetzt.</string>
+    <string name="backup_restore_confirm_server">Lokale Daten und Einstellungen werden durch die Sicherung ersetzt. Danach meldest du dich neu am Server an; die dort gespeicherten Fahrten bleiben unverändert.</string>
+    <string name="backup_restore_action">Wiederherstellen</string>
+    <string name="backup_restore_done_title">Sicherung wiederhergestellt</string>
+    <string name="backup_restore_done_text">Die App startet jetzt neu, um die wiederhergestellten Daten zu laden.</string>
+    <string name="backup_restart">App neu starten</string>
+    <plurals name="backup_summary">
+        <item quantity="one">%1$d Fahrzeuge, %2$d Fahrt</item>
+        <item quantity="other">%1$d Fahrzeuge, %2$d Fahrten</item>
+    </plurals>
 </resources>

@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CloudUpload
@@ -66,6 +67,7 @@ import app.fahrtenbuch.mobile.data.model.UserPreferences
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.permissions.rememberPermissionStatus
 import app.fahrtenbuch.mobile.ui.screens.settings.AboutDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.BackupDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.FormatPreferencesDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.OpenSourceLicensesDialog
@@ -79,7 +81,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES, BACKUP }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -263,6 +265,16 @@ fun SettingsScreen(
             )
         }
 
+        SettingsSectionLabel(stringResource(R.string.backup_title))
+        SettingsCard {
+            SettingsRow(
+                icon = Icons.Default.Backup,
+                title = stringResource(R.string.backup_row_title),
+                subtitle = stringResource(if (sessionStore.googleBackupEnabled) R.string.backup_row_google_on else R.string.backup_row_google_off),
+                onClick = { dialog = SettingsDialog.BACKUP }
+            )
+        }
+
         SettingsSectionLabel(stringResource(R.string.settings_section_about))
         SettingsCard {
             SettingsRow(
@@ -309,6 +321,11 @@ fun SettingsScreen(
     }
 
     when (dialog) {
+        SettingsDialog.BACKUP -> BackupDialog(
+            store = sessionStore,
+            serverMode = isServerMode,
+            onDismiss = { dialog = SettingsDialog.NONE }
+        )
         SettingsDialog.PROFILE -> ProfileEditDialog(
             user = appState.user,
             loading = appState.loading,
