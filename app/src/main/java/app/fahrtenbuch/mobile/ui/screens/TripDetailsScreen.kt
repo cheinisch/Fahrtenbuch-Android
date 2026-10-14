@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
@@ -65,6 +66,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import app.fahrtenbuch.mobile.ui.map.MapPadding
 import app.fahrtenbuch.mobile.ui.screens.trips.TripPurposeDialog
+import app.fahrtenbuch.mobile.ui.screens.trips.TripTagsDialog
+import app.fahrtenbuch.mobile.ui.common.TagChip
+import app.fahrtenbuch.mobile.data.model.Tag
 import app.fahrtenbuch.mobile.ui.map.TripRouteMap
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
 import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
@@ -90,7 +94,11 @@ internal fun TripDetailsScreen(
     onBack: () -> Unit,
     onCategory: (TripType) -> Unit,
     onSpecialCategory: (SpecialCategory?) -> Unit,
-    onPurpose: (purpose: String, contact: String, note: String, onDone: () -> Unit) -> Unit
+    onPurpose: (purpose: String, contact: String, note: String, onDone: () -> Unit) -> Unit,
+    availableTags: List<Tag>,
+    onLoadTags: () -> Unit,
+    onCreateTag: (name: String, onCreated: (Tag) -> Unit) -> Unit,
+    onTags: (tags: List<Tag>, onDone: () -> Unit) -> Unit
 ) {
     BackHandler(onBack = onBack)
     var editPurpose by rememberSaveable(trip.id) { mutableStateOf(false) }
@@ -101,6 +109,18 @@ internal fun TripDetailsScreen(
             error = error,
             onSave = { purpose, contact, note -> onPurpose(purpose, contact, note) { editPurpose = false } },
             onDismiss = { editPurpose = false }
+        )
+    }
+    var editTags by rememberSaveable(trip.id) { mutableStateOf(false) }
+    if (editTags) {
+        TripTagsDialog(
+            trip = trip,
+            available = availableTags,
+            saving = loading,
+            error = error,
+            onCreate = onCreateTag,
+            onSave = { tags -> onTags(tags) { editTags = false } },
+            onDismiss = { editTags = false }
         )
     }
     var mapFullscreen by rememberSaveable(trip.id) { mutableStateOf(false) }
@@ -232,6 +252,9 @@ internal fun TripDetailsScreen(
 
             SectionLabel(stringResource(R.string.trip_detail_purpose))
             TripPurposeCard(trip, enabled = !loading, onEdit = { editPurpose = true })
+
+            SectionLabel(stringResource(R.string.trip_tags))
+            TripTagsCard(trip, enabled = !loading, onEdit = { onLoadTags(); editTags = true })
         }
         Spacer(Modifier.height(24.dp))
     }
@@ -508,6 +531,34 @@ private fun CategorySelector(selected: TripType, enabled: Boolean, onSelect: (Tr
                     }
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TripTagsCard(trip: Trip, enabled: Boolean, onEdit: () -> Unit) {
+    val editLabel = stringResource(R.string.trip_tags_edit_title)
+    DetailCard(Modifier.clickable(enabled = enabled, onClickLabel = editLabel, role = Role.Button, onClick = onEdit)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+            if (trip.tags.isEmpty()) {
+                Text(stringResource(R.string.trip_tags_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.trip_purpose_add), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            } else {
+                FlowRow(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    trip.tags.sortedBy { it.name.lowercase() }.forEach { TagChip(it) }
+                }
+                Icon(Icons.Default.Edit, contentDescription = editLabel, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
             }
         }
     }

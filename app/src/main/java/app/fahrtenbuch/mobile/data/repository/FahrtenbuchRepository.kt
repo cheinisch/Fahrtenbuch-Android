@@ -278,17 +278,44 @@ class FahrtenbuchRepository(
         val stored = dao.trips().map(TripEntity::toModel)
         if (stored.isNotEmpty()) return mergeLocalTrips(stored)
 
-        val legacy = dao.cache("trips")?.json?.let(tripAdapter::fromJson).orEmpty()
+        // Alter Cache kann Tags noch als Strings enthalten: dann verwerfen statt abstürzen
+        val legacy = runCatching { dao.cache("trips")?.json?.let(tripAdapter::fromJson) }.getOrNull().orEmpty()
         if (legacy.isNotEmpty()) dao.replaceTrips(legacy.map(Trip::toEntity))
         return mergeLocalTrips(legacy)
     }
 
     suspend fun tags(forceNetwork: Boolean = true): List<Tag> {
-        if (forceNetwork) runCatching { api.tags() }.onSuccess { values ->
-            dao.replaceTags(values.map { TagEntity(it.id, it.name) })
-            return values
+        if (forceNetwork && store.isServerMode) runCatching { api.tags() }.onSuccess { values ->
+            dao.replaceTags(values.map { TagEntity(it.id, it.name, color = it.color) })
+            return values.sortedBy { it.name.lowercase() }
         }
-        return dao.tags().map { Tag(it.id, it.name) }
+        return dao.tags().map { Tag(it.id, it.name, it.color) }
+    }
+
+    /** Neuen Tag anlegen; gibt es den Namen schon (ohne Groß-/Kleinschreibung), wird dieser verwendet. */
+    suspend fun createTag(name: String): Tag {
+        val trimmed = name.trim()
+        require(trimmed.isNotEmpty())
+        tags(forceNetwork = store.isServerMode).firstOrNull { it.name.equals(trimmed, ignoreCase = true) }?.let { return it }
+        if (store.isLocalMode) {
+            val created = Tag(UUID.randomUUID().toString(), trimmed)
+            dao.putTag(TagEntity(created.id, created.name, syncState = "LOCAL"))
+            return created
+        }
+        val created = api.createTag(TagRequest(trimmed))
+        dao.putTag(TagEntity(created.id, created.name, color = created.color))
+        return created
+    }
+
+    /** Tags einer Fahrt setzen (ersetzt die bisherigen). */
+    suspend fun setTripTags(trip: Trip, tags: List<Tag>): Trip {
+        if (store.isLocalMode) {
+            dao.setLocalTags(trip.id, tags.toTagsJson())
+            return trip.copy(tags = tags, syncState = "LOCAL")
+        }
+        val updated = api.setTripTags(trip.id, TripTagsRequest(tags.map { it.id }))
+        dao.putTripRecord(updated.toEntity())
+        return updated
     }
 
     /**
@@ -323,7 +350,7 @@ class FahrtenbuchRepository(
 
         dao.replaceVehicles(remoteVehicles.map(Vehicle::toEntity))
         dao.replaceTrips(remoteTrips.map(Trip::toEntity))
-        dao.replaceTags(remoteTags.map { TagEntity(it.id, it.name) })
+        dao.replaceTags(remoteTags.map { TagEntity(it.id, it.name, color = it.color) })
 
         // Legacy cache is retained only so existing v1 installations can still
         // migrate cleanly during the transition.
@@ -475,6 +502,7 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     purpose = purpose,
     contact = contact,
     note = notes,
+    tags = parseTagsJson(tagsJson),
     durationSeconds = end?.let {
         runCatching { java.time.Duration.between(Instant.parse(startedAt), Instant.parse(it)).seconds.toInt() }.getOrNull()
     },
@@ -535,7 +563,7 @@ private fun Trip.toEntity() = TripEntity(
     createdAt = createdAt,
     updatedAt = updatedAt,
     vehicleName = vehicleName,
-    tagsJson = org.json.JSONArray(tags).toString(),
+    tagsJson = tags.toTagsJson(),
     specialCategory = specialCategory,
     startTimeZone = startTimeZone,
     endTimeZone = endTimeZone
@@ -558,10 +586,7 @@ private fun TripEntity.toModel() = Trip(
     createdAt = createdAt,
     updatedAt = updatedAt,
     vehicleName = vehicleName,
-    tags = runCatching {
-        val array = org.json.JSONArray(tagsJson)
-        List(array.length()) { array.getString(it) }
-    }.getOrDefault(emptyList()),
+    tags = parseTagsJson(tagsJson),
     syncState = syncState,
     specialCategory = specialCategory,
     startTimeZone = startTimeZone,

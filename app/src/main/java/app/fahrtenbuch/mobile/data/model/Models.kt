@@ -143,7 +143,8 @@ data class Trip(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val vehicleName: String? = null,
-    val tags: List<String> = emptyList(),
+    /** Der Server liefert Tags als Objekte ({id, name, color}). */
+    val tags: List<Tag> = emptyList(),
     val syncState: String = "SYNCED"
 )
 
@@ -174,8 +175,28 @@ data class TrackPoint(
 data class TrackingPointsRequest(val tripId: Uuid, val points: List<TrackPoint>)
 data class StopTrackingRequest(val tripId: Uuid, val endedAt: String? = null, val timeZone: String? = null)
 
-data class Tag(val id: Uuid, val name: String)
-data class TagRequest(val name: String)
+data class Tag(val id: Uuid, val name: String, val color: String? = null)
+data class TagRequest(val name: String, val color: String? = null)
+data class TripTagsRequest(val tagIds: List<Uuid>)
+
+/** Tags als JSON für Room; liest auch das alte Format (nur Namen). */
+fun List<Tag>.toTagsJson(): String = org.json.JSONArray(
+    map { org.json.JSONObject().put("id", it.id).put("name", it.name).put("color", it.color ?: org.json.JSONObject.NULL) }
+).toString()
+
+fun parseTagsJson(json: String?): List<Tag> = runCatching {
+    val array = org.json.JSONArray(json ?: "[]")
+    List(array.length()) { index ->
+        when (val value = array.get(index)) {
+            is org.json.JSONObject -> Tag(
+                id = value.optString("id").ifBlank { value.optString("name") },
+                name = value.optString("name"),
+                color = value.optString("color").takeIf { !value.isNull("color") && it.isNotBlank() }
+            )
+            else -> Tag(id = value.toString(), name = value.toString())
+        }
+    }.filter { it.name.isNotBlank() }
+}.getOrDefault(emptyList())
 data class Dashboard(val todayKm: Double, val monthKm: Double, val businessKm: Double, val privateKm: Double, val commuteKm: Double, val tripCount: Int)
 data class SyncResponse(val vehicles: List<Vehicle>, val trips: List<Trip>, val tags: List<Tag>, val deleted: List<Uuid>)
 data class SessionInfo(val id: Uuid, val deviceName: String? = null, val createdAt: String? = null, val lastUsedAt: String? = null)

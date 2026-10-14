@@ -31,6 +31,8 @@ data class AppUiState(
     val tripPoints: List<TrackPoint> = emptyList(),
     val tripDetailsLoading: Boolean = false,
     val tripDetailsError: String? = null,
+    /** Alle Tags des Kontos bzw. des Geräts (für die Auswahl in den Fahrtdetails). */
+    val availableTags: List<app.fahrtenbuch.mobile.data.model.Tag> = emptyList(),
     val tracking: Boolean = false,
     val selectedVehicleId: String? = null,
     val error: String? = null,
@@ -503,6 +505,47 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _state.value = _state.value.copy(tripDetailsLoading = true, tripDetailsError = null)
             runCatching { repository.updateTripPurpose(trip, purpose, contact, note) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        tripDetailsLoading = false,
+                        trips = _state.value.trips.map { if (it.id == updated.id) updated else it }
+                    )
+                    onDone()
+                }
+                .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
+        }
+    }
+
+    /** Tags für die Auswahl laden (Server, sonst gespeicherte bzw. lokale Tags). */
+    fun loadTags() {
+        viewModelScope.launch {
+            runCatching { repository.tags() }
+                .onSuccess { _state.value = _state.value.copy(availableTags = it) }
+        }
+    }
+
+    /** Neuen Tag anlegen und an den Aufrufer zurückgeben (z. B. um ihn direkt auszuwählen). */
+    fun createTag(name: String, onCreated: (app.fahrtenbuch.mobile.data.model.Tag) -> Unit) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(tripDetailsError = null)
+            runCatching { repository.createTag(name) }
+                .onSuccess { tag ->
+                    val all = (_state.value.availableTags.filterNot { it.id == tag.id } + tag).sortedBy { it.name.lowercase() }
+                    _state.value = _state.value.copy(availableTags = all)
+                    onCreated(tag)
+                }
+                .onFailure { _state.value = _state.value.copy(tripDetailsError = ApiFactory.readableError(it)) }
+        }
+    }
+
+    fun setTripTags(trip: Trip, tags: List<app.fahrtenbuch.mobile.data.model.Tag>, onDone: () -> Unit) {
+        if (!store.isLocalMode && trip.syncState != "SYNCED") {
+            _state.value = _state.value.copy(tripDetailsError = str(R.string.error_sync_trip_first))
+            return
+        }
+        viewModelScope.launch {
+            _state.value = _state.value.copy(tripDetailsLoading = true, tripDetailsError = null)
+            runCatching { repository.setTripTags(trip, tags) }
                 .onSuccess { updated ->
                     _state.value = _state.value.copy(
                         tripDetailsLoading = false,

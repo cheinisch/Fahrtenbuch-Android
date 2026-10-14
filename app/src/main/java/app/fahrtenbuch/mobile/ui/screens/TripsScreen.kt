@@ -116,7 +116,11 @@ fun TripsScreen(
             onBack = { selectedTripId = null },
             onCategory = { viewModel.updateTripCategory(selectedTrip, it) },
             onSpecialCategory = { viewModel.updateTripCategory(selectedTrip, selectedTrip.tripType, it) },
-            onPurpose = { purpose, contact, note, onDone -> viewModel.updateTripPurpose(selectedTrip, purpose, contact, note, onDone) }
+            onPurpose = { purpose, contact, note, onDone -> viewModel.updateTripPurpose(selectedTrip, purpose, contact, note, onDone) },
+            availableTags = state.availableTags,
+            onLoadTags = viewModel::loadTags,
+            onCreateTag = viewModel::createTag,
+            onTags = { tags, onDone -> viewModel.setTripTags(selectedTrip, tags, onDone) }
         )
         return
     }
@@ -128,13 +132,13 @@ fun TripsScreen(
     val filtered = completed.filter { trip ->
         val day = tripLocalDate(trip, LocalUserPreferences.current)
         (vehicleFilter.isBlank() || trip.vehicleId == vehicleFilter) &&
-            (tagFilter.isBlank() || tagFilter in trip.tags) &&
+            (tagFilter.isBlank() || trip.tags.any { it.name == tagFilter }) &&
             (categoryFilter == null || trip.tripType == categoryFilter) &&
             (fromDate == null || (day != null && !day.isBefore(fromDate))) &&
             (toDate == null || (day != null && !day.isAfter(toDate)))
     }
     val groups = filtered.groupBy { tripLocalDate(it, LocalUserPreferences.current) }.toList()
-    val tags = completed.flatMap { it.tags }.distinct().sorted()
+    val tags = completed.flatMap { tripTags -> tripTags.tags.map { it.name } }.distinct().sorted()
     val vehicleName: (Trip) -> String = { trip ->
         state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()
     }

@@ -118,6 +118,13 @@
     <string name="trip_purpose_add">Hinzufügen</string>
     <string name="trip_purpose_hint">z. B. Kundentermin</string>
     <string name="trip_contact_hint">z. B. Firma oder Ansprechpartner</string>
+    <string name="trip_tags">Tags</string>
+    <string name="trip_tags_empty">Keine Tags</string>
+    <string name="trip_tags_edit_title">Tags bearbeiten</string>
+    <string name="trip_tags_none_available">Noch keine Tags – lege unten den ersten an.</string>
+    <string name="trip_tags_new">Neuer Tag</string>
+    <string name="trip_tags_new_hint">z. B. Urlaub</string>
+    <string name="trip_tags_add">Tag hinzufügen</string>
     <string name="trip_detail_back">Zurück</string>
     <string name="trip_detail_fullscreen">Karte vergrößern</string>
     <string name="trip_detail_close_map">Karte schließen</string>

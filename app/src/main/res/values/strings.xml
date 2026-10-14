@@ -118,6 +118,13 @@
     <string name="trip_purpose_add">Add</string>
     <string name="trip_purpose_hint">e.g. Customer meeting</string>
     <string name="trip_contact_hint">e.g. company or contact person</string>
+    <string name="trip_tags">Tags</string>
+    <string name="trip_tags_empty">No tags</string>
+    <string name="trip_tags_edit_title">Edit tags</string>
+    <string name="trip_tags_none_available">No tags yet – create the first one below.</string>
+    <string name="trip_tags_new">New tag</string>
+    <string name="trip_tags_new_hint">e.g. Vacation</string>
+    <string name="trip_tags_add">Add tag</string>
     <string name="trip_detail_back">Back</string>
     <string name="trip_detail_fullscreen">Expand map</string>
     <string name="trip_detail_close_map">Close map</string>

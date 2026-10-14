@@ -22,6 +22,7 @@ import app.fahrtenbuch.mobile.data.model.StartTrackingRequest
 import app.fahrtenbuch.mobile.data.model.StopTrackingRequest
 import app.fahrtenbuch.mobile.data.model.Tag
 import app.fahrtenbuch.mobile.data.model.TagRequest
+import app.fahrtenbuch.mobile.data.model.TripTagsRequest
 import app.fahrtenbuch.mobile.data.model.TotpStatus
 import app.fahrtenbuch.mobile.data.model.TokenPair
 import app.fahrtenbuch.mobile.data.model.TrackPoint
@@ -295,6 +296,12 @@ interface FahrtenbuchApi {
 
     @GET("tags")
     suspend fun tags(): List<Tag>
+
+    @PUT("trips/{id}/tags")
+    suspend fun setTripTags(
+        @Path("id") id: Uuid,
+        @Body request: TripTagsRequest
+    ): Trip
 
     @POST("tags")
     suspend fun createTag(

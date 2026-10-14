@@ -87,6 +87,16 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                             .toRequestBody("application/json".toMediaType())
                         api.classifyTripJson(remoteId, body)
                     }
+                    // Lokal vergebene Tags per Name den Server-Tags zuordnen (fehlende anlegen)
+                    val localTags = parseTagsJson(local.tagsJson)
+                    if (localTags.isNotEmpty()) {
+                        val serverTags = api.tags().toMutableList()
+                        val ids = localTags.map { tag ->
+                            (serverTags.firstOrNull { it.name.equals(tag.name, ignoreCase = true) }
+                                ?: api.createTag(TagRequest(tag.name, tag.color)).also(serverTags::add)).id
+                        }
+                        api.setTripTags(remoteId, TripTagsRequest(ids.distinct()))
+                    }
                     Log.i(TAG, "POST tracking/stop: localId=${local.localId} remoteId=$remoteId endedAt=${local.endedAt}")
                     val completed = api.stopTracking(StopTrackingRequest(remoteId, local.endedAt, local.endTimeZone ?: local.startTimeZone))
                     dao.markTripSynced(local.localId)
@@ -118,7 +128,7 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             val tags = api.tags()
             dao.replaceVehicles(vehicles.map { it.toEntity() })
             dao.replaceTrips(trips.map { it.toEntity() })
-            dao.replaceTags(tags.map { TagEntity(it.id, it.name) })
+            dao.replaceTags(tags.map { TagEntity(it.id, it.name, color = it.color) })
 
             Log.i(TAG, "Sync completed: failedTrips=$failedTrips")
             if (failedTrips > 0) Result.failure() else Result.success()
@@ -180,7 +190,7 @@ private fun Trip.toEntity() = TripEntity(
     createdAt = createdAt,
     updatedAt = updatedAt,
     vehicleName = vehicleName,
-    tagsJson = org.json.JSONArray(tags).toString(),
+    tagsJson = tags.toTagsJson(),
     specialCategory = specialCategory,
     startTimeZone = startTimeZone,
     endTimeZone = endTimeZone

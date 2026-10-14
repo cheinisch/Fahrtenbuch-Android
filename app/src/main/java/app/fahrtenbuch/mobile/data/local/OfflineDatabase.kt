@@ -49,7 +49,8 @@ data class TripEntity(
 data class TagEntity(
     @PrimaryKey val id: String,
     val name: String,
-    val syncState: String = "SYNCED"
+    val syncState: String = "SYNCED",
+    val color: String? = null
 )
 
 @Entity(tableName = "offline_trips")
@@ -74,7 +75,9 @@ data class OfflineTripEntity(
     // Fahrtzweck, Kontakt und Notiz (lokal bearbeitet)
     val purpose: String? = null,
     val contact: String? = null,
-    val notes: String? = null
+    val notes: String? = null,
+    // Tags der Fahrt als JSON ([{id, name, color}])
+    val tagsJson: String = "[]"
 )
 
 @Entity(tableName = "track_points", indices = [Index("localTripId")])
@@ -112,6 +115,8 @@ interface OfflineDao {
     @Query("UPDATE offline_trips SET type=:type WHERE localId=:id") suspend fun setLocalTripType(id: String, type: String)
     @Query("UPDATE offline_trips SET specialCategory=:specialCategory WHERE localId=:id") suspend fun setLocalSpecialCategory(id: String, specialCategory: String?)
     @Query("UPDATE offline_trips SET purpose=:purpose, contact=:contact, notes=:notes WHERE localId=:id") suspend fun setLocalPurpose(id: String, purpose: String?, contact: String?, notes: String?)
+    @Query("UPDATE offline_trips SET tagsJson=:tagsJson WHERE localId=:id") suspend fun setLocalTags(id: String, tagsJson: String)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTag(value: TagEntity)
     @Query("UPDATE offline_trips SET vehicleId=:newVehicleId WHERE vehicleId=:oldVehicleId") suspend fun remapOfflineTripsVehicle(oldVehicleId: String, newVehicleId: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecords(values: List<TripEntity>)
     @Query("DELETE FROM trips") suspend fun clearTripRecords()
@@ -164,7 +169,7 @@ interface OfflineDao {
         OfflineTripEntity::class,
         TrackPointEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -179,9 +184,16 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN tagsJson TEXT NOT NULL DEFAULT '[]'")
+                db.execSQL("ALTER TABLE tags ADD COLUMN color TEXT")
+            }
         }
 
         private val MIGRATION_7_8 = object : Migration(7, 8) {
