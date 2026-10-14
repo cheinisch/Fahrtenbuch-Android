@@ -53,6 +53,7 @@ import app.fahrtenbuch.mobile.BuildConfig
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.widthIn
 import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
+import app.fahrtenbuch.mobile.ui.common.UserAvatar
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.api.AppMode
 import app.fahrtenbuch.mobile.data.api.SessionStore
@@ -399,19 +400,8 @@ private fun ProfileCard(user: User?, modifier: Modifier = Modifier, onClick: () 
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    initials(name),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            // Gravatar zur E-Mail, falls vorhanden; sonst Initialen
+            UserAvatar(email = user?.email, initials = initials(name), size = 56.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
