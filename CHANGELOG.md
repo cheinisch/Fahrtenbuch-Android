@@ -7,24 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-10-14
+
+Version code 25.
+
+Some features need a current Fahrtenbuch server (`cheinisch/fahrtenbuch` from 2026-10-14): editing purpose, contact and note, and per-trip time zones. With older servers the app keeps working; those values are then simply not stored on the server.
+
 ### Added
 
-- Per-trip time zone: the device records its time zone at the start and end of every recording (also for Bluetooth auto-start) and sends it to the server (`timeZone` on `/tracking/start` and `/tracking/stop`). Trip times are shown in the local time of the trip, using `startTimeZone`/`endTimeZone` from the server (fallback: account time zone) or the recorded device zone in local mode. IANA zone ids make daylight saving time work per timestamp. Local CSV export includes the time zone.
-
-- Time zone setting under *Units & date format*: trip times and days are shown in this zone regardless of the device's time zone. In server mode it is the account time zone (`timezone`, default Europe/Berlin), saved via `PATCH /users/me/profile`; in local mode a zone can be chosen or the device zone used.
-
-- Special categories from the server API (`specialCategory`: medical, volunteering, education/studies, job application, moving, other) as a second classification level next to the trip type.
-- Trip details: special category selection (chips, "None" removes it); saved via `PUT /trips/{id}/classify` in server mode and on the device in local mode.
-- Special category chip in the trip list and on the latest trip card; statistics card "By special category".
-- Statistics: category filter also offers special categories.
+- Redesigned statistics: filters for year, month, category and vehicle; total distance with trip count, driving time and average per trip; distance by category with bars; distance per month (tap a bar to filter) or per day.
 - Statistics: export button. Choose a period (prefilled from the statistics filter) and PDF (default) or CSV; vehicle and category filters are applied. In server mode the server creates the tax report (`GET /export/pdf`, `GET /export/csv`); in local mode – or if the server is not reachable – the app creates the PDF/CSV on the device. The file is saved via the Android file picker and can be shared directly.
-- Trip details: purpose, contact and note can be edited (tap the purpose card). Saved via `PUT /trips/{id}/classify` in server mode (requires the matching backend, which now applies `purpose`, `contact` and `notes` there) and on the device in local mode; values entered offline are sent before the trip is completed on the server.
+- Special categories from the server API (`specialCategory`: medical, volunteering, education/studies, job application, moving, other) as a second classification level next to the trip type:
+  - selection in the trip details (chips, "None" removes it), saved via `PUT /trips/{id}/classify` in server mode and on the device in local mode;
+  - chip in the trip list and on the latest trip card;
+  - statistics card "By special category" and special categories in the statistics category filter.
+- Trip details: purpose, contact and note can be edited (tap the purpose card). Saved via `PUT /trips/{id}/classify` in server mode and on the device in local mode; values entered offline are sent before the trip is completed on the server.
 - Trip details: tags (e.g. "Vacation") can be assigned; new tags can be created directly in the dialog. Server mode uses `GET/POST /tags` and `PUT /trips/{id}/tags`; local mode stores tags on the device, and offline tags are matched by name (missing ones created) during sync.
+- Per-trip time zone: the device records its time zone at the start and end of every recording (also for Bluetooth auto-start) and sends it to the server (`timeZone` on `/tracking/start` and `/tracking/stop`). Trip times are shown in the local time of the trip, using `startTimeZone`/`endTimeZone` from the server (fallback: account time zone) or the recorded device zone in local mode. IANA zone ids make daylight saving time work per timestamp. The local CSV export includes the time zone.
+- Time zone setting under *Units & date format*: trip times and days are shown in this zone regardless of the device's time zone. In server mode it is the account time zone (`timezone`, default Europe/Berlin), saved via `PATCH /users/me/profile`; in local mode a zone can be chosen or the device zone used.
 
 ### Changed
 
-- Local database schema version 9 (`specialCategory`, `startTimeZone` and `endTimeZone` for synced and offline trips; `purpose`, `contact`, `notes` and tags for offline trips; tag colors; with migrations).
-- Redesigned statistics: filters for year, month, category and vehicle; total distance with trip count, driving time and average per trip; distance by category with bars; distance per month (tap a bar to filter) or per day.
+- Local database schema version 9 (`specialCategory`, `startTimeZone` and `endTimeZone` for synced and offline trips; `purpose`, `contact`, `notes` and tags for offline trips; tag colors). Existing data is migrated automatically.
 
 ### Fixed
 
@@ -103,7 +107,8 @@ Version codes 21 and 22.
 
 Version code 20. State before the changes listed above.
 
-[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/937f08b...HEAD
+[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/721d319...937f08b
 [0.4.1]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/0179389...721d319
 [0.4.0]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/4fed1e4...0179389
