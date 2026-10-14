@@ -12,6 +12,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +64,12 @@ fun FahrtenbuchApp(
     onThemeModeChange: (ThemeMode) -> Unit = {}
 ) {
     ProvideWindowLayout {
-        AppContent(appViewModel, themeMode, onThemeModeChange)
+        // Hintergrund und Textfarbe aus dem Theme für alle Bildschirme, auch die außerhalb des
+        // Scaffolds (Einrichtung, Anmeldung). Ohne Surface lag dort heller Fensterhintergrund
+        // unter heller Dark-Mode-Schrift und war nicht lesbar.
+        Surface(color = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground) {
+            AppContent(appViewModel, themeMode, onThemeModeChange)
+        }
     }
 }
 

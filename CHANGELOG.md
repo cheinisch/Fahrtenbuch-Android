@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Setup and login screens were unreadable in dark mode (light window background behind light text). All screens now draw the theme background; the window background is dark in dark mode, and the status/navigation bar icons follow the theme chosen in the app.
+
 ## [0.5.0] - 2026-10-14
 
 Version code 26.
