@@ -360,7 +360,8 @@ private fun FormatPreferencesRow(preferences: UserPreferences, modifier: Modifie
                 stringResource(if (preferences.distanceUnit == DistanceUnit.KM) R.string.format_km else R.string.format_mi),
                 if (preferences.speedUnit == SpeedUnit.KMH) "km/h" else "mph",
                 stringResource(if (preferences.dateFormat == DateFormatPreference.EU) R.string.format_date_eu else R.string.format_date_us),
-                stringResource(if (preferences.timeFormat == TimeFormatPreference.H24) R.string.format_time_24 else R.string.format_time_12)
+                stringResource(if (preferences.timeFormat == TimeFormatPreference.H24) R.string.format_time_24 else R.string.format_time_12),
+                preferences.timeZone ?: stringResource(R.string.format_time_zone_device_short)
             ).joinToString(" · "),
             onClick = onClick
         )

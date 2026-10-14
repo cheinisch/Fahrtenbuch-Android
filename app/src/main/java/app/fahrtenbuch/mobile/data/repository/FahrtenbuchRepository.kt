@@ -133,12 +133,14 @@ class FahrtenbuchRepository(
 
     /** Zuletzt bekannte Anzeige-Einstellungen (sofort verfügbar, auch offline). */
     fun cachedPreferences(): UserPreferences =
-        UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat)
+        UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone)
 
     /** Im Server-Modus vom Server laden und lokal merken; sonst bzw. bei Fehlern der lokale Stand. */
     suspend fun preferences(): UserPreferences {
         if (store.isServerMode && store.hasAuthenticatedSession) {
             runCatching { api.mySettings().settings }.getOrNull()?.let(::cacheSettings)
+            // Die Zeitzone gehört auf dem Server zum Benutzerprofil (Standard Europe/Berlin)
+            runCatching { api.me().timezone }.getOrNull()?.takeIf { it.isNotBlank() }?.let { store.timeZone = it }
         }
         return cachedPreferences()
     }
@@ -154,7 +156,13 @@ class FahrtenbuchRepository(
                 )
             )
             cacheSettings(saved)
+            val zone = preferences.timeZone
+            if (zone != null && zone != store.timeZone) {
+                api.patchProfile(mapOf("timezone" to zone))
+                store.timeZone = zone
+            }
         } else {
+            store.timeZone = preferences.timeZone
             store.distanceUnit = preferences.distanceUnit.apiValue
             store.speedUnit = preferences.speedUnit.apiValue
             store.dateFormat = preferences.dateFormat.apiValue

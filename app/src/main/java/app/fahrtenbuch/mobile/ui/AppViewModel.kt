@@ -55,7 +55,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             serverConfigured = store.serverConfigured,
             serverUrl = store.baseUrl,
             loggedIn = store.refreshToken != null,
-            preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat)
+            preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone)
         )
     )
     val state: StateFlow<AppUiState> = _state.asStateFlow()

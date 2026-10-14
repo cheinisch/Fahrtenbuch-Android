@@ -209,14 +209,25 @@ data class UserPreferences(
     val distanceUnit: DistanceUnit = DistanceUnit.KM,
     val speedUnit: SpeedUnit = SpeedUnit.KMH,
     val dateFormat: DateFormatPreference = DateFormatPreference.EU,
-    val timeFormat: TimeFormatPreference = TimeFormatPreference.H24
+    val timeFormat: TimeFormatPreference = TimeFormatPreference.H24,
+    /**
+     * Zeitzone für die Anzeige von Uhrzeiten und Tagen (IANA-ID, z. B. Europe/Berlin).
+     * Server-Modus: Zeitzone des Benutzerkontos; lokal: gewählt oder null = Gerätezeitzone.
+     * So stimmen die Ortszeiten unabhängig von der Zeitzone des Geräts.
+     */
+    val timeZone: String? = null
 ) {
+    /** Gültige Zeitzone; ungültige oder fehlende IDs fallen auf das Gerät zurück. */
+    fun zoneId(): java.time.ZoneId =
+        timeZone?.let { runCatching { java.time.ZoneId.of(it) }.getOrNull() } ?: java.time.ZoneId.systemDefault()
+
     companion object {
-        fun fromApi(distance: String?, speed: String?, date: String?, time: String?) = UserPreferences(
+        fun fromApi(distance: String?, speed: String?, date: String?, time: String?, zone: String? = null) = UserPreferences(
             distanceUnit = DistanceUnit.entries.firstOrNull { it.apiValue == distance } ?: DistanceUnit.KM,
             speedUnit = SpeedUnit.entries.firstOrNull { it.apiValue == speed } ?: SpeedUnit.KMH,
             dateFormat = DateFormatPreference.entries.firstOrNull { it.apiValue == date } ?: DateFormatPreference.EU,
-            timeFormat = TimeFormatPreference.entries.firstOrNull { it.apiValue == time } ?: TimeFormatPreference.H24
+            timeFormat = TimeFormatPreference.entries.firstOrNull { it.apiValue == time } ?: TimeFormatPreference.H24,
+            timeZone = zone?.takeIf { it.isNotBlank() }
         )
     }
 }

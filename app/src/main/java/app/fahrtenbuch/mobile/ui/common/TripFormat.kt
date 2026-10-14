@@ -71,20 +71,29 @@ internal fun splitDuration(seconds: Int?): Pair<String, String> {
     return if (hours > 0) "$hours:${minutes.toString().padStart(2, '0')}" to "h" else "$minutes" to "min"
 }
 
-/** Formatiert einen ISO-Zeitstempel im Format der aktuellen Sprache und Zeitzone. */
-private fun formatTripInstant(value: String?, formatter: DateTimeFormatter): String? {
+/**
+ * Liest einen Zeitstempel der API bzw. der lokalen Datenbank: ISO mit „Z“, mit Offset
+ * („+02:00“) oder – als Rückfall – ohne Zone (dann als UTC gewertet).
+ */
+internal fun parseTripInstant(value: String?): Instant? {
     if (value.isNullOrBlank()) return null
-    return runCatching {
-        formatter
-            .withLocale(java.util.Locale.getDefault())
-            .withZone(java.time.ZoneId.systemDefault())
-            .format(java.time.Instant.parse(value))
-    }.getOrNull()
+    return runCatching { Instant.parse(value) }.getOrNull()
+        ?: runCatching { java.time.OffsetDateTime.parse(value).toInstant() }.getOrNull()
+        ?: runCatching { java.time.LocalDateTime.parse(value.replace(' ', 'T')).toInstant(java.time.ZoneOffset.UTC) }.getOrNull()
+}
+
+/** Formatiert einen Zeitstempel in der Sprache des Geräts, aber in der gewählten Zeitzone. */
+private fun formatTripInstant(value: String?, formatter: DateTimeFormatter, prefs: UserPreferences): String? {
+    val instant = parseTripInstant(value) ?: return null
+    return formatter
+        .withLocale(java.util.Locale.getDefault())
+        .withZone(prefs.zoneId())
+        .format(instant)
 }
 
 // de: „Dienstag, 13. Oktober 2026“ · en: „Tuesday, October 13, 2026“
-internal fun formatTripDate(value: String?): String? =
-    formatTripInstant(value, DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL))
+internal fun formatTripDate(value: String?, prefs: UserPreferences): String? =
+    formatTripInstant(value, DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL), prefs)
 
 private fun timePattern(prefs: UserPreferences): String =
     if (prefs.timeFormat == TimeFormatPreference.H12) "h:mm a" else "HH:mm"
@@ -92,27 +101,28 @@ private fun timePattern(prefs: UserPreferences): String =
 private fun datePattern(prefs: UserPreferences): String =
     if (prefs.dateFormat == DateFormatPreference.US) "MM/dd/yyyy" else "dd.MM.yyyy"
 
-// Uhrzeit nach Uhrzeitformat: 24h „16:12“ · 12h „4:12 PM“
+// Uhrzeit nach Uhrzeitformat: 24h „16:12“ · 12h „4:12 PM“ – immer in der gewählten Zeitzone
 internal fun formatTripTime(value: String?, prefs: UserPreferences): String =
-    formatTripPattern(value, timePattern(prefs)) ?: "–"
+    formatTripPattern(value, timePattern(prefs), prefs) ?: "–"
 
 // Datum und Uhrzeit, z. B. EU + 24h „13.10.2026, 16:12“ · US + 12h „10/13/2026, 4:12 PM“
 internal fun formatTripDateTime(value: String?, prefs: UserPreferences): String? =
-    formatTripPattern(value, "${datePattern(prefs)}, ${timePattern(prefs)}")
+    formatTripPattern(value, "${datePattern(prefs)}, ${timePattern(prefs)}", prefs)
 
 /** Festes Zahlenformat (Locale.US, damit AM/PM und Ziffern unabhängig von der Sprache stabil sind). */
-private fun formatTripPattern(value: String?, pattern: String): String? {
-    if (value.isNullOrBlank()) return null
-    return runCatching {
-        DateTimeFormatter.ofPattern(pattern, java.util.Locale.US)
-            .withZone(ZoneId.systemDefault())
-            .format(Instant.parse(value))
-    }.getOrNull()
+private fun formatTripPattern(value: String?, pattern: String, prefs: UserPreferences): String? {
+    val instant = parseTripInstant(value) ?: return null
+    return DateTimeFormatter.ofPattern(pattern, java.util.Locale.US)
+        .withZone(prefs.zoneId())
+        .format(instant)
 }
 
-/** Lokales Datum (Gerätezeitzone) eines ISO-Zeitstempels. */
-internal fun tripLocalDate(value: String?): LocalDate? =
-    value?.let { runCatching { Instant.parse(it).atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull() }
+/** Kalendertag eines Zeitstempels in der gewählten Zeitzone (für Gruppierung und Filter). */
+internal fun tripLocalDate(value: String?, prefs: UserPreferences): LocalDate? =
+    parseTripInstant(value)?.atZone(prefs.zoneId())?.toLocalDate()
+
+/** „Heute“ in der gewählten Zeitzone. */
+internal fun today(prefs: UserPreferences): LocalDate = LocalDate.now(prefs.zoneId())
 
 /** Zeitspanne einer Fahrt, z. B. „16:12 – 18:25“. */
 internal fun formatTripTimeRange(startedAt: String?, endedAt: String?, prefs: UserPreferences): String =

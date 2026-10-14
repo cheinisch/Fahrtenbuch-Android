@@ -84,6 +84,7 @@ import app.fahrtenbuch.mobile.ui.common.formatLocalDate
 import app.fahrtenbuch.mobile.ui.common.formatTripTime
 import app.fahrtenbuch.mobile.ui.common.formatTripTimeRange
 import app.fahrtenbuch.mobile.ui.common.shortRoute
+import app.fahrtenbuch.mobile.ui.common.today
 import app.fahrtenbuch.mobile.ui.common.tripLocalDate
 import app.fahrtenbuch.mobile.ui.screens.home.VehicleSelector
 import kotlinx.coroutines.delay
@@ -131,10 +132,11 @@ fun DashboardScreen(
         if (granted) viewModel.startTracking { startTrackingService(context) }
     }
 
-    val today = LocalDate.now()
-    val todayTrips = completed.filter { tripLocalDate(it.startedAt) == today }
+    val prefs = LocalUserPreferences.current
+    val today = today(prefs)
+    val todayTrips = completed.filter { tripLocalDate(it.startedAt, prefs) == today }
     val monthTrips = completed.filter {
-        val day = tripLocalDate(it.startedAt)
+        val day = tripLocalDate(it.startedAt, prefs)
         day != null && day.year == today.year && day.month == today.month
     }
     val unclassifiedCount = completed.count { it.tripType == TripType.UNCLASSIFIED }

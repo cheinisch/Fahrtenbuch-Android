@@ -47,7 +47,7 @@ object LocalExport {
         val trips = allTrips
             .filter { it.status != "recording" }
             .filter { trip ->
-                val day = localDate(trip.startedAt) ?: return@filter false
+                val day = localDate(trip.startedAt, prefs) ?: return@filter false
                 !day.isBefore(from) && !day.isAfter(to) &&
                     (request.vehicleId == null || trip.vehicleId == request.vehicleId) &&
                     (request.tripType == null || trip.tripType == request.tripType) &&
@@ -115,7 +115,7 @@ object LocalExport {
         fun finishPage() {
             page?.let { current ->
                 current.canvas.drawText(
-                    f.str(R.string.export_pdf_footer, BuildConfig.VERSION_NAME, f.dateOf(LocalDate.now()), pageNumber),
+                    f.str(R.string.export_pdf_footer, BuildConfig.VERSION_NAME, f.dateOf(LocalDate.now(f.prefs.zoneId())), pageNumber),
                     MARGIN, PAGE_HEIGHT - 20f, muted
                 )
                 document.finishPage(current)
@@ -241,20 +241,27 @@ object LocalExport {
         return text.substring(0, end) + "…"
     }
 
-    private fun localDate(value: String?): LocalDate? =
-        value?.let { runCatching { Instant.parse(it).atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull() }
+    private fun localDate(value: String?, prefs: UserPreferences): LocalDate? =
+        parseInstant(value)?.atZone(prefs.zoneId())?.toLocalDate()
+
+    private fun parseInstant(value: String?): Instant? {
+        if (value.isNullOrBlank()) return null
+        return runCatching { Instant.parse(value) }.getOrNull()
+            ?: runCatching { java.time.OffsetDateTime.parse(value).toInstant() }.getOrNull()
+            ?: runCatching { java.time.LocalDateTime.parse(value.replace(' ', 'T')).toInstant(java.time.ZoneOffset.UTC) }.getOrNull()
+    }
 
     /** Formatierung nach Benutzereinstellungen, unabhängig von Compose. */
     private class Formatter(private val context: Context, val prefs: UserPreferences, val vehicles: List<Vehicle>) {
         val unit = if (prefs.distanceUnit == DistanceUnit.MI) "mi" else "km"
         private val dateFormatter = DateTimeFormatter.ofPattern(if (prefs.dateFormat == DateFormatPreference.US) "MM/dd/yyyy" else "dd.MM.yyyy", Locale.US)
         private val timeFormatter = DateTimeFormatter.ofPattern(if (prefs.timeFormat == TimeFormatPreference.H12) "h:mm a" else "HH:mm", Locale.US)
-        private val zone = ZoneId.systemDefault()
+        private val zone = prefs.zoneId()
 
         fun str(id: Int, vararg args: Any): String = context.getString(id, *args)
         fun dateOf(date: LocalDate): String = dateFormatter.format(date)
-        fun date(value: String?): String = value?.let { runCatching { dateFormatter.format(Instant.parse(it).atZone(zone)) }.getOrNull() }.orEmpty()
-        fun time(value: String?): String = value?.let { runCatching { timeFormatter.format(Instant.parse(it).atZone(zone)) }.getOrNull() }.orEmpty()
+        fun date(value: String?): String = parseInstant(value)?.let { dateFormatter.format(it.atZone(zone)) }.orEmpty()
+        fun time(value: String?): String = parseInstant(value)?.let { timeFormatter.format(it.atZone(zone)) }.orEmpty()
         fun vehicle(trip: Trip): String = vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()
 
         fun distanceNumber(km: Double?): String {

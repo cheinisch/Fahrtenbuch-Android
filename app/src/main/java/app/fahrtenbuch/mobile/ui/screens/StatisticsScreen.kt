@@ -78,6 +78,7 @@ import app.fahrtenbuch.mobile.ui.common.formatDistance
 import app.fahrtenbuch.mobile.ui.common.formatDistanceWithUnit
 import app.fahrtenbuch.mobile.ui.common.localizedTripType
 import app.fahrtenbuch.mobile.ui.common.splitDuration
+import app.fahrtenbuch.mobile.ui.common.today
 import app.fahrtenbuch.mobile.ui.common.tripLocalDate
 import java.time.LocalDate
 import java.time.Month
@@ -94,12 +95,12 @@ import java.util.Locale
 fun StatisticsScreen(viewModel: AppViewModel) {
     val state by viewModel.state.collectAsState()
     val prefs = LocalUserPreferences.current
-    val today = LocalDate.now()
+    val today = today(prefs)
 
     // Laufende Aufzeichnungen zählen erst nach dem Beenden.
     val completed = remember(state.trips) { state.trips.filter { it.status != "recording" } }
     val years = remember(completed) {
-        (completed.mapNotNull { tripLocalDate(it.startedAt)?.year } + today.year).distinct().sortedDescending()
+        (completed.mapNotNull { tripLocalDate(it.startedAt, prefs)?.year } + today.year).distinct().sortedDescending()
     }
 
     var year by rememberSaveable { mutableIntStateOf(today.year) }
@@ -114,12 +115,12 @@ fun StatisticsScreen(viewModel: AppViewModel) {
     // Jahr, Fahrzeug und Kategorie gelten für alles; der Monat nur für Summen und Kategorien,
     // damit das Monatsdiagramm den Jahresverlauf weiter zeigt.
     val yearTrips = completed.filter { trip ->
-        tripLocalDate(trip.startedAt)?.year == year &&
+        tripLocalDate(trip.startedAt, prefs)?.year == year &&
             (vehicleId.isBlank() || trip.vehicleId == vehicleId) &&
             (category == null || trip.tripType == category) &&
             (specialFilter == null || trip.specialCategory == specialFilter.apiValue)
     }
-    val periodTrips = month?.let { m -> yearTrips.filter { tripLocalDate(it.startedAt)?.monthValue == m } } ?: yearTrips
+    val periodTrips = month?.let { m -> yearTrips.filter { tripLocalDate(it.startedAt, prefs)?.monthValue == m } } ?: yearTrips
 
     val vehicleName = state.vehicles.firstOrNull { it.id == vehicleId }?.name
     val subtitle = listOfNotNull(
@@ -199,7 +200,7 @@ fun StatisticsScreen(viewModel: AppViewModel) {
         if (month == null) {
             BarChartCard(
                 title = stringResource(R.string.statistics_per_month),
-                values = (1..12).map { m -> yearTrips.filter { tripLocalDate(it.startedAt)?.monthValue == m }.sumOf { it.distanceKm ?: 0.0 } },
+                values = (1..12).map { m -> yearTrips.filter { tripLocalDate(it.startedAt, prefs)?.monthValue == m }.sumOf { it.distanceKm ?: 0.0 } },
                 labels = (1..12).map { monthName(it, TextStyle.NARROW_STANDALONE) },
                 // Aktueller Monat hervorgehoben; Tippen auf einen Balken filtert auf diesen Monat
                 highlightIndex = if (year == today.year) today.monthValue - 1 else null,
@@ -211,7 +212,7 @@ fun StatisticsScreen(viewModel: AppViewModel) {
             val days = YearMonth.of(year, month!!).lengthOfMonth()
             BarChartCard(
                 title = stringResource(R.string.statistics_per_day),
-                values = (1..days).map { d -> periodTrips.filter { tripLocalDate(it.startedAt)?.dayOfMonth == d }.sumOf { it.distanceKm ?: 0.0 } },
+                values = (1..days).map { d -> periodTrips.filter { tripLocalDate(it.startedAt, prefs)?.dayOfMonth == d }.sumOf { it.distanceKm ?: 0.0 } },
                 labels = (1..days).map { d -> if (d == 1 || d % 5 == 0) d.toString() else "" },
                 highlightIndex = if (year == today.year && month == today.monthValue) today.dayOfMonth - 1 else null,
                 accessibilityLabels = (1..days).map { it.toString() },

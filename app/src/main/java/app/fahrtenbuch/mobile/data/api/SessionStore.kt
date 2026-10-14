@@ -111,6 +111,11 @@ class SessionStore(context: Context) {
         get() = prefs.getString("date_format", "EU") ?: "EU"
         set(value) { prefs.edit().putString("date_format", value).apply() }
 
+    /** Anzeige-Zeitzone; null = Zeitzone des Geräts (nur im lokalen Modus sinnvoll). */
+    var timeZone: String?
+        get() = prefs.getString("time_zone", null)
+        set(value) { prefs.edit().putString("time_zone", value).apply() }
+
     var timeFormat: String
         get() = prefs.getString("time_format", "24h") ?: "24h"
         set(value) { prefs.edit().putString("time_format", value).apply() }

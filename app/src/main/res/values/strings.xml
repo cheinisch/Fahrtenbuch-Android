@@ -369,4 +369,8 @@
     <string name="export_pdf_summary">Summary</string>
     <string name="export_pdf_trips">Trips</string>
     <string name="export_pdf_footer">Fahrtenbuch %1$s · created %2$s · page %3$d</string>
+    <string name="format_time_zone">Time zone</string>
+    <string name="format_time_zone_device">Device time zone (%1$s)</string>
+    <string name="format_time_zone_device_short">Device time zone</string>
+    <string name="format_time_zone_hint">Trip times and days are shown in this time zone, regardless of the device setting.</string>
 </resources>

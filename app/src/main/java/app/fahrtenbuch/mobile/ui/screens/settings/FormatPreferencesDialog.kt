@@ -18,6 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.remember
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,8 +60,12 @@ fun FormatPreferencesDialog(
     var speedUnit by rememberSaveable { mutableStateOf(current.speedUnit) }
     var dateFormat by rememberSaveable { mutableStateOf(current.dateFormat) }
     var timeFormat by rememberSaveable { mutableStateOf(current.timeFormat) }
+    // Server-Modus: immer eine feste Zeitzone (Benutzerkonto); lokal auch „Gerät“ (null) möglich
+    var timeZone by rememberSaveable {
+        mutableStateOf(current.timeZone ?: if (serverMode) java.time.ZoneId.systemDefault().id else null)
+    }
     var submitted by rememberSaveable { mutableStateOf(false) }
-    val draft = UserPreferences(distanceUnit, speedUnit, dateFormat, timeFormat)
+    val draft = UserPreferences(distanceUnit, speedUnit, dateFormat, timeFormat, timeZone)
 
     AlertDialog(
         onDismissRequest = { if (!loading) onDismiss() },
@@ -88,6 +102,13 @@ fun FormatPreferencesDialog(
                     selected = timeFormat,
                     label = { stringResource(if (it == TimeFormatPreference.H24) R.string.format_time_24 else R.string.format_time_12) },
                     onSelect = { timeFormat = it }
+                )
+                Text(stringResource(R.string.format_time_zone), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                TimeZoneDropdown(selected = timeZone, allowDevice = !serverMode, onSelect = { timeZone = it })
+                Text(
+                    stringResource(R.string.format_time_zone_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // Vorschau mit einer Beispielfahrt
@@ -136,6 +157,49 @@ fun FormatPreferencesDialog(
         }
     )
 }
+
+/** Häufige Zeitzonen; die aktuelle Auswahl und die des Geräts werden immer ergänzt. */
+private val commonTimeZones = listOf(
+    "Europe/Berlin", "Europe/Vienna", "Europe/Zurich", "Europe/Amsterdam", "Europe/Brussels", "Europe/Paris",
+    "Europe/Luxembourg", "Europe/Copenhagen", "Europe/Warsaw", "Europe/Prague", "Europe/Rome", "Europe/Madrid",
+    "Europe/Lisbon", "Europe/London", "Europe/Dublin", "Europe/Stockholm", "Europe/Helsinki", "Europe/Athens",
+    "Europe/Istanbul", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+    "Asia/Dubai", "Asia/Tokyo", "Australia/Sydney", "UTC"
+)
+
+@Composable
+private fun TimeZoneDropdown(selected: String?, allowDevice: Boolean, onSelect: (String?) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val deviceZone = java.time.ZoneId.systemDefault().id
+    val deviceLabel = stringResource(R.string.format_time_zone_device, deviceZone)
+    val zones = (listOfNotNull(selected, deviceZone) + commonTimeZones).distinct()
+    Box {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                selected?.let { zoneLabel(it) } ?: deviceLabel,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 360.dp)) {
+            if (allowDevice) {
+                DropdownMenuItem(text = { Text(deviceLabel) }, onClick = { onSelect(null); expanded = false })
+            }
+            zones.forEach { zone ->
+                DropdownMenuItem(text = { Text(zoneLabel(zone)) }, onClick = { onSelect(zone); expanded = false })
+            }
+        }
+    }
+}
+
+/** z. B. „Europe/Berlin (UTC+2)“ – Offset zum aktuellen Zeitpunkt. */
+private fun zoneLabel(id: String): String = runCatching {
+    val offset = java.time.ZoneId.of(id).rules.getOffset(java.time.Instant.now())
+    val text = if (offset.totalSeconds == 0) "UTC" else "UTC" + offset.id.replace(":00", "")
+    "$id ($text)"
+}.getOrDefault(id)
 
 private const val PREVIEW_TIMESTAMP = "2026-10-13T14:12:00Z"
 private const val PREVIEW_DISTANCE_KM = 110.8

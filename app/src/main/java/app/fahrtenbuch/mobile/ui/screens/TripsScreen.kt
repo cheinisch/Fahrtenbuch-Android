@@ -73,6 +73,7 @@ import app.fahrtenbuch.mobile.ui.common.formatLocalDate
 import app.fahrtenbuch.mobile.ui.common.formatTripTimeRange
 import app.fahrtenbuch.mobile.ui.common.localizedTripType
 import app.fahrtenbuch.mobile.ui.common.shortRoute
+import app.fahrtenbuch.mobile.ui.common.today
 import app.fahrtenbuch.mobile.ui.common.tripLocalDate
 import app.fahrtenbuch.mobile.ui.screens.trips.PeriodFilterDialog
 import java.time.LocalDate
@@ -124,14 +125,14 @@ fun TripsScreen(
     // Laufende Aufzeichnungen zeigt die Startseite, nicht die Liste.
     val completed = state.trips.filter { it.status != "recording" }
     val filtered = completed.filter { trip ->
-        val day = tripLocalDate(trip.startedAt)
+        val day = tripLocalDate(trip.startedAt, LocalUserPreferences.current)
         (vehicleFilter.isBlank() || trip.vehicleId == vehicleFilter) &&
             (tagFilter.isBlank() || tagFilter in trip.tags) &&
             (categoryFilter == null || trip.tripType == categoryFilter) &&
             (fromDate == null || (day != null && !day.isBefore(fromDate))) &&
             (toDate == null || (day != null && !day.isAfter(toDate)))
     }
-    val groups = filtered.groupBy { tripLocalDate(it.startedAt) }.toList()
+    val groups = filtered.groupBy { tripLocalDate(it.startedAt, LocalUserPreferences.current) }.toList()
     val tags = completed.flatMap { it.tags }.distinct().sorted()
     val vehicleName: (Trip) -> String = { trip ->
         state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()
@@ -402,7 +403,7 @@ private fun CategoryFilterRow(selected: TripType?, onSelect: (TripType?) -> Unit
 
 @Composable
 private fun DayHeader(day: LocalDate?, totalKm: Double) {
-    val today = LocalDate.now()
+    val today = today(LocalUserPreferences.current)
     val label = when {
         day == null -> "–"
         day == today -> stringResource(R.string.trips_today)

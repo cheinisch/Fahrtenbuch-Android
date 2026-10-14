@@ -118,6 +118,11 @@ interface FahrtenbuchApi {
     @GET("users/me")
     suspend fun me(): User
 
+    @PATCH("users/me/profile")
+    suspend fun patchProfile(
+        @Body body: Map<String, String>
+    ): User
+
     @PUT("users/me")
     suspend fun updateMe(
         @Body body: Map<String, Any?>

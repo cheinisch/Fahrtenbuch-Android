@@ -107,7 +107,7 @@ internal fun TripDetailsScreen(
         else -> stringResource(R.string.trip_details)
     }
     val meta = listOfNotNull(
-        formatTripDate(trip.startedAt),
+        formatTripDate(trip.startedAt, LocalUserPreferences.current),
         trip.vehicleName?.takeIf { it.isNotBlank() }
     ).joinToString("  ·  ")
 
