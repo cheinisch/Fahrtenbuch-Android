@@ -282,10 +282,15 @@
     <string name="permissions_granted">Granted</string>
     <string name="permissions_continue_later">Continue without (set up later)</string>
     <string name="permissions_settings_title">Permissions</string>
-    <string name="permissions_settings_row">Location, Bluetooth &amp; notifications</string>
+    <string name="permissions_settings_row">Location, Bluetooth, notifications &amp; battery</string>
     <string name="permissions_all_granted">All granted</string>
     <string name="permissions_settings_hint">To revoke a permission, open the app settings in Android.</string>
     <string name="permissions_app_settings">App settings</string>
+    <string name="permissions_battery_title">Battery optimization</string>
+    <string name="permissions_battery_text">Set battery usage to “Unrestricted” so Android does not put the app to sleep – otherwise recordings and the Bluetooth auto-start can stop in the background.</string>
+    <string name="permissions_battery_action">Open battery settings</string>
+    <string name="permissions_battery_samsung">On Samsung devices also check Settings › Battery › Background usage limits: Fahrtenbuch must not be listed under “Sleeping apps” or “Deep sleeping apps”.</string>
+    <string name="permissions_battery_vendor">Some manufacturers have additional power-saving settings (e.g. auto-start or app sleep). Allow Fahrtenbuch there as well.</string>
     <plurals name="permissions_missing">
         <item quantity="one">%d permission missing</item>
         <item quantity="other">%d permissions missing</item>

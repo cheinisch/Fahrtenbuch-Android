@@ -2,6 +2,8 @@ package app.fahrtenbuch.mobile.ui.permissions
 
 import android.Manifest
 import android.app.Activity
+import android.app.ActivityManager
+import android.os.PowerManager
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -24,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.BatteryAlert
 import androidx.compose.material.icons.outlined.Bluetooth
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MyLocation
@@ -63,10 +66,12 @@ data class PermissionStatus(
     val backgroundLocation: Boolean,
     /** Bluetooth (Android 12+) und Benachrichtigungen (Android 13+); true, wenn nicht nötig. */
     val extras: Boolean,
-    val extrasRequired: Boolean
+    val extrasRequired: Boolean,
+    /** Keine Akku-Optimierung und keine Hintergrund-Einschränkung („Energie sparen“). */
+    val batteryUnrestricted: Boolean = true
 ) {
     val missingCount: Int
-        get() = listOf(foregroundLocation, backgroundLocation, extras || !extrasRequired).count { !it }
+        get() = listOf(foregroundLocation, backgroundLocation, extras || !extrasRequired, batteryUnrestricted).count { !it }
     val allGranted: Boolean get() = missingCount == 0
 }
 
@@ -92,7 +97,8 @@ fun rememberPermissionStatus(): Pair<PermissionStatus, () -> Unit> {
             foregroundLocation = hasForegroundLocation(context),
             backgroundLocation = context.isGranted(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
             extras = extraPermissions().all { context.isGranted(it) },
-            extrasRequired = extraPermissions().isNotEmpty()
+            extrasRequired = extraPermissions().isNotEmpty(),
+            batteryUnrestricted = isBatteryUnrestricted(context)
         )
     }
     return status to { refresh++ }
@@ -110,7 +116,9 @@ fun rememberPermissionStatus(): Pair<PermissionStatus, () -> Unit> {
 fun PermissionChecklist(
     status: PermissionStatus,
     onChanged: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Zusätzlich Akku-Optimierung bzw. Energiesparen prüfen (Einstellungen). */
+    showBattery: Boolean = false
 ) {
     val context = LocalContext.current
     var foregroundDenied by rememberSaveable { mutableStateOf(false) }
@@ -172,6 +180,27 @@ fun PermissionChecklist(
                     if (extrasDenied && extraPermissions().none { context.canAskAgain(it) }) openAppSettings(context)
                     else extrasLauncher.launch(extraPermissions().toTypedArray())
                 }
+            )
+        }
+        if (showBattery) {
+            PermissionStep(
+                icon = Icons.Outlined.BatteryAlert,
+                title = stringResource(R.string.permissions_battery_title),
+                text = stringResource(R.string.permissions_battery_text),
+                granted = status.batteryUnrestricted,
+                enabled = true,
+                actionLabel = stringResource(R.string.permissions_battery_action),
+                // Ohne Sonderberechtigung: die App-Seite der Systemeinstellungen, dort „Akku“ → „Nicht eingeschränkt“
+                onAction = { openAppSettings(context) }
+            )
+            // Hersteller-Energiesparfunktionen (z. B. Samsung „Schlafende Apps“) lassen sich nicht abfragen
+            Text(
+                stringResource(
+                    if (Build.MANUFACTURER.equals("samsung", ignoreCase = true)) R.string.permissions_battery_samsung
+                    else R.string.permissions_battery_vendor
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -241,6 +270,18 @@ private fun PermissionStep(
 internal fun extraPermissions(): List<String> = buildList {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(Manifest.permission.BLUETOOTH_CONNECT)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add(Manifest.permission.POST_NOTIFICATIONS)
+}
+
+/**
+ * True, wenn Android die App nicht im Hintergrund ausbremst: weder Akku-Optimierung
+ * (Doze/„Optimiert“) noch „Eingeschränkt“ in der Akkunutzung der App.
+ */
+internal fun isBatteryUnrestricted(context: Context): Boolean {
+    val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+    val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+    val ignoringOptimizations = power?.isIgnoringBatteryOptimizations(context.packageName) ?: true
+    val backgroundRestricted = activityManager?.isBackgroundRestricted ?: false
+    return ignoringOptimizations && !backgroundRestricted
 }
 
 internal fun hasForegroundLocation(context: Context): Boolean =

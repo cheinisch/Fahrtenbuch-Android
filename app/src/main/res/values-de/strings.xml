@@ -282,10 +282,15 @@
     <string name="permissions_granted">Erteilt</string>
     <string name="permissions_continue_later">Ohne weiter (später einrichten)</string>
     <string name="permissions_settings_title">Berechtigungen</string>
-    <string name="permissions_settings_row">Standort, Bluetooth &amp; Benachrichtigungen</string>
+    <string name="permissions_settings_row">Standort, Bluetooth, Benachrichtigungen &amp; Akku</string>
     <string name="permissions_all_granted">Alle erteilt</string>
     <string name="permissions_settings_hint">Um eine Berechtigung zu entziehen, öffne die App-Einstellungen in Android.</string>
     <string name="permissions_app_settings">App-Einstellungen</string>
+    <string name="permissions_battery_title">Akku-Optimierung</string>
+    <string name="permissions_battery_text">Stelle die Akkunutzung auf „Nicht eingeschränkt“, damit Android die App nicht schlafen legt – sonst können Aufzeichnungen und der Bluetooth-Auto-Start im Hintergrund abbrechen.</string>
+    <string name="permissions_battery_action">Akku-Einstellungen öffnen</string>
+    <string name="permissions_battery_samsung">Auf Samsung-Geräten zusätzlich prüfen: Einstellungen › Akku › Hintergrundnutzungslimits – Fahrtenbuch darf nicht unter „Schlafende Apps“ oder „Tief schlafende Apps“ stehen.</string>
+    <string name="permissions_battery_vendor">Manche Hersteller haben zusätzliche Energiesparfunktionen (z. B. Autostart oder App-Ruhezustand). Erlaube Fahrtenbuch auch dort.</string>
     <plurals name="permissions_missing">
         <item quantity="one">%d Berechtigung fehlt</item>
         <item quantity="other">%d Berechtigungen fehlen</item>

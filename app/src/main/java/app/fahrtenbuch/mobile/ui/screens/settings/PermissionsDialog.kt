@@ -47,7 +47,7 @@ fun PermissionsDialog(
                     fontWeight = FontWeight.Bold,
                     color = if (status.allGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                 )
-                PermissionChecklist(status = status, onChanged = onChanged)
+                PermissionChecklist(status = status, onChanged = onChanged, showBattery = true)
                 Text(
                     stringResource(R.string.permissions_settings_hint),
                     style = MaterialTheme.typography.bodySmall,
