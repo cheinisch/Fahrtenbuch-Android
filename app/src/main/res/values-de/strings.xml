@@ -394,4 +394,7 @@
     <string name="auth_feature_bluetooth">Auto-Start per Bluetooth</string>
     <string name="auth_feature_offline">Funktioniert auch ohne Server</string>
     <string name="auth_feature_export">Export als PDF oder CSV</string>
+    <string name="gravatar_title">Profilbild von Gravatar</string>
+    <string name="gravatar_text">Lädt dein Gravatar-Bild. Dafür wird ein Hash deiner E-Mail-Adresse an Gravatar übertragen.</string>
+    <string name="gravatar_disabled_by_server">Gravatar ist auf diesem Server deaktiviert.</string>
 </resources>

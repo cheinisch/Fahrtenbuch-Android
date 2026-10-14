@@ -133,7 +133,12 @@ class FahrtenbuchRepository(
 
     /** Zuletzt bekannte Anzeige-Einstellungen (sofort verfügbar, auch offline). */
     fun cachedPreferences(): UserPreferences =
-        UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone)
+        UserPreferences.fromApi(
+            store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone,
+            gravatarEnabled = store.gravatarEnabled,
+            // Gravatar braucht ein Server-Konto (E-Mail-Adresse)
+            gravatarAvailable = store.isServerMode && store.gravatarAvailable
+        )
 
     /** Im Server-Modus vom Server laden und lokal merken; sonst bzw. bei Fehlern der lokale Stand. */
     suspend fun preferences(): UserPreferences {
@@ -176,6 +181,20 @@ class FahrtenbuchRepository(
         settings.speedUnit?.let { store.speedUnit = it }
         settings.dateFormat?.let { store.dateFormat = it }
         settings.timeFormat?.let { store.timeFormat = it }
+        settings.gravatarEnabled?.let { store.gravatarEnabled = it }
+        settings.gravatarAvailable?.let { store.gravatarAvailable = it }
+    }
+
+    /** Gravatar als Profilbild ein- oder ausschalten (wird mit dem Konto synchronisiert). */
+    suspend fun setGravatarEnabled(enabled: Boolean): UserPreferences {
+        if (store.isServerMode) {
+            val body = JSONObject().put("gravatarEnabled", enabled).toString()
+                .toRequestBody("application/json".toMediaType())
+            cacheSettings(api.updateMySettingsJson(body))
+        } else {
+            store.gravatarEnabled = enabled
+        }
+        return cachedPreferences()
     }
 
     suspend fun updateProfile(

@@ -120,6 +120,14 @@ class SessionStore(context: Context) {
         get() = prefs.getString("time_format", "24h") ?: "24h"
         set(value) { prefs.edit().putString("time_format", value).apply() }
 
+    var gravatarEnabled: Boolean
+        get() = prefs.getBoolean("gravatar_enabled", true)
+        set(value) { prefs.edit().putBoolean("gravatar_enabled", value).apply() }
+
+    var gravatarAvailable: Boolean
+        get() = prefs.getBoolean("gravatar_available", true)
+        set(value) { prefs.edit().putBoolean("gravatar_available", value).apply() }
+
     var trackingIntervalSeconds: Int
         get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
         set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }

@@ -18,6 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Switch
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.model.User
 
@@ -28,7 +33,11 @@ fun ProfileEditDialog(
     loading: Boolean,
     error: String?,
     onDismiss: () -> Unit,
-    onSave: (displayName: String, username: String, email: String) -> Unit
+    onSave: (displayName: String, username: String, email: String) -> Unit,
+    gravatarEnabled: Boolean = true,
+    gravatarAvailable: Boolean = true,
+    /** Wird sofort gespeichert, unabhängig vom Speichern-Button. */
+    onGravatarChange: (Boolean) -> Unit = {}
 ) {
     var displayName by rememberSaveable { mutableStateOf(user?.displayName.orEmpty()) }
     var username by rememberSaveable { mutableStateOf((user?.loginName ?: user?.username).orEmpty()) }
@@ -65,6 +74,26 @@ fun ProfileEditDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                // Profilbild von Gravatar: sofort umschaltbar, Server kann es instanzweit sperren
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(stringResource(R.string.gravatar_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(if (gravatarAvailable) R.string.gravatar_text else R.string.gravatar_disabled_by_server),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = gravatarEnabled && gravatarAvailable,
+                        enabled = gravatarAvailable && !loading,
+                        onCheckedChange = onGravatarChange
+                    )
+                }
                 formatLastLogin(user?.lastLoginAt)?.let {
                     Text(
                         stringResource(R.string.settings_last_login, it),

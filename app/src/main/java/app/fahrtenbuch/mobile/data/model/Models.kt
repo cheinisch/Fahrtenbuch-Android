@@ -239,19 +239,36 @@ data class UserPreferences(
      * Server-Modus: Zeitzone des Benutzerkontos; lokal: gewählt oder null = Gerätezeitzone.
      * So stimmen die Ortszeiten unabhängig von der Zeitzone des Geräts.
      */
-    val timeZone: String? = null
+    val timeZone: String? = null,
+    /** Profilbild von Gravatar laden (persönliche Einstellung, Standard an). */
+    val gravatarEnabled: Boolean = true,
+    /** False, wenn der Server Gravatar abgeschaltet hat (GRAVATAR_ENABLED=false). */
+    val gravatarAvailable: Boolean = true
 ) {
+    /** Gravatar tatsächlich verwenden: Nutzer und Server erlauben es. */
+    val useGravatar: Boolean get() = gravatarEnabled && gravatarAvailable
+
     /** Gültige Zeitzone; ungültige oder fehlende IDs fallen auf das Gerät zurück. */
     fun zoneId(): java.time.ZoneId =
         timeZone?.let { runCatching { java.time.ZoneId.of(it) }.getOrNull() } ?: java.time.ZoneId.systemDefault()
 
     companion object {
-        fun fromApi(distance: String?, speed: String?, date: String?, time: String?, zone: String? = null) = UserPreferences(
+        fun fromApi(
+            distance: String?,
+            speed: String?,
+            date: String?,
+            time: String?,
+            zone: String? = null,
+            gravatarEnabled: Boolean = true,
+            gravatarAvailable: Boolean = true
+        ) = UserPreferences(
             distanceUnit = DistanceUnit.entries.firstOrNull { it.apiValue == distance } ?: DistanceUnit.KM,
             speedUnit = SpeedUnit.entries.firstOrNull { it.apiValue == speed } ?: SpeedUnit.KMH,
             dateFormat = DateFormatPreference.entries.firstOrNull { it.apiValue == date } ?: DateFormatPreference.EU,
             timeFormat = TimeFormatPreference.entries.firstOrNull { it.apiValue == time } ?: TimeFormatPreference.H24,
-            timeZone = zone?.takeIf { it.isNotBlank() }
+            timeZone = zone?.takeIf { it.isNotBlank() },
+            gravatarEnabled = gravatarEnabled,
+            gravatarAvailable = gravatarAvailable
         )
     }
 }
@@ -264,7 +281,9 @@ data class UserSettingsDto(
     val distanceUnit: String? = null,
     val speedUnit: String? = null,
     val dateFormat: String? = null,
-    val timeFormat: String? = null
+    val timeFormat: String? = null,
+    val gravatarEnabled: Boolean? = null,
+    val gravatarAvailable: Boolean? = null
 )
 
 /** GET /health – Systemstatus und Version des Servers. */

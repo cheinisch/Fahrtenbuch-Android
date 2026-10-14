@@ -119,6 +119,7 @@ fun SettingsScreen(
         if (isServerMode) {
             ProfileCard(
                 user = appState.user,
+                useGravatar = appState.preferences.useGravatar,
                 modifier = Modifier.padding(top = 20.dp),
                 onClick = { dialog = SettingsDialog.PROFILE }
             )
@@ -321,7 +322,10 @@ fun SettingsScreen(
                     appState.serverUrl,
                     sessionStore.allowInvalidCertificates
                 ) { dialog = SettingsDialog.NONE }
-            }
+            },
+            gravatarEnabled = appState.preferences.gravatarEnabled,
+            gravatarAvailable = appState.preferences.gravatarAvailable,
+            onGravatarChange = viewModel::setGravatarEnabled
         )
         SettingsDialog.SERVER -> ServerSettingsDialog(
             serverUrl = appState.serverUrl,
@@ -392,7 +396,7 @@ private fun FormatPreferencesRow(preferences: UserPreferences, modifier: Modifie
 }
 
 @Composable
-private fun ProfileCard(user: User?, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun ProfileCard(user: User?, useGravatar: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val name = user?.displayName?.takeIf { it.isNotBlank() } ?: user?.loginName ?: user?.username ?: "–"
     SettingsCard(modifier = modifier, onClick = onClick) {
         Row(
@@ -401,7 +405,7 @@ private fun ProfileCard(user: User?, modifier: Modifier = Modifier, onClick: () 
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Gravatar zur E-Mail, falls vorhanden; sonst Initialen
-            UserAvatar(email = user?.email, initials = initials(name), size = 56.dp)
+            UserAvatar(email = user?.email?.takeIf { useGravatar }, initials = initials(name), size = 56.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

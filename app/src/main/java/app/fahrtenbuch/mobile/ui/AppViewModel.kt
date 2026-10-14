@@ -57,7 +57,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             serverConfigured = store.serverConfigured,
             serverUrl = store.baseUrl,
             loggedIn = store.refreshToken != null,
-            preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone)
+            preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(
+                store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone,
+                gravatarEnabled = store.gravatarEnabled,
+                gravatarAvailable = store.isServerMode && store.gravatarAvailable
+            )
         )
     )
     val state: StateFlow<AppUiState> = _state.asStateFlow()
@@ -304,6 +308,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onFailure { error ->
                     _state.value = _state.value.copy(loading = false, error = ApiFactory.readableError(error))
                 }
+        }
+    }
+
+    fun setGravatarEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            runCatching { repository.setGravatarEnabled(enabled) }
+                .onSuccess { _state.value = _state.value.copy(preferences = it) }
+                .onFailure { _state.value = _state.value.copy(error = ApiFactory.readableError(it)) }
         }
     }
 

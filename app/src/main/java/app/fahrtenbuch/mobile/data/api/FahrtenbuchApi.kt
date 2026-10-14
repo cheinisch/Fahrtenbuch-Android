@@ -413,6 +413,12 @@ interface FahrtenbuchApi {
         @Body body: Map<String, String>
     ): UserSettingsDto
 
+    /** Wie updateMySettings, aber als rohes JSON (z. B. für Boolean-Werte). */
+    @PATCH("users/me/settings")
+    suspend fun updateMySettingsJson(
+        @Body body: okhttp3.RequestBody
+    ): UserSettingsDto
+
     @GET("settings")
     suspend fun settings(): Map<String, Any?>
 
