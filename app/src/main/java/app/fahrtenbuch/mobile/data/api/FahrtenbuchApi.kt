@@ -174,18 +174,29 @@ interface FahrtenbuchApi {
     // Passkeys
     // ---------------------------------------------------------------------
 
-    @GET("users/me/passkeys")
+    /** Alle Passkeys des Kontos – egal ob im Web-Dashboard oder in der App angelegt. */
+    @GET("auth/passkeys")
     suspend fun passkeys(): List<PasskeyInfo>
 
-    @POST("users/me/passkeys")
-    suspend fun createPasskey(
-        @Body body: Map<String, Any?>
-    ): Map<String, Any?>
+    @POST("auth/passkeys/register/options")
+    suspend fun passkeyRegisterOptions(): ResponseBody
 
-    @DELETE("users/me/passkeys/{id}")
+    /** Antwort des Credential Managers (registrationResponseJson) plus „name“. */
+    @POST("auth/passkeys/register/verify")
+    suspend fun passkeyRegisterVerify(
+        @Body body: RequestBody
+    ): ResponseBody
+
+    @PATCH("auth/passkeys/{id}")
+    suspend fun renamePasskey(
+        @Path("id") id: Uuid,
+        @Body body: Map<String, String>
+    ): PasskeyInfo
+
+    @DELETE("auth/passkeys/{id}")
     suspend fun deletePasskey(
         @Path("id") id: Uuid
-    ): ResponseBody
+    ): Response<Unit>
 
     // ---------------------------------------------------------------------
     // Geräte

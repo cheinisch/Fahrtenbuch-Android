@@ -130,6 +130,23 @@ class FahrtenbuchRepository(
         return response.user
     }
 
+    suspend fun passkeys(): List<PasskeyInfo> = api.passkeys()
+
+    suspend fun passkeyRegisterOptions(): String = api.passkeyRegisterOptions().string()
+
+    suspend fun registerPasskey(registrationResponseJson: String, name: String) {
+        val body = JSONObject(registrationResponseJson).put("name", name).toString()
+            .toRequestBody("application/json".toMediaType())
+        api.passkeyRegisterVerify(body)
+    }
+
+    suspend fun renamePasskey(id: String, name: String): PasskeyInfo = api.renamePasskey(id, mapOf("name" to name))
+
+    suspend fun deletePasskey(id: String) {
+        val response = api.deletePasskey(id)
+        if (!response.isSuccessful) throw retrofit2.HttpException(response)
+    }
+
     suspend fun passkeyLoginOptions(): String = api.passkeyLoginOptions().string()
 
     suspend fun passkeyLogin(authenticationResponseJson: String, deviceName: String): User {

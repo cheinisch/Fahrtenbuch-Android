@@ -290,6 +290,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         else -> str(R.string.oauth_error_generic, code)
     }
 
+    // Passkeys verwalten (Einstellungen). Die UI ruft den Credential Manager selbst auf,
+    // weil er einen Activity-Kontext braucht; hier nur die Server-Seite.
+    suspend fun listPasskeys(): Result<List<app.fahrtenbuch.mobile.data.model.PasskeyInfo>> =
+        runCatching { repository.passkeys() }.onFailure { /* Anzeige im Dialog */ }
+
+    suspend fun passkeyRegisterOptions(): Result<String> = runCatching { repository.passkeyRegisterOptions() }
+
+    suspend fun registerPasskey(registrationResponseJson: String, name: String): Result<Unit> =
+        runCatching { repository.registerPasskey(registrationResponseJson, name) }
+
+    suspend fun renamePasskey(id: String, name: String): Result<Unit> =
+        runCatching { repository.renamePasskey(id, name); Unit }
+
+    suspend fun deletePasskey(id: String): Result<Unit> = runCatching { repository.deletePasskey(id) }
+
+    fun readableError(error: Throwable): String = ApiFactory.readableError(error)
+
     /** Zuletzt verwendeter Anmeldename (z. B. nach Wiederherstellung eines Backups). */
     fun lastLoginName(): String = store.lastLoginName.orEmpty()
 

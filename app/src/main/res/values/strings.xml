@@ -435,4 +435,21 @@
         <item quantity="one">%1$d vehicles, %2$d trip</item>
         <item quantity="other">%1$d vehicles, %2$d trips</item>
     </plurals>
+    <string name="passkeys_title">Passkeys</string>
+    <string name="passkeys_row_subtitle">Sign in without a password – manage and add</string>
+    <string name="passkeys_intro">All passkeys of your account – created in the web dashboard or in the app. Each of them can be used to sign in, in the browser and in the app.</string>
+    <string name="passkeys_empty">No passkeys yet.</string>
+    <string name="passkeys_unnamed">Passkey</string>
+    <string name="passkeys_created_at">created %1$s</string>
+    <string name="passkeys_last_used">last used %1$s</string>
+    <string name="passkeys_synced">synced</string>
+    <string name="passkeys_add">Create passkey on this device</string>
+    <string name="passkeys_hint">The passkey is stored in your password manager (e.g. Google Password Manager) and is synced to your other devices. Passkeys from another password manager can be used via “Use another device” (QR code).</string>
+    <string name="passkeys_created">Passkey created.</string>
+    <string name="passkeys_error">The passkey could not be created.</string>
+    <string name="passkeys_rename">Rename</string>
+    <string name="passkeys_name">Name</string>
+    <string name="passkeys_delete">Delete</string>
+    <string name="passkeys_delete_title">Delete passkey?</string>
+    <string name="passkeys_delete_text">“%1$s” can no longer be used to sign in. Also remove it from your password manager.</string>
 </resources>

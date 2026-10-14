@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CloudUpload
@@ -68,6 +69,7 @@ import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.permissions.rememberPermissionStatus
 import app.fahrtenbuch.mobile.ui.screens.settings.AboutDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.BackupDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.PasskeysDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.FormatPreferencesDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.OpenSourceLicensesDialog
@@ -81,7 +83,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES, BACKUP }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES, BACKUP, PASSKEYS }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -143,6 +145,13 @@ fun SettingsScreen(
                 SettingsDivider()
                 val https = appState.serverUrl.startsWith("https://", ignoreCase = true)
                 val certChecked = https && !sessionStore.allowInvalidCertificates
+                SettingsRow(
+                    icon = Icons.Default.Key,
+                    title = stringResource(R.string.passkeys_title),
+                    subtitle = stringResource(R.string.passkeys_row_subtitle),
+                    onClick = { dialog = SettingsDialog.PASSKEYS }
+                )
+                SettingsDivider()
                 SettingsRow(
                     icon = if (certChecked) Icons.Default.Lock else Icons.Default.LockOpen,
                     title = stringResource(R.string.settings_security),
@@ -321,6 +330,10 @@ fun SettingsScreen(
     }
 
     when (dialog) {
+        SettingsDialog.PASSKEYS -> PasskeysDialog(
+            viewModel = viewModel,
+            onDismiss = { dialog = SettingsDialog.NONE }
+        )
         SettingsDialog.BACKUP -> BackupDialog(
             store = sessionStore,
             serverMode = isServerMode,

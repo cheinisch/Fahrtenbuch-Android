@@ -215,7 +215,16 @@ data class Dashboard(val todayKm: Double, val monthKm: Double, val businessKm: D
 data class SyncResponse(val vehicles: List<Vehicle>, val trips: List<Trip>, val tags: List<Tag>, val deleted: List<Uuid>)
 data class SessionInfo(val id: Uuid, val deviceName: String? = null, val createdAt: String? = null, val lastUsedAt: String? = null)
 data class TotpStatus(val enabled: Boolean, val secret: String? = null, val qrCode: String? = null)
-data class PasskeyInfo(val id: Uuid, val name: String? = null, val createdAt: String? = null)
+data class PasskeyInfo(
+    val id: Uuid,
+    val name: String? = null,
+    val createdAt: String? = null,
+    val lastUsedAt: String? = null,
+    /** In Google Passwortmanager/iCloud o. Ä. synchronisiert (Mehrgeräte-Passkey). */
+    val backedUp: Boolean? = null,
+    val deviceType: String? = null,
+    val transports: List<String>? = null
+)
 data class DeviceInfo(
     val id: Uuid,
     val name: String? = null,

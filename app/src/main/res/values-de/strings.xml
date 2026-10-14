@@ -435,4 +435,21 @@
         <item quantity="one">%1$d Fahrzeuge, %2$d Fahrt</item>
         <item quantity="other">%1$d Fahrzeuge, %2$d Fahrten</item>
     </plurals>
+    <string name="passkeys_title">Passkeys</string>
+    <string name="passkeys_row_subtitle">Ohne Passwort anmelden – verwalten und hinzufügen</string>
+    <string name="passkeys_intro">Alle Passkeys deines Kontos – im Web-Dashboard oder in der App angelegt. Mit jedem kannst du dich anmelden, im Browser und in der App.</string>
+    <string name="passkeys_empty">Noch keine Passkeys.</string>
+    <string name="passkeys_unnamed">Passkey</string>
+    <string name="passkeys_created_at">angelegt %1$s</string>
+    <string name="passkeys_last_used">zuletzt %1$s</string>
+    <string name="passkeys_synced">synchronisiert</string>
+    <string name="passkeys_add">Passkey auf diesem Gerät anlegen</string>
+    <string name="passkeys_hint">Der Passkey wird in deinem Passwortmanager gespeichert (z. B. Google Passwortmanager) und mit deinen anderen Geräten synchronisiert. Passkeys aus einem anderen Passwortmanager nutzt du über „Anderes Gerät verwenden“ (QR-Code).</string>
+    <string name="passkeys_created">Passkey angelegt.</string>
+    <string name="passkeys_error">Der Passkey konnte nicht angelegt werden.</string>
+    <string name="passkeys_rename">Umbenennen</string>
+    <string name="passkeys_name">Name</string>
+    <string name="passkeys_delete">Löschen</string>
+    <string name="passkeys_delete_title">Passkey löschen?</string>
+    <string name="passkeys_delete_text">„%1$s“ kann danach nicht mehr zur Anmeldung verwendet werden. Entferne ihn auch aus deinem Passwortmanager.</string>
 </resources>
