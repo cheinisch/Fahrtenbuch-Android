@@ -63,6 +63,21 @@ interface FahrtenbuchApi {
         @Body request: LoginRequest
     ): LoginResponse
 
+    // Anmeldung mit Google/Microsoft (OpenID Connect, App-Flow mit PKCE)
+    @GET("auth/oauth/providers")
+    suspend fun oauthProviders(): List<app.fahrtenbuch.mobile.data.model.OAuthProvider>
+
+    @POST("auth/oauth/{provider}/login")
+    suspend fun oauthLogin(
+        @Path("provider") provider: String,
+        @Body request: app.fahrtenbuch.mobile.data.model.OAuthLoginRequest
+    ): app.fahrtenbuch.mobile.data.model.OAuthAuthorizationResponse
+
+    @POST("auth/oauth/exchange")
+    suspend fun oauthExchange(
+        @Body request: app.fahrtenbuch.mobile.data.model.OAuthExchangeRequest
+    ): LoginResponse
+
     @POST("auth/passkeys/login/options")
     suspend fun passkeyLoginOptions(): ResponseBody
 

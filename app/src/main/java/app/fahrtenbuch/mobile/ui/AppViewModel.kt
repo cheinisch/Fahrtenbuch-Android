@@ -33,6 +33,10 @@ data class AppUiState(
     val tripDetailsError: String? = null,
     /** Alle Tags des Kontos bzw. des Geräts (für die Auswahl in den Fahrtdetails). */
     val availableTags: List<app.fahrtenbuch.mobile.data.model.Tag> = emptyList(),
+    /** Auf dem Server aktivierte Anmeldungen mit Google/Microsoft (für den Login-Bildschirm). */
+    val oauthProviders: List<app.fahrtenbuch.mobile.data.model.OAuthProvider> = emptyList(),
+    /** Google/Microsoft-Anmeldung wartet auf den Zwei-Faktor-Code. */
+    val oauthMfaRequired: Boolean = false,
     val tracking: Boolean = false,
     val selectedVehicleId: String? = null,
     val error: String? = null,
@@ -200,6 +204,90 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
         }
+    }
+
+    private var pendingOAuthTicket: String? = null
+
+    private fun deviceName(): String =
+        listOf(Build.MANUFACTURER, Build.MODEL).filter { it.isNotBlank() }.joinToString(" ")
+
+    /** Prüft nach Eingabe der Serveradresse, welche externen Anmeldungen der Server anbietet. */
+    fun loadOAuthProviders() {
+        if (!store.isServerMode) return
+        viewModelScope.launch {
+            val providers = repository.oauthProviders()
+            _state.value = _state.value.copy(oauthProviders = providers)
+        }
+    }
+
+    /** Anmeldung bei Google/Microsoft starten; [openUrl] öffnet die Anbieterseite im Browser. */
+    fun startOAuthLogin(provider: String, openUrl: (String) -> Unit) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null, oauthMfaRequired = false)
+            runCatching { repository.startOAuthLogin(provider) }
+                .onSuccess { url ->
+                    // Ladeanzeige aus: der Nutzer ist jetzt im Browser und kann abbrechen
+                    _state.value = _state.value.copy(loading = false)
+                    openUrl(url)
+                }
+                .onFailure { _state.value = _state.value.copy(loading = false, error = ApiFactory.readableError(it)) }
+        }
+    }
+
+    /** Rücksprung fahrtenbuch://oauth/callback?ticket=… bzw. ?error=CODE aus dem Browser. */
+    fun handleOAuthCallback(uri: android.net.Uri) {
+        val error = uri.getQueryParameter("error")
+        val ticket = uri.getQueryParameter("ticket")
+        when {
+            error != null -> _state.value = _state.value.copy(loading = false, error = oauthErrorMessage(error))
+            ticket != null -> exchangeOAuthTicket(ticket, null)
+        }
+    }
+
+    fun submitOAuthTotp(code: String) {
+        val ticket = pendingOAuthTicket ?: return
+        exchangeOAuthTicket(ticket, code)
+    }
+
+    fun cancelOAuthMfa() {
+        pendingOAuthTicket = null
+        _state.value = _state.value.copy(oauthMfaRequired = false, error = null, loading = false)
+    }
+
+    private fun exchangeOAuthTicket(ticket: String, totpCode: String?) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.completeOAuthLogin(ticket, totpCode, deviceName()) }
+                .onSuccess { user ->
+                    pendingOAuthTicket = null
+                    _state.value = _state.value.copy(
+                        loggedIn = true,
+                        loading = false,
+                        user = user,
+                        error = null,
+                        oauthMfaRequired = false
+                    )
+                    refresh()
+                }
+                .onFailure {
+                    if (it is app.fahrtenbuch.mobile.data.api.OAuthMfaRequired) {
+                        pendingOAuthTicket = ticket
+                        _state.value = _state.value.copy(
+                            loading = false,
+                            oauthMfaRequired = true,
+                            error = if (totpCode != null) str(R.string.oauth_mfa_invalid) else null
+                        )
+                    } else {
+                        _state.value = _state.value.copy(loading = false, error = it.message ?: str(R.string.error_login_failed))
+                    }
+                }
+        }
+    }
+
+    private fun oauthErrorMessage(code: String): String = when (code) {
+        "OAUTH_NOT_LINKED" -> str(R.string.oauth_error_not_linked)
+        "OAUTH_CANCELLED", "access_denied" -> str(R.string.oauth_error_cancelled)
+        else -> str(R.string.oauth_error_generic, code)
     }
 
     fun cancelAuthLoading(message: String? = null) {

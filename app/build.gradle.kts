@@ -75,6 +75,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")

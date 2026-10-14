@@ -3,6 +3,9 @@ package app.fahrtenbuch.mobile
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.content.Intent
+import androidx.activity.viewModels
+import app.fahrtenbuch.mobile.ui.AppViewModel
 import org.maplibre.android.MapLibre
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +22,9 @@ import app.fahrtenbuch.mobile.ui.theme.FahrtenbuchTheme
 import app.fahrtenbuch.mobile.ui.theme.ThemePreferences
 
 class MainActivity : ComponentActivity() {
+    // Dieselbe Instanz wie in FahrtenbuchApp (viewModel() nutzt die Activity als Owner)
+    private val appViewModel: AppViewModel by viewModels()
+
     private lateinit var themePreferences: ThemePreferences
     private var selectedThemeMode by mutableStateOf(app.fahrtenbuch.mobile.ui.theme.ThemeMode.SYSTEM)
 
@@ -36,6 +42,7 @@ class MainActivity : ComponentActivity() {
         themePreferences = ThemePreferences(this)
         selectedThemeMode = themePreferences.themeMode
 
+        handleOAuthCallback(intent)
         setContent {
             // Symbole der Systemleisten passend zum gewählten App-Design (nicht nur zum System),
             // sonst sind sie z. B. bei hellem App-Design im System-Dark-Mode weiß auf weiß.
@@ -52,6 +59,7 @@ class MainActivity : ComponentActivity() {
             }
             FahrtenbuchTheme(themeMode = selectedThemeMode) {
                 FahrtenbuchApp(
+                    appViewModel = appViewModel,
                     themeMode = selectedThemeMode,
                     onThemeModeChange = { mode ->
                         selectedThemeMode = mode
@@ -59,6 +67,21 @@ class MainActivity : ComponentActivity() {
                     }
                 )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleOAuthCallback(intent)
+    }
+
+    /** fahrtenbuch://oauth/callback?ticket=… nach der Anmeldung bei Google/Microsoft. */
+    private fun handleOAuthCallback(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.scheme == "fahrtenbuch" && uri.host == "oauth") {
+            appViewModel.handleOAuthCallback(uri)
+            // Nicht erneut verarbeiten, z. B. nach einer Drehung
+            intent.data = null
         }
     }
 }

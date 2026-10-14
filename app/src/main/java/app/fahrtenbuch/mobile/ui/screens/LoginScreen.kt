@@ -1,6 +1,11 @@
 package app.fahrtenbuch.mobile.ui.screens
 
 import androidx.compose.ui.res.stringResource
+import android.content.Intent
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.runtime.LaunchedEffect
 import app.fahrtenbuch.mobile.R
 import android.os.Build
 import androidx.compose.foundation.layout.*
@@ -54,6 +59,18 @@ fun LoginScreen(viewModel: AppViewModel) {
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var resetRequested by rememberSaveable { mutableStateOf(false) }
     var resetChanged by rememberSaveable { mutableStateOf(false) }
+    var oauthTotp by rememberSaveable { mutableStateOf("") }
+
+    // Welche Anmeldearten bietet der Server an? (Google/Microsoft nur, wenn dort eingerichtet)
+    LaunchedEffect(state.serverUrl) { viewModel.loadOAuthProviders() }
+    val openInBrowser: (String) -> Unit = { url ->
+        runCatching {
+            CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(context, Uri.parse(url))
+        }.onFailure {
+            // Kein Custom-Tab-fähiger Browser: normal öffnen
+            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+        }
+    }
 
     BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
         val minHeight = maxHeight
@@ -89,7 +106,37 @@ fun LoginScreen(viewModel: AppViewModel) {
                 }
 
                 when (mode) {
-                    LoginMode.LOGIN -> {
+                    LoginMode.LOGIN -> if (state.oauthMfaRequired) {
+                        // Google/Microsoft-Anmeldung, aber das Konto hat Zwei-Faktor aktiv
+                        Text(stringResource(R.string.oauth_mfa_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.oauth_mfa_text), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        OutlinedTextField(
+                            value = oauthTotp,
+                            onValueChange = { oauthTotp = it.filter(Char::isDigit).take(6) },
+                            label = { Text(stringResource(R.string.totp_code)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                            singleLine = true,
+                            enabled = !state.loading,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        AuthError(state.error)
+                        Button(
+                            onClick = { viewModel.submitOAuthTotp(oauthTotp) },
+                            enabled = oauthTotp.length == 6 && !state.loading,
+                            modifier = Modifier.fillMaxWidth().height(52.dp)
+                        ) {
+                            if (state.loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            else Text(stringResource(R.string.sign_in))
+                        }
+                        TextButton(
+                            onClick = {
+                                oauthTotp = ""
+                                viewModel.cancelOAuthMfa()
+                            },
+                            enabled = !state.loading,
+                            modifier = Modifier.align(Alignment.End)
+                        ) { Text(stringResource(R.string.cancel)) }
+                    } else {
                         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         Text(stringResource(R.string.server_login), color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -184,6 +231,25 @@ fun LoginScreen(viewModel: AppViewModel) {
                             Icon(Icons.Outlined.Key, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.sign_in_passkey))
+                        }
+
+                        // Externe Anmeldungen, die der Server anbietet
+                        state.oauthProviders.forEach { provider ->
+                            OutlinedButton(
+                                onClick = { viewModel.startOAuthLogin(provider.id, openInBrowser) },
+                                enabled = !state.loading,
+                                modifier = Modifier.fillMaxWidth().height(52.dp)
+                            ) {
+                                Icon(Icons.Outlined.AccountCircle, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    when (provider.id) {
+                                        "google" -> stringResource(R.string.sign_in_google)
+                                        "microsoft" -> stringResource(R.string.sign_in_microsoft)
+                                        else -> stringResource(R.string.sign_in_with, provider.name)
+                                    }
+                                )
+                            }
                         }
 
                         TextButton(

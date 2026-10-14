@@ -4,6 +4,9 @@ import android.content.Context
 import app.fahrtenbuch.mobile.BuildConfig
 import app.fahrtenbuch.mobile.data.api.FahrtenbuchApi
 import app.fahrtenbuch.mobile.data.api.SessionStore
+import app.fahrtenbuch.mobile.data.api.OAUTH_REDIRECT_URI
+import app.fahrtenbuch.mobile.data.api.OAuthMfaRequired
+import app.fahrtenbuch.mobile.data.api.Pkce
 import app.fahrtenbuch.mobile.data.local.CacheEntity
 import app.fahrtenbuch.mobile.data.local.OfflineDatabase
 import app.fahrtenbuch.mobile.data.local.OfflineTripEntity
@@ -80,6 +83,50 @@ class FahrtenbuchRepository(
         ) { "Die Pairing-Sitzung konnte nicht lokal gespeichert werden." }
         migrateStandaloneDataIfNeeded()
         SyncScheduler.enqueue(context)
+    }
+
+    /** Auf dem Server eingerichtete externe Anmeldungen; ältere Server ohne Endpunkt: leer. */
+    suspend fun oauthProviders(): List<OAuthProvider> =
+        runCatching { api.oauthProviders() }.getOrDefault(emptyList()).filter { it.enabled }
+
+    /**
+     * Startet die Anmeldung bei Google/Microsoft: PKCE-Verifier erzeugen und merken, Challenge
+     * an den Server, Autorisierungs-URL zurück (wird im Browser/Custom Tab geöffnet).
+     */
+    suspend fun startOAuthLogin(provider: String): String {
+        val verifier = Pkce.newVerifier()
+        store.pendingOAuthVerifier = verifier
+        return api.oauthLogin(provider, OAuthLoginRequest(OAUTH_REDIRECT_URI, Pkce.challenge(verifier))).authorizationUrl
+    }
+
+    /** Ticket aus dem Callback gegen Tokens tauschen. Wirft [OAuthMfaRequired], wenn TOTP aktiv ist. */
+    suspend fun completeOAuthLogin(ticket: String, totpCode: String?, deviceName: String): User {
+        val verifier = store.pendingOAuthVerifier ?: error("Die Anmeldung wurde nicht in dieser App gestartet.")
+        val response = try {
+            api.oauthExchange(
+                OAuthExchangeRequest(
+                    ticket = ticket,
+                    appCodeVerifier = verifier,
+                    totpCode = totpCode?.takeIf { it.isNotBlank() },
+                    deviceId = store.deviceId,
+                    deviceName = deviceName,
+                    appVersion = BuildConfig.VERSION_NAME
+                )
+            )
+        } catch (error: retrofit2.HttpException) {
+            val body = runCatching { error.response()?.errorBody()?.string() }.getOrNull().orEmpty()
+            val json = runCatching { JSONObject(body) }.getOrNull()
+            val code = json?.optString("error")?.takeIf { it.isNotBlank() } ?: json?.optString("code")
+            if (code == "MFA_REQUIRED") throw OAuthMfaRequired()
+            throw IllegalStateException(json?.optString("message")?.takeIf { it.isNotBlank() } ?: "HTTP ${error.code()}")
+        }
+        store.pendingOAuthVerifier = null
+        check(store.completeLogin(response.accessToken, response.refreshToken)) {
+            "Die Anmeldung konnte nicht lokal gespeichert werden."
+        }
+        migrateStandaloneDataIfNeeded()
+        SyncScheduler.enqueue(context)
+        return response.user
     }
 
     suspend fun passkeyLoginOptions(): String = api.passkeyLoginOptions().string()

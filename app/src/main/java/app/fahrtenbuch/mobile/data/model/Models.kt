@@ -29,6 +29,20 @@ data class LoginRequest(
     val platform: String = "android",
     val appVersion: String? = null
 )
+/** GET /auth/oauth/providers – Google/Microsoft, aktiv wenn auf dem Server eingerichtet. */
+data class OAuthProvider(val id: String, val name: String, val enabled: Boolean)
+data class OAuthLoginRequest(val appRedirectUri: String, val appCodeChallenge: String)
+data class OAuthAuthorizationResponse(val authorizationUrl: String)
+data class OAuthExchangeRequest(
+    val ticket: String,
+    val appCodeVerifier: String,
+    val totpCode: String? = null,
+    val deviceId: String? = null,
+    val deviceName: String? = null,
+    val platform: String = "android",
+    val appVersion: String? = null
+)
+
 data class LoginResponse(val accessToken: String, val refreshToken: String, val expiresIn: Long, val user: User)
 data class TokenPair(
     val accessToken: String,

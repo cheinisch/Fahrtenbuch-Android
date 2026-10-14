@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Sign in with Google or Microsoft: after entering the server address manually, the login screen asks the server which external sign-ins are set up (`GET /auth/oauth/providers`) and shows the matching buttons. The provider page opens in a Custom Tab; the app uses PKCE (`appCodeChallenge`/`appCodeVerifier`) and the redirect `fahrtenbuch://oauth/callback`, then exchanges the ticket via `POST /auth/oauth/exchange`. Accounts with two-factor authentication are asked for the TOTP code. The Google/Microsoft account must be linked to the Fahrtenbuch account in the web dashboard first.
 - Profile picture from Gravatar in the settings (server mode), if one exists for the account's e-mail address; otherwise the initials are shown as before. Only the SHA-256 hash of the address is sent to Gravatar. Can be switched off in the profile (synced with the server setting `gravatarEnabled`); if the server disables Gravatar (`GRAVATAR_ENABLED=false`), the app does not load it at all.
 
 ### Fixed

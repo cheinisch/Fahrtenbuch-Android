@@ -397,4 +397,13 @@
     <string name="gravatar_title">Profilbild von Gravatar</string>
     <string name="gravatar_text">Lädt dein Gravatar-Bild. Dafür wird ein Hash deiner E-Mail-Adresse an Gravatar übertragen.</string>
     <string name="gravatar_disabled_by_server">Gravatar ist auf diesem Server deaktiviert.</string>
+    <string name="sign_in_google">Mit Google anmelden</string>
+    <string name="sign_in_microsoft">Mit Microsoft anmelden</string>
+    <string name="sign_in_with">Mit %1$s anmelden</string>
+    <string name="oauth_mfa_title">Zwei-Faktor-Anmeldung</string>
+    <string name="oauth_mfa_text">Dein Konto ist mit Zwei-Faktor-Authentifizierung geschützt. Gib den 6-stelligen Code aus deiner Authenticator-App ein.</string>
+    <string name="oauth_mfa_invalid">Der Code ist ungültig. Bitte erneut versuchen.</string>
+    <string name="oauth_error_not_linked">Dieses Google-/Microsoft-Konto ist mit keinem Fahrtenbuch-Konto verknüpft. Melde dich einmal mit Passwort an und verknüpfe es im Web-Dashboard unter Profil.</string>
+    <string name="oauth_error_cancelled">Die Anmeldung wurde abgebrochen.</string>
+    <string name="oauth_error_generic">Anmeldung fehlgeschlagen (%1$s).</string>
 </resources>

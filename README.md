@@ -10,7 +10,7 @@ A mileage logbook app for Android. Fahrtenbuch records your trips with GPS, can 
 - **Two modes**
   - **Local:** everything stays on the device; places and distance are resolved on the device
   - **Server:** sync with your own Fahrtenbuch server, offline-first with background sync
-- **Easy server setup** – pair the app by scanning a QR code from the web app, or enter the server address manually; sign in with password, TOTP or passkey
+- **Easy server setup** – pair the app by scanning a QR code from the web app, or enter the server address manually; sign in with password, TOTP, passkey or – if the server has it set up – a linked Google or Microsoft account
 - **Trip list** – grouped by day, filter by period, vehicle, tag and category, daily and filtered totals
 - **Trip details** – vector map with the recorded route (MapLibre + OpenFreeMap), timeline with start and destination, distance, duration and average speed, fullscreen map
 - **Categories** – business, private, commute, uncategorized; the home screen highlights trips that still need a category

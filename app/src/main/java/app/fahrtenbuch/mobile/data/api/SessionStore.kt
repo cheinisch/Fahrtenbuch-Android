@@ -84,6 +84,11 @@ class SessionStore(context: Context) {
     val hasAuthenticatedSession: Boolean
         get() = isServerMode && serverConfigured && !refreshToken.isNullOrBlank()
 
+    /** PKCE-Verifier einer laufenden Google/Microsoft-Anmeldung (überlebt Prozess-Neustart im Browser). */
+    var pendingOAuthVerifier: String?
+        get() = prefs.getString("pending_oauth_verifier", null)
+        set(value) { prefs.edit().putString("pending_oauth_verifier", value).commit() }
+
     fun completeLogin(accessToken: String, refreshToken: String): Boolean =
         prefs.edit()
             .putString("access_token", accessToken)
