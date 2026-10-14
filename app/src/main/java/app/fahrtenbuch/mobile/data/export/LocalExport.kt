@@ -47,7 +47,7 @@ object LocalExport {
         val trips = allTrips
             .filter { it.status != "recording" }
             .filter { trip ->
-                val day = localDate(trip.startedAt, prefs) ?: return@filter false
+                val day = localDate(trip.startedAt, tripPrefs(prefs, trip.startTimeZone)) ?: return@filter false
                 !day.isBefore(from) && !day.isAfter(to) &&
                     (request.vehicleId == null || trip.vehicleId == request.vehicleId) &&
                     (request.tripType == null || trip.tripType == request.tripType) &&
@@ -72,6 +72,7 @@ object LocalExport {
     private fun csv(trips: List<Trip>, f: Formatter): ByteArray {
         val header = listOf(
             f.str(R.string.export_col_date), f.str(R.string.export_col_start_time), f.str(R.string.export_col_end_time),
+            f.str(R.string.format_time_zone),
             f.str(R.string.export_col_start_address), f.str(R.string.export_col_end_address),
             f.str(R.string.vehicle), f.str(R.string.category), f.str(R.string.special_category),
             f.str(R.string.trip_detail_purpose), f.str(R.string.trip_detail_contact), f.str(R.string.trip_detail_note),
@@ -79,7 +80,8 @@ object LocalExport {
         )
         val rows = trips.map { trip ->
             listOf(
-                f.date(trip.startedAt), f.time(trip.startedAt), f.time(trip.endedAt),
+                f.date(trip.startedAt, trip.startTimeZone), f.time(trip.startedAt, trip.startTimeZone), f.time(trip.endedAt, trip.endTimeZone ?: trip.startTimeZone),
+                trip.startTimeZone ?: f.prefs.zoneId().id,
                 trip.startAddress.orEmpty(), trip.endAddress.orEmpty(),
                 f.vehicle(trip), f.type(trip.tripType), f.special(trip.specialCategory),
                 trip.purpose.orEmpty(), trip.contact.orEmpty(), trip.note.orEmpty(),
@@ -213,8 +215,8 @@ object LocalExport {
             }
             val route = "${f.place(trip.startAddress)} → ${f.place(trip.endAddress)}"
             val category = listOfNotNull(f.type(trip.tripType), trip.specialCategory?.let { f.special(it) }).joinToString(" / ")
-            canvas().drawText(f.date(trip.startedAt), MARGIN + columns[0].second, y, body)
-            canvas().drawText("${f.time(trip.startedAt)}–${f.time(trip.endedAt)}", MARGIN + columns[1].second, y, body)
+            canvas().drawText(f.date(trip.startedAt, trip.startTimeZone), MARGIN + columns[0].second, y, body)
+            canvas().drawText("${f.time(trip.startedAt, trip.startTimeZone)}–${f.time(trip.endedAt, trip.endTimeZone ?: trip.startTimeZone)}", MARGIN + columns[1].second, y, body)
             canvas().drawText(ellipsize(route, body, 225f), MARGIN + columns[2].second, y, body)
             canvas().drawText(ellipsize(category, body, 105f), MARGIN + columns[3].second, y, body)
             canvas().drawText(f.distanceNumber(trip.distanceKm), MARGIN + columns[4].second, y, body)
@@ -241,6 +243,9 @@ object LocalExport {
         return text.substring(0, end) + "…"
     }
 
+    private fun tripPrefs(prefs: UserPreferences, zone: String?): UserPreferences =
+        if (zone.isNullOrBlank()) prefs else prefs.copy(timeZone = zone)
+
     private fun localDate(value: String?, prefs: UserPreferences): LocalDate? =
         parseInstant(value)?.atZone(prefs.zoneId())?.toLocalDate()
 
@@ -256,12 +261,16 @@ object LocalExport {
         val unit = if (prefs.distanceUnit == DistanceUnit.MI) "mi" else "km"
         private val dateFormatter = DateTimeFormatter.ofPattern(if (prefs.dateFormat == DateFormatPreference.US) "MM/dd/yyyy" else "dd.MM.yyyy", Locale.US)
         private val timeFormatter = DateTimeFormatter.ofPattern(if (prefs.timeFormat == TimeFormatPreference.H12) "h:mm a" else "HH:mm", Locale.US)
-        private val zone = prefs.zoneId()
+        private val defaultZone = prefs.zoneId()
+
+        private fun zoneOf(id: String?): ZoneId =
+            id?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: defaultZone
 
         fun str(id: Int, vararg args: Any): String = context.getString(id, *args)
         fun dateOf(date: LocalDate): String = dateFormatter.format(date)
-        fun date(value: String?): String = parseInstant(value)?.let { dateFormatter.format(it.atZone(zone)) }.orEmpty()
-        fun time(value: String?): String = parseInstant(value)?.let { timeFormatter.format(it.atZone(zone)) }.orEmpty()
+        /** Datum/Uhrzeit in der Ortszeit der Fahrt (zone = startTimeZone bzw. endTimeZone). */
+        fun date(value: String?, zone: String? = null): String = parseInstant(value)?.let { dateFormatter.format(it.atZone(zoneOf(zone))) }.orEmpty()
+        fun time(value: String?, zone: String? = null): String = parseInstant(value)?.let { timeFormatter.format(it.atZone(zoneOf(zone))) }.orEmpty()
         fun vehicle(trip: Trip): String = vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()
 
         fun distanceNumber(km: Double?): String {

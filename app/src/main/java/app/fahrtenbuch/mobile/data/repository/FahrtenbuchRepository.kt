@@ -368,7 +368,12 @@ class FahrtenbuchRepository(
     suspend fun startTracking(vehicleId: Uuid, type: TripType, odometer: Int?): Uuid {
         val localId = UUID.randomUUID().toString()
         val now = Instant.now().toString()
-        dao.putTrip(OfflineTripEntity(localId, null, vehicleId, type.apiValue, now, null, "RECORDING"))
+        dao.putTrip(
+            OfflineTripEntity(
+                localId, null, vehicleId, type.apiValue, now, null, "RECORDING",
+                startTimeZone = java.time.ZoneId.systemDefault().id
+            )
+        )
         store.activeTripId = localId
         if (store.isServerMode) SyncScheduler.enqueue(context)
         return localId
@@ -377,7 +382,7 @@ class FahrtenbuchRepository(
     suspend fun stopTracking(localId: Uuid, endOdometer: Int?, note: String?): Trip {
         val local = dao.trip(localId) ?: error("Lokale Fahrt nicht gefunden")
         val endedAt = Instant.now().toString()
-        dao.putTrip(local.copy(endedAt = endedAt, state = "STOPPED", pendingStop = true))
+        dao.putTrip(local.copy(endedAt = endedAt, state = "STOPPED", pendingStop = true, endTimeZone = java.time.ZoneId.systemDefault().id))
         store.activeTripId = null
         if (store.isServerMode) SyncScheduler.enqueue(context)
         return local.toUiTrip(endedAt).copy(syncState = if (store.isLocalMode) "LOCAL" else "PENDING")
@@ -443,6 +448,8 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     endAddress = endAddress,
     distanceKm = distanceKm,
     specialCategory = specialCategory,
+    startTimeZone = startTimeZone,
+    endTimeZone = endTimeZone ?: startTimeZone,
     durationSeconds = end?.let {
         runCatching { java.time.Duration.between(Instant.parse(startedAt), Instant.parse(it)).seconds.toInt() }.getOrNull()
     },
@@ -504,7 +511,9 @@ private fun Trip.toEntity() = TripEntity(
     updatedAt = updatedAt,
     vehicleName = vehicleName,
     tagsJson = org.json.JSONArray(tags).toString(),
-    specialCategory = specialCategory
+    specialCategory = specialCategory,
+    startTimeZone = startTimeZone,
+    endTimeZone = endTimeZone
 )
 
 private fun TripEntity.toModel() = Trip(
@@ -529,5 +538,7 @@ private fun TripEntity.toModel() = Trip(
         List(array.length()) { array.getString(it) }
     }.getOrDefault(emptyList()),
     syncState = syncState,
-    specialCategory = specialCategory
+    specialCategory = specialCategory,
+    startTimeZone = startTimeZone,
+    endTimeZone = endTimeZone
 )

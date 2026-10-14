@@ -53,6 +53,7 @@ import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.ParsedAddress
+import app.fahrtenbuch.mobile.ui.common.forTrip
 import app.fahrtenbuch.mobile.ui.common.localizedSpecialCategory
 import app.fahrtenbuch.mobile.ui.common.specialCategoryColors
 import app.fahrtenbuch.mobile.ui.common.specialCategoryIcon
@@ -107,7 +108,7 @@ internal fun TripDetailsScreen(
         else -> stringResource(R.string.trip_details)
     }
     val meta = listOfNotNull(
-        formatTripDate(trip.startedAt, LocalUserPreferences.current),
+        formatTripDate(trip.startedAt, LocalUserPreferences.current.forTrip(trip)),
         trip.vehicleName?.takeIf { it.isNotBlank() }
     ).joinToString("  ·  ")
 
@@ -345,13 +346,13 @@ private fun TripTimelineCard(trip: Trip, start: ParsedAddress?, end: ParsedAddre
     DetailCard {
         Column(Modifier.padding(20.dp)) {
             TimelineRow(
-                time = formatTripTime(trip.startedAt, LocalUserPreferences.current),
+                time = formatTripTime(trip.startedAt, LocalUserPreferences.current.forTrip(trip)),
                 title = start?.name ?: stringResource(R.string.trip_detail_start_unknown),
                 subtitle = start?.detail,
                 isLast = false
             )
             TimelineRow(
-                time = formatTripTime(trip.endedAt, LocalUserPreferences.current),
+                time = formatTripTime(trip.endedAt, LocalUserPreferences.current.forTrip(trip, end = true)),
                 title = end?.name ?: stringResource(R.string.trip_detail_end_unknown),
                 subtitle = end?.detail,
                 isLast = true

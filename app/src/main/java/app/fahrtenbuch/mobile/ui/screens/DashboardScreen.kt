@@ -84,6 +84,7 @@ import app.fahrtenbuch.mobile.ui.common.formatLocalDate
 import app.fahrtenbuch.mobile.ui.common.formatTripTime
 import app.fahrtenbuch.mobile.ui.common.formatTripTimeRange
 import app.fahrtenbuch.mobile.ui.common.shortRoute
+import app.fahrtenbuch.mobile.ui.common.forTrip
 import app.fahrtenbuch.mobile.ui.common.today
 import app.fahrtenbuch.mobile.ui.common.tripLocalDate
 import app.fahrtenbuch.mobile.ui.screens.home.VehicleSelector
@@ -134,9 +135,9 @@ fun DashboardScreen(
 
     val prefs = LocalUserPreferences.current
     val today = today(prefs)
-    val todayTrips = completed.filter { tripLocalDate(it.startedAt, prefs) == today }
+    val todayTrips = completed.filter { tripLocalDate(it, prefs) == today }
     val monthTrips = completed.filter {
-        val day = tripLocalDate(it.startedAt, prefs)
+        val day = tripLocalDate(it, prefs)
         day != null && day.year == today.year && day.month == today.month
     }
     val unclassifiedCount = completed.count { it.tripType == TripType.UNCLASSIFIED }
@@ -303,7 +304,7 @@ private fun RecordingStatus(trip: Trip?, vehicleName: String?) {
                 Text(stringResource(R.string.home_recording_status), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
                 if (started != null) {
                     Text(
-                        stringResource(R.string.home_recording_since, formatTripTime(trip?.startedAt, LocalUserPreferences.current), vehicleName.orEmpty()).trimEnd(' ', '·'),
+                        stringResource(R.string.home_recording_since, formatTripTime(trip?.startedAt, LocalUserPreferences.current.forTrip(trip)), vehicleName.orEmpty()).trimEnd(' ', '·'),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 } else if (vehicleName != null) {
@@ -418,7 +419,7 @@ private fun LatestTripCard(trip: Trip, points: List<TrackPoint>?, onClick: () ->
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "${formatTripTimeRange(trip.startedAt, trip.endedAt, LocalUserPreferences.current)} · ${formatDistanceWithUnit(trip.distanceKm, LocalUserPreferences.current)}",
+                    "${formatTripTimeRange(trip, LocalUserPreferences.current)} · ${formatDistanceWithUnit(trip.distanceKm, LocalUserPreferences.current)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

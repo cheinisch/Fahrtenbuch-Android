@@ -125,14 +125,14 @@ fun TripsScreen(
     // Laufende Aufzeichnungen zeigt die Startseite, nicht die Liste.
     val completed = state.trips.filter { it.status != "recording" }
     val filtered = completed.filter { trip ->
-        val day = tripLocalDate(trip.startedAt, LocalUserPreferences.current)
+        val day = tripLocalDate(trip, LocalUserPreferences.current)
         (vehicleFilter.isBlank() || trip.vehicleId == vehicleFilter) &&
             (tagFilter.isBlank() || tagFilter in trip.tags) &&
             (categoryFilter == null || trip.tripType == categoryFilter) &&
             (fromDate == null || (day != null && !day.isBefore(fromDate))) &&
             (toDate == null || (day != null && !day.isAfter(toDate)))
     }
-    val groups = filtered.groupBy { tripLocalDate(it.startedAt, LocalUserPreferences.current) }.toList()
+    val groups = filtered.groupBy { tripLocalDate(it, LocalUserPreferences.current) }.toList()
     val tags = completed.flatMap { it.tags }.distinct().sorted()
     val vehicleName: (Trip) -> String = { trip ->
         state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()
@@ -459,7 +459,7 @@ private fun TripRow(trip: Trip, vehicleName: String, onClick: () -> Unit) {
             )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    listOf(formatTripTimeRange(trip.startedAt, trip.endedAt, LocalUserPreferences.current), vehicleName)
+                    listOf(formatTripTimeRange(trip, LocalUserPreferences.current), vehicleName)
                         .filter { it.isNotBlank() }
                         .joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,

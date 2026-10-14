@@ -130,6 +130,9 @@ data class Trip(
     val status: String = "completed",
     val startedAt: String,
     val endedAt: String? = null,
+    /** IANA-Zeitzone, in der die Fahrt begann/endete (Server bzw. Gerät bei der Aufzeichnung). */
+    val startTimeZone: String? = null,
+    val endTimeZone: String? = null,
     val startAddress: String? = null,
     val endAddress: String? = null,
     val purpose: String? = null,
@@ -156,7 +159,7 @@ data class TripInput(
     val notes: String? = null
 )
 
-data class StartTrackingRequest(val vehicleId: Uuid, val startedAt: String? = null)
+data class StartTrackingRequest(val vehicleId: Uuid, val startedAt: String? = null, val timeZone: String? = null)
 data class TrackPoint(
     val id: Uuid? = null,
     val tripId: Uuid? = null,
@@ -169,7 +172,7 @@ data class TrackPoint(
     val recordedAt: String
 )
 data class TrackingPointsRequest(val tripId: Uuid, val points: List<TrackPoint>)
-data class StopTrackingRequest(val tripId: Uuid, val endedAt: String? = null)
+data class StopTrackingRequest(val tripId: Uuid, val endedAt: String? = null, val timeZone: String? = null)
 
 data class Tag(val id: Uuid, val name: String)
 data class TagRequest(val name: String)

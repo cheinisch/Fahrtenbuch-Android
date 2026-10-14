@@ -51,7 +51,7 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                 )
                 if (remoteId == null) {
                     Log.i(TAG, "POST tracking/start: localId=${local.localId} vehicleId=${local.vehicleId} startedAt=${local.startedAt}")
-                    val remote = api.startTracking(StartTrackingRequest(local.vehicleId, local.startedAt))
+                    val remote = api.startTracking(StartTrackingRequest(local.vehicleId, local.startedAt, local.startTimeZone))
                     Log.i(TAG, "tracking/start OK: localId=${local.localId} remoteId=${remote.id}")
                     remoteId = remote.id
                     dao.setRemoteId(local.localId, remoteId)
@@ -73,7 +73,7 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                 }
                 if (local.pendingStop && local.endedAt != null) {
                     Log.i(TAG, "POST tracking/stop: localId=${local.localId} remoteId=$remoteId endedAt=${local.endedAt}")
-                    val completed = api.stopTracking(StopTrackingRequest(remoteId, local.endedAt))
+                    val completed = api.stopTracking(StopTrackingRequest(remoteId, local.endedAt, local.endTimeZone ?: local.startTimeZone))
                     dao.markTripSynced(local.localId)
                     Log.i(
                         TAG,
@@ -166,5 +166,7 @@ private fun Trip.toEntity() = TripEntity(
     updatedAt = updatedAt,
     vehicleName = vehicleName,
     tagsJson = org.json.JSONArray(tags).toString(),
-    specialCategory = specialCategory
+    specialCategory = specialCategory,
+    startTimeZone = startTimeZone,
+    endTimeZone = endTimeZone
 )

@@ -65,7 +65,8 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
                 type = "unclassified",
                 startedAt = Instant.now().toString(),
                 endedAt = null,
-                state = "RECORDING"
+                state = "RECORDING",
+                startTimeZone = java.time.ZoneId.systemDefault().id
             )
         )
         store.activeVehicleId = vehicle.id
@@ -88,6 +89,7 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
         dao.putTrip(
             trip.copy(
                 endedAt = Instant.now().toString(),
+                endTimeZone = java.time.ZoneId.systemDefault().id,
                 state = "STOPPED",
                 pendingStop = true
             )

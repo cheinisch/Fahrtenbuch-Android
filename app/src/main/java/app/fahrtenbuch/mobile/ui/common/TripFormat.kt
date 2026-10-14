@@ -4,6 +4,7 @@ import app.fahrtenbuch.mobile.data.model.DateFormatPreference
 import app.fahrtenbuch.mobile.data.model.DistanceUnit
 import app.fahrtenbuch.mobile.data.model.SpeedUnit
 import app.fahrtenbuch.mobile.data.model.TimeFormatPreference
+import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.UserPreferences
 import java.time.Instant
 import java.time.LocalDate
@@ -116,6 +117,26 @@ private fun formatTripPattern(value: String?, pattern: String, prefs: UserPrefer
         .withZone(prefs.zoneId())
         .format(instant)
 }
+
+/**
+ * Einstellungen mit der Zeitzone der Fahrt: Uhrzeiten erscheinen in Ortszeit der Fahrt
+ * (Server: startTimeZone/endTimeZone, lokal: Zeitzone des Geräts bei der Aufzeichnung).
+ * Ohne Fahrt-Zeitzone gilt die Zeitzone aus den Einstellungen.
+ */
+internal fun UserPreferences.forTrip(trip: Trip?, end: Boolean = false): UserPreferences {
+    val zone = if (end) trip?.endTimeZone ?: trip?.startTimeZone else trip?.startTimeZone
+    return if (zone.isNullOrBlank()) this else copy(timeZone = zone)
+}
+
+/** Zeitspanne einer Fahrt in ihrer Ortszeit; Start und Ende können in verschiedenen Zonen liegen. */
+internal fun formatTripTimeRange(trip: Trip, prefs: UserPreferences): String =
+    listOfNotNull(
+        formatTripTime(trip.startedAt, prefs.forTrip(trip)).takeIf { it != "–" },
+        trip.endedAt?.let { formatTripTime(it, prefs.forTrip(trip, end = true)) }?.takeIf { it != "–" }
+    ).joinToString(" – ").ifBlank { "–" }
+
+/** Kalendertag einer Fahrt in ihrer Ortszeit. */
+internal fun tripLocalDate(trip: Trip, prefs: UserPreferences): LocalDate? = tripLocalDate(trip.startedAt, prefs.forTrip(trip))
 
 /** Kalendertag eines Zeitstempels in der gewählten Zeitzone (für Gruppierung und Filter). */
 internal fun tripLocalDate(value: String?, prefs: UserPreferences): LocalDate? =

@@ -40,7 +40,9 @@ data class TripEntity(
     val vehicleName: String?,
     val tagsJson: String = "[]",
     val syncState: String = "SYNCED",
-    val specialCategory: String? = null
+    val specialCategory: String? = null,
+    val startTimeZone: String? = null,
+    val endTimeZone: String? = null
 )
 
 @Entity(tableName = "tags")
@@ -65,7 +67,10 @@ data class OfflineTripEntity(
     val startAddress: String? = null,
     val endAddress: String? = null,
     val distanceKm: Double? = null,
-    val specialCategory: String? = null
+    val specialCategory: String? = null,
+    // Zeitzone des Geräts bei Start/Ende der Aufzeichnung (Ortszeit der Fahrt)
+    val startTimeZone: String? = null,
+    val endTimeZone: String? = null
 )
 
 @Entity(tableName = "track_points", indices = [Index("localTripId")])
@@ -154,7 +159,7 @@ interface OfflineDao {
         OfflineTripEntity::class,
         TrackPointEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -169,9 +174,18 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trips ADD COLUMN startTimeZone TEXT")
+                db.execSQL("ALTER TABLE trips ADD COLUMN endTimeZone TEXT")
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN startTimeZone TEXT")
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN endTimeZone TEXT")
+            }
         }
 
         private val MIGRATION_5_6 = object : Migration(5, 6) {

@@ -38,7 +38,7 @@ There is no CI yet; build locally before pushing larger changes. If you cannot b
 
 - **Strings:** never hardcode user-facing text. Add every key to both `res/values/strings.xml` (English) and `res/values-de/strings.xml` (German). Escape `&` as `&amp;` and apostrophes as `\'`. Use `plurals` for counts.
   - In composables use `stringResource`; in the ViewModel use `str(R.string.…)`; in services/receivers use `context.getString`.
-- **Formatting:** distances, speeds, dates and times go through the helpers in `ui/common/TripFormat.kt` with `LocalUserPreferences.current` (km/mi, km/h/mph, EU/US date, 12h/24h). Stored values are always km, km/h and ISO-8601 UTC – never convert stored data. Never use `ZoneId.systemDefault()` for trip times: use `prefs.zoneId()` (account/selected time zone) via `tripLocalDate`, `today` and the format helpers.
+- **Formatting:** distances, speeds, dates and times go through the helpers in `ui/common/TripFormat.kt` with `LocalUserPreferences.current` (km/mi, km/h/mph, EU/US date, 12h/24h). Stored values are always km, km/h and ISO-8601 UTC – never convert stored data. Never use `ZoneId.systemDefault()` to display trip times: use `prefs.forTrip(trip)` (trip's `startTimeZone`/`endTimeZone`, else account/selected zone) with the format helpers, `tripLocalDate(trip, prefs)` and `today(prefs)`. Only when *recording* a trip is the device zone captured (`OfflineTripEntity.startTimeZone`/`endTimeZone`).
 - **Edge-to-edge:** the app draws behind system bars. Screens outside the main `Scaffold` (onboarding, login, full-screen dialogs) must apply `safeDrawingPadding()` and be scrollable so they fit small screens.
 - **Theme:** use `MaterialTheme.colorScheme` colors so light and dark mode both work; category colors come from `categoryColors()`.
 - **Modes:** keep local mode working without any server. Server-only features must check `appMode` / `store.isServerMode`.
@@ -51,6 +51,7 @@ There is no CI yet; build locally before pushing larger changes. If you cannot b
 - Display preferences: `GET/PATCH /users/me/settings` – `distanceUnit` (`km`|`mi`), `speedUnit` (`kmh`|`mph`), `dateFormat` (`EU`|`US`), `timeFormat` (`24h`|`12h`).
 - Trip category changes use `PUT /trips/{id}/classify` so that GPS data and metadata are not overwritten; avoid `PUT /trips/{id}` for partial updates.
 - Server version/status: `GET /health`.
+- Trip time zones: send the device zone as `timeZone` on `/tracking/start` and `/tracking/stop`; trips return `startTimeZone`, `endTimeZone`, `timeZoneSource`.
 
 ## Git
 

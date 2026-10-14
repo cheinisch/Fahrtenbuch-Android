@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Per-trip time zone: the device records its time zone at the start and end of every recording (also for Bluetooth auto-start) and sends it to the server (`timeZone` on `/tracking/start` and `/tracking/stop`). Trip times are shown in the local time of the trip, using `startTimeZone`/`endTimeZone` from the server (fallback: account time zone) or the recorded device zone in local mode. IANA zone ids make daylight saving time work per timestamp. Local CSV export includes the time zone.
+
 - Time zone setting under *Units & date format*: trip times and days are shown in this zone regardless of the device's time zone. In server mode it is the account time zone (`timezone`, default Europe/Berlin), saved via `PATCH /users/me/profile`; in local mode a zone can be chosen or the device zone used.
 
 - Special categories from the server API (`specialCategory`: medical, volunteering, education/studies, job application, moving, other) as a second classification level next to the trip type.
@@ -19,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Local database schema version 6 (`specialCategory` for synced and offline trips, with migration).
+- Local database schema version 7 (`specialCategory`, `startTimeZone` and `endTimeZone` for synced and offline trips, with migrations).
 - Redesigned statistics: filters for year, month, category and vehicle; total distance with trip count, driving time and average per trip; distance by category with bars; distance per month (tap a bar to filter) or per day.
 
 ### Fixed
