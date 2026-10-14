@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Smartphones are locked to portrait orientation; tablets and unfolded foldables (smallest width ≥ 600 dp) can still rotate.
+
 ## [0.4.3] - 2026-10-14
 
 Version code 25.
