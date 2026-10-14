@@ -14,7 +14,7 @@ android {
         applicationId = "app.fahrtenbuch.mobile"
         minSdk = 29
         targetSdk = 36
-        versionCode = 28
+        versionCode = 29
         versionName = "0.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
