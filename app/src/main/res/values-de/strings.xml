@@ -411,11 +411,11 @@
     <string name="backup_row_google_on">Google-Sicherung an · ZIP-Export</string>
     <string name="backup_row_google_off">Google-Sicherung aus · ZIP-Export</string>
     <string name="backup_google_title">Im Google-Konto sichern</string>
-    <string name="backup_google_text_local">Fahrzeuge, Fahrten und Einstellungen werden in die Android-Sicherung deines Geräts bei Google aufgenommen.</string>
-    <string name="backup_google_text_server">Server-Adresse, Benutzername, Einstellungen und noch nicht synchronisierte Fahrten werden in die Android-Sicherung deines Geräts bei Google aufgenommen.</string>
+    <string name="backup_google_text_local">Fahrzeuge, Fahrten und alle App-Einstellungen (Einheiten, Datums- und Uhrzeitformat, Zeitzone, GPS-Intervall, Design …) werden in die Android-Sicherung deines Geräts bei Google aufgenommen.</string>
+    <string name="backup_google_text_server">Server-Adresse, Benutzername, alle App-Einstellungen (Einheiten, Datums- und Uhrzeitformat, Zeitzone, GPS-Intervall, Design, Gravatar …) sowie die auf dem Gerät gespeicherten Fahrten und Fahrzeuge werden in die Android-Sicherung deines Geräts bei Google aufgenommen.</string>
     <string name="backup_google_hint">Anmeldedaten (Zugriffstokens, Geräte-ID) werden nie gesichert: Tokens laufen ab und werden bei jeder Nutzung erneuert. Auf einem neuen Gerät meldest du dich einfach neu an – Server-Adresse und Benutzername sind schon eingetragen. Android sichert automatisch (meist nachts, im WLAN und beim Laden), wenn die Sicherung in den Systemeinstellungen aktiv ist. Wiederhergestellt wird beim Installieren der App auf einem neuen Gerät mit demselben Google-Konto.</string>
     <string name="backup_zip_title">Sicherung als ZIP-Datei</string>
-    <string name="backup_zip_text">Enthält alle Fahrzeuge, Fahrten mit GPS-Punkten, Tags und Einstellungen – aber keine Anmeldedaten.</string>
+    <string name="backup_zip_text">Enthält alle Fahrzeuge, Fahrten mit GPS-Punkten, Tags und alle Einstellungen, im Server-Modus inklusive Server-Adresse und Benutzername – aber keine Anmeldedaten.</string>
     <string name="backup_export">Sicherung speichern …</string>
     <string name="backup_restore">Sicherung wiederherstellen …</string>
     <string name="backup_working">Bitte warten …</string>

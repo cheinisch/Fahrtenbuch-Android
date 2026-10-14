@@ -411,11 +411,11 @@
     <string name="backup_row_google_on">Google backup on · ZIP export</string>
     <string name="backup_row_google_off">Google backup off · ZIP export</string>
     <string name="backup_google_title">Back up to Google account</string>
-    <string name="backup_google_text_local">Vehicles, trips and settings are included in your device\'s Android backup to Google.</string>
-    <string name="backup_google_text_server">Server address, user name, settings and trips not yet synced are included in your device\'s Android backup to Google.</string>
+    <string name="backup_google_text_local">Vehicles, trips and all app settings (units, date and time format, time zone, GPS interval, design, …) are included in your device\'s Android backup to Google.</string>
+    <string name="backup_google_text_server">Server address, user name, all app settings (units, date and time format, time zone, GPS interval, design, Gravatar, …) and the trips and vehicles stored on this device are included in your device\'s Android backup to Google.</string>
     <string name="backup_google_hint">Login data (access tokens, device ID) is never backed up: tokens expire and are renewed on every use, so on a new device you simply sign in again – the server address and user name are filled in. Android runs the backup automatically (usually overnight, on Wi-Fi and while charging) if backup is enabled in the system settings. Restore happens when you install the app on a new device with the same Google account.</string>
     <string name="backup_zip_title">Backup as ZIP file</string>
-    <string name="backup_zip_text">Contains all vehicles, trips with GPS points, tags and settings – but no login data.</string>
+    <string name="backup_zip_text">Contains all vehicles, trips with GPS points, tags and all settings, in server mode including server address and user name – but no login data.</string>
     <string name="backup_export">Save backup …</string>
     <string name="backup_restore">Restore backup …</string>
     <string name="backup_working">Please wait …</string>
