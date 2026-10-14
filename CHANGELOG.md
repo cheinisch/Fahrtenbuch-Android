@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-14
+
+Version code 26.
+
 ### Added
 
 - Tablet layouts (from 600 dp width): navigation rail on the left instead of the bottom bar. In landscape (from 840 dp) the trip list and the trip details are shown side by side, the home screen, statistics and settings use two columns, vehicles are shown as a grid, and setup and login get a side panel with the app name. Trip details use two columns whenever there is enough width.
 
 ### Changed
 
+- README updated for 0.5.0 (features, server requirements, architecture).
 - Smartphones are locked to portrait orientation; tablets and unfolded foldables (smallest width ≥ 600 dp) can still rotate.
 
 ## [0.4.3] - 2026-10-14
@@ -115,7 +120,8 @@ Version codes 21 and 22.
 
 Version code 20. State before the changes listed above.
 
-[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/721d319...937f08b
 [0.4.1]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/0179389...721d319
