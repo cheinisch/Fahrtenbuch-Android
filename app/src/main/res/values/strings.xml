@@ -328,4 +328,14 @@
         <item quantity="one">Trip</item>
         <item quantity="other">Trips</item>
     </plurals>
+    <string name="special_category">Special category</string>
+    <string name="special_none">None</string>
+    <string name="special_category_hint">Additional purpose of the trip; the trip type stays the same.</string>
+    <string name="special_medical">Medical</string>
+    <string name="special_volunteer">Volunteering</string>
+    <string name="special_education">Education / studies</string>
+    <string name="special_application">Job application</string>
+    <string name="special_moving">Moving</string>
+    <string name="special_other">Other</string>
+    <string name="statistics_by_special_category">By special category</string>
 </resources>

@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Special categories from the server API (`specialCategory`: medical, volunteering, education/studies, job application, moving, other) as a second classification level next to the trip type.
+- Trip details: special category selection (chips, "None" removes it); saved via `PUT /trips/{id}/classify` in server mode and on the device in local mode.
+- Special category chip in the trip list and on the latest trip card; statistics card "By special category".
+
 ### Changed
 
+- Local database schema version 6 (`specialCategory` for synced and offline trips, with migration).
 - Redesigned statistics: filters for year, month, category and vehicle; total distance with trip count, driving time and average per trip; distance by category with bars; distance per month (tap a bar to filter) or per day.
 
 ## [0.4.2] - 2026-10-13

@@ -243,6 +243,13 @@ interface FahrtenbuchApi {
         @Body request: Map<String, String>
     ): Trip
 
+    /** Wie classifyTrip, aber als rohes JSON, damit specialCategory = null (entfernen) mitgesendet wird. */
+    @PUT("trips/{id}/classify")
+    suspend fun classifyTripJson(
+        @Path("id") id: Uuid,
+        @Body body: okhttp3.RequestBody
+    ): Trip
+
     @DELETE("trips/{id}")
     suspend fun deleteTrip(
         @Path("id") id: Uuid

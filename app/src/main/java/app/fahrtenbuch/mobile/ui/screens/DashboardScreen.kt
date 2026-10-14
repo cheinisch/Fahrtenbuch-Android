@@ -74,6 +74,8 @@ import app.fahrtenbuch.mobile.location.TripTrackingService
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.CategoryChip
 import app.fahrtenbuch.mobile.ui.common.CategoryIcon
+import app.fahrtenbuch.mobile.ui.common.SpecialCategoryChip
+import app.fahrtenbuch.mobile.data.model.SpecialCategory
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
 import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatDistance
@@ -418,7 +420,10 @@ private fun LatestTripCard(trip: Trip, points: List<TrackPoint>?, onClick: () ->
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                CategoryChip(trip.tripType)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    CategoryChip(trip.tripType)
+                    SpecialCategory.fromApi(trip.specialCategory)?.let { SpecialCategoryChip(it) }
+                }
             }
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,

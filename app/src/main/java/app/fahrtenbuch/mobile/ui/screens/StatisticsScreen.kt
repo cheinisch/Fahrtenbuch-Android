@@ -59,7 +59,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.fahrtenbuch.mobile.R
+import app.fahrtenbuch.mobile.data.model.SpecialCategory
 import app.fahrtenbuch.mobile.data.model.Trip
+import app.fahrtenbuch.mobile.ui.common.localizedSpecialCategory
+import app.fahrtenbuch.mobile.ui.common.specialCategoryColors
+import app.fahrtenbuch.mobile.ui.common.specialCategoryIcon
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.UserPreferences
 import app.fahrtenbuch.mobile.ui.AppViewModel
@@ -169,6 +173,7 @@ fun StatisticsScreen(viewModel: AppViewModel) {
 
         SummaryCard(periodTrips, prefs)
         CategoryCard(periodTrips, prefs)
+        SpecialCategoryCard(periodTrips, prefs)
 
         if (month == null) {
             BarChartCard(
@@ -288,6 +293,47 @@ private fun CategoryCard(trips: List<Trip>, prefs: UserPreferences) {
                                 .background(colors.content, RoundedCornerShape(50))
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+/** Nur Sonderkategorien mit Strecke im Zeitraum; ohne solche Fahrten entfällt die Karte. */
+@Composable
+private fun SpecialCategoryCard(trips: List<Trip>, prefs: UserPreferences) {
+    val perCategory = SpecialCategory.entries
+        .map { category -> category to trips.filter { it.specialCategory == category.apiValue }.sumOf { it.distanceKm ?: 0.0 } }
+        .filter { it.second > 0 }
+        .sortedByDescending { it.second }
+    if (perCategory.isEmpty()) return
+    val max = perCategory.maxOf { it.second }
+    StatCard {
+        Text(
+            stringResource(R.string.statistics_by_special_category),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        perCategory.forEach { (category, km) ->
+            val colors = specialCategoryColors(category)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(specialCategoryIcon(category), contentDescription = null, tint = colors.content, modifier = Modifier.size(20.dp))
+                    Text(localizedSpecialCategory(category), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(formatDistanceWithUnit(km, prefs), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50))
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth((km / max).toFloat().coerceIn(0.02f, 1f))
+                            .fillMaxHeight()
+                            .background(colors.content, RoundedCornerShape(50))
+                    )
                 }
             }
         }

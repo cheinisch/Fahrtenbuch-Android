@@ -53,6 +53,14 @@ import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.ParsedAddress
+import app.fahrtenbuch.mobile.ui.common.localizedSpecialCategory
+import app.fahrtenbuch.mobile.ui.common.specialCategoryColors
+import app.fahrtenbuch.mobile.ui.common.specialCategoryIcon
+import app.fahrtenbuch.mobile.data.model.SpecialCategory
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import app.fahrtenbuch.mobile.ui.map.MapPadding
 import app.fahrtenbuch.mobile.ui.map.TripRouteMap
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
@@ -77,7 +85,8 @@ internal fun TripDetailsScreen(
     loading: Boolean,
     error: String?,
     onBack: () -> Unit,
-    onCategory: (TripType) -> Unit
+    onCategory: (TripType) -> Unit,
+    onSpecialCategory: (SpecialCategory?) -> Unit
 ) {
     BackHandler(onBack = onBack)
     var mapFullscreen by rememberSaveable(trip.id) { mutableStateOf(false) }
@@ -199,6 +208,13 @@ internal fun TripDetailsScreen(
 
             SectionLabel(stringResource(R.string.category))
             CategorySelector(selected = trip.tripType, enabled = !loading, onSelect = onCategory)
+
+            SectionLabel(stringResource(R.string.special_category))
+            SpecialCategorySelector(
+                selected = SpecialCategory.fromApi(trip.specialCategory),
+                enabled = !loading,
+                onSelect = onSpecialCategory
+            )
 
             SectionLabel(stringResource(R.string.trip_detail_purpose))
             TripPurposeCard(trip)
@@ -397,6 +413,46 @@ private fun TimelineRow(time: String, title: String, subtitle: String?, isLast: 
             subtitle?.let {
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        }
+    }
+}
+
+/** Sonderkategorie als Chips; „Keine“ entfernt sie. Der Fahrttyp bleibt davon unberührt. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SpecialCategorySelector(selected: SpecialCategory?, enabled: Boolean, onSelect: (SpecialCategory?) -> Unit) {
+    DetailCard {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = selected == null,
+                    onClick = { if (selected != null) onSelect(null) },
+                    enabled = enabled,
+                    label = { Text(stringResource(R.string.special_none)) }
+                )
+                SpecialCategory.entries.forEach { category ->
+                    val isSelected = category == selected
+                    val catColors = specialCategoryColors(category)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { if (!isSelected) onSelect(category) },
+                        enabled = enabled,
+                        label = { Text(localizedSpecialCategory(category)) },
+                        leadingIcon = {
+                            Icon(specialCategoryIcon(category), contentDescription = null, tint = catColors.content, modifier = Modifier.size(18.dp))
+                        },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = catColors.container)
+                    )
+                }
+            }
+            Text(
+                stringResource(R.string.special_category_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

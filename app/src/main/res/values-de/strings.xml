@@ -328,4 +328,14 @@
         <item quantity="one">Fahrt</item>
         <item quantity="other">Fahrten</item>
     </plurals>
+    <string name="special_category">Sonderkategorie</string>
+    <string name="special_none">Keine</string>
+    <string name="special_category_hint">Zusätzlicher Zweck der Fahrt, der Fahrttyp bleibt unverändert.</string>
+    <string name="special_medical">Medizinisch</string>
+    <string name="special_volunteer">Ehrenamt</string>
+    <string name="special_education">Ausbildung / Studium</string>
+    <string name="special_application">Bewerbung</string>
+    <string name="special_moving">Umzug</string>
+    <string name="special_other">Sonstiges</string>
+    <string name="statistics_by_special_category">Nach Sonderkategorie</string>
 </resources>

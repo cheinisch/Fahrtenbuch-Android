@@ -39,7 +39,8 @@ data class TripEntity(
     val updatedAt: String?,
     val vehicleName: String?,
     val tagsJson: String = "[]",
-    val syncState: String = "SYNCED"
+    val syncState: String = "SYNCED",
+    val specialCategory: String? = null
 )
 
 @Entity(tableName = "tags")
@@ -63,7 +64,8 @@ data class OfflineTripEntity(
     // Auf dem Gerät ermittelt (Geocoder bzw. GPS-Punkte), vor allem für den lokalen Modus
     val startAddress: String? = null,
     val endAddress: String? = null,
-    val distanceKm: Double? = null
+    val distanceKm: Double? = null,
+    val specialCategory: String? = null
 )
 
 @Entity(tableName = "track_points", indices = [Index("localTripId")])
@@ -99,6 +101,7 @@ interface OfflineDao {
     @Query("SELECT * FROM trips WHERE id=:id") suspend fun storedTrip(id: String): TripEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecord(value: TripEntity)
     @Query("UPDATE offline_trips SET type=:type WHERE localId=:id") suspend fun setLocalTripType(id: String, type: String)
+    @Query("UPDATE offline_trips SET specialCategory=:specialCategory WHERE localId=:id") suspend fun setLocalSpecialCategory(id: String, specialCategory: String?)
     @Query("UPDATE offline_trips SET vehicleId=:newVehicleId WHERE vehicleId=:oldVehicleId") suspend fun remapOfflineTripsVehicle(oldVehicleId: String, newVehicleId: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecords(values: List<TripEntity>)
     @Query("DELETE FROM trips") suspend fun clearTripRecords()
@@ -151,7 +154,7 @@ interface OfflineDao {
         OfflineTripEntity::class,
         TrackPointEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -166,9 +169,16 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trips ADD COLUMN specialCategory TEXT")
+                db.execSQL("ALTER TABLE offline_trips ADD COLUMN specialCategory TEXT")
+            }
         }
 
         private val MIGRATION_4_5 = object : Migration(4, 5) {

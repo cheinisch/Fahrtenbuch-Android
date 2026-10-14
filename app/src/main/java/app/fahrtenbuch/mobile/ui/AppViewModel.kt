@@ -452,14 +452,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateTripCategory(trip: Trip, type: TripType) {
+    fun updateTripCategory(
+        trip: Trip,
+        type: TripType,
+        specialCategory: app.fahrtenbuch.mobile.data.model.SpecialCategory? =
+            app.fahrtenbuch.mobile.data.model.SpecialCategory.fromApi(trip.specialCategory)
+    ) {
         if (!store.isLocalMode && trip.syncState != "SYNCED") {
             _state.value = _state.value.copy(tripDetailsError = str(R.string.error_sync_trip_first))
             return
         }
         viewModelScope.launch {
             _state.value = _state.value.copy(tripDetailsLoading = true, tripDetailsError = null)
-            runCatching { repository.updateTripCategory(trip, type) }
+            runCatching { repository.updateTripCategory(trip, type, specialCategory) }
                 .onSuccess { updated ->
                     _state.value = _state.value.copy(
                         tripDetailsLoading = false,

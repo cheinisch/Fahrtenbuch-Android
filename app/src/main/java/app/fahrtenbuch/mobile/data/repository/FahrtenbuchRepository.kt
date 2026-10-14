@@ -316,14 +316,24 @@ class FahrtenbuchRepository(
         dao.points(id).map { TrackPoint(id = it.id.toString(), tripId = id, lat = it.lat, lon = it.lon, altitude = it.altitude, accuracy = it.accuracy, speed = it.speed, bearing = it.bearing, recordedAt = it.recordedAt) }
     } else api.tripPoints(id)
 
-    suspend fun updateTripCategory(trip: Trip, type: TripType): Trip {
+    suspend fun updateTripCategory(
+        trip: Trip,
+        type: TripType,
+        specialCategory: SpecialCategory? = SpecialCategory.fromApi(trip.specialCategory)
+    ): Trip {
         if (store.isLocalMode) {
             dao.setLocalTripType(trip.id, type.apiValue)
-            return trip.copy(tripType = type, syncState = "LOCAL")
+            dao.setLocalSpecialCategory(trip.id, specialCategory?.apiValue)
+            return trip.copy(tripType = type, specialCategory = specialCategory?.apiValue, syncState = "LOCAL")
         }
         // Classification must not overwrite GPS coordinates, timestamps,
         // addresses or other trip metadata.
-        val updated = api.classifyTrip(trip.id, mapOf("category" to type.apiValue))
+        val body = JSONObject()
+            .put("category", type.apiValue)
+            .put("specialCategory", specialCategory?.apiValue ?: JSONObject.NULL)
+            .toString()
+            .toRequestBody("application/json".toMediaType())
+        val updated = api.classifyTripJson(trip.id, body)
         dao.putTripRecord(updated.toEntity())
         return updated
     }
@@ -408,6 +418,7 @@ private fun OfflineTripEntity.toUiTrip(end: String?) = Trip(
     startAddress = startAddress,
     endAddress = endAddress,
     distanceKm = distanceKm,
+    specialCategory = specialCategory,
     durationSeconds = end?.let {
         runCatching { java.time.Duration.between(Instant.parse(startedAt), Instant.parse(it)).seconds.toInt() }.getOrNull()
     },
@@ -468,7 +479,8 @@ private fun Trip.toEntity() = TripEntity(
     createdAt = createdAt,
     updatedAt = updatedAt,
     vehicleName = vehicleName,
-    tagsJson = org.json.JSONArray(tags).toString()
+    tagsJson = org.json.JSONArray(tags).toString(),
+    specialCategory = specialCategory
 )
 
 private fun TripEntity.toModel() = Trip(
@@ -492,5 +504,6 @@ private fun TripEntity.toModel() = Trip(
         val array = org.json.JSONArray(tagsJson)
         List(array.length()) { array.getString(it) }
     }.getOrDefault(emptyList()),
-    syncState = syncState
+    syncState = syncState,
+    specialCategory = specialCategory
 )

@@ -89,6 +89,20 @@ data class CreateVehicleRequest(val name: String, val licensePlate: String? = nu
 data class UpdateVehicleRequest(val name: String? = null, val licensePlate: String? = null)
 data class BluetoothMacRequest(val bluetoothMac: String?)
 
+/** Zweite Klassifizierungsebene des Servers (trips.special_category). */
+enum class SpecialCategory(val apiValue: String) {
+    MEDICAL("medical"),
+    VOLUNTEER("volunteer"),
+    EDUCATION("education"),
+    APPLICATION("application"),
+    MOVING("moving"),
+    OTHER("other");
+
+    companion object {
+        fun fromApi(value: String?): SpecialCategory? = entries.firstOrNull { it.apiValue == value }
+    }
+}
+
 enum class TripType(val apiValue: String, val label: String) {
     @Json(name = "business") BUSINESS("business", "Dienstlich"),
     @Json(name = "private") PRIVATE("private", "Privat"),
@@ -111,6 +125,8 @@ data class Trip(
     val id: Uuid,
     val vehicleId: Uuid,
     @Json(name = "type") val tripType: TripType,
+    /** Optionale Sonderkategorie (API: specialCategory), unabhängig vom Fahrttyp. Als String, damit neue Serverwerte nicht crashen. */
+    val specialCategory: String? = null,
     val status: String = "completed",
     val startedAt: String,
     val endedAt: String? = null,

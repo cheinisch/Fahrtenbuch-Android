@@ -144,7 +144,8 @@ private fun Vehicle.toEntity() = VehicleEntity(
     licensePlate = licensePlate,
     bluetoothMac = bluetoothMac,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    isDefault = isDefault
 )
 
 private fun Trip.toEntity() = TripEntity(
@@ -164,5 +165,6 @@ private fun Trip.toEntity() = TripEntity(
     createdAt = createdAt,
     updatedAt = updatedAt,
     vehicleName = vehicleName,
-    tagsJson = org.json.JSONArray(tags).toString()
+    tagsJson = org.json.JSONArray(tags).toString(),
+    specialCategory = specialCategory
 )

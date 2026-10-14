@@ -63,6 +63,8 @@ import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.CategoryChip
 import app.fahrtenbuch.mobile.ui.common.CategoryIcon
+import app.fahrtenbuch.mobile.ui.common.SpecialCategoryChip
+import app.fahrtenbuch.mobile.data.model.SpecialCategory
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
 import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatDistance
@@ -111,7 +113,8 @@ fun TripsScreen(
             loading = state.tripDetailsLoading,
             error = state.tripDetailsError,
             onBack = { selectedTripId = null },
-            onCategory = { viewModel.updateTripCategory(selectedTrip, it) }
+            onCategory = { viewModel.updateTripCategory(selectedTrip, it) },
+            onSpecialCategory = { viewModel.updateTripCategory(selectedTrip, selectedTrip.tripType, it) }
         )
         return
     }
@@ -466,7 +469,10 @@ private fun TripRow(trip: Trip, vehicleName: String, onClick: () -> Unit) {
                 )
                 SyncBadge(trip.syncState)
             }
-            CategoryChip(trip.tripType)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                CategoryChip(trip.tripType)
+                SpecialCategory.fromApi(trip.specialCategory)?.let { SpecialCategoryChip(it) }
+            }
         }
         Text(
             buildAnnotatedString {
