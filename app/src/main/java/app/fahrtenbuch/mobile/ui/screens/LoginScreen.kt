@@ -1,5 +1,6 @@
 package app.fahrtenbuch.mobile.ui.screens
 
+import app.fahrtenbuch.mobile.data.auth.PasskeySupport
 import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.net.Uri
@@ -43,6 +44,7 @@ fun LoginScreen(viewModel: AppViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val credentialManager = remember(context) { CredentialManager.create(context) }
+    val devicePasskeys = remember(context) { PasskeySupport.isDeviceSupported(context) }
     val deviceName = remember {
         listOf(Build.MANUFACTURER, Build.MODEL).filter { it.isNotBlank() }.joinToString(" ")
     }
@@ -201,8 +203,8 @@ fun LoginScreen(viewModel: AppViewModel) {
                             }
                         }
 
-                        // Nur wenn der Server Passkeys anbietet (PASSKEYS_ENABLED)
-                        if (state.authMethods.passkeys) {
+                        // Nur wenn der Server Passkeys anbietet (PASSKEYS_ENABLED) und das Gerät sie kann
+                        if (state.authMethods.passkeys && devicePasskeys) {
                             OutlinedButton(
                                 onClick = {
                                     scope.launch {

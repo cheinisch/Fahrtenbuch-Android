@@ -141,6 +141,16 @@ class FahrtenbuchRepository(
 
     suspend fun passkeys(): List<PasskeyInfo> = api.passkeys()
 
+    /**
+     * Bietet der Server Passkeys an? Neuere Server melden das über /auth/methods. Ältere
+     * ohne diesen Endpunkt: Passkey-Liste abfragen – gibt es sie nicht (404), fehlt die Funktion.
+     * Im Zweifel (Netzwerkfehler) lieber ausblenden als einen kaputten Menüpunkt zeigen.
+     */
+    suspend fun serverSupportsPasskeys(): Boolean {
+        runCatching { api.authMethods() }.onSuccess { return it.passkeys }
+        return runCatching { api.passkeys() }.isSuccess
+    }
+
     suspend fun passkeyRegisterOptions(): String = api.passkeyRegisterOptions().string()
 
     suspend fun registerPasskey(registrationResponseJson: String, name: String) {

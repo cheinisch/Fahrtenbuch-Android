@@ -104,8 +104,8 @@ fun SettingsScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadAccount()
-        // Passkey-Verwaltung nur zeigen, wenn der Server Passkeys anbietet
-        viewModel.loadAuthMethods()
+        // Passkey-Verwaltung nur zeigen, wenn Server und Gerät Passkeys unterstützen
+        viewModel.loadPasskeySupport()
     }
 
     val windowLayout = LocalWindowLayout.current
@@ -149,7 +149,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 val https = appState.serverUrl.startsWith("https://", ignoreCase = true)
                 val certChecked = https && !sessionStore.allowInvalidCertificates
-                if (appState.authMethods.passkeys) {
+                if (appState.passkeysAvailable) {
                     SettingsRow(
                         icon = Icons.Default.Key,
                         title = stringResource(R.string.passkeys_title),

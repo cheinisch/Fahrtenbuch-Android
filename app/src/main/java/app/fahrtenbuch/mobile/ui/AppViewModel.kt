@@ -1,5 +1,6 @@
 package app.fahrtenbuch.mobile.ui
 
+import app.fahrtenbuch.mobile.data.auth.PasskeySupport
 import android.app.Application
 import app.fahrtenbuch.mobile.R
 import android.os.Build
@@ -37,6 +38,8 @@ data class AppUiState(
     val oauthProviders: List<app.fahrtenbuch.mobile.data.model.OAuthProvider> = emptyList(),
     /** Vom Server angebotene Anmeldeverfahren (TOTP, Passkeys); ausgeblendet, was fehlt. */
     val authMethods: app.fahrtenbuch.mobile.data.model.AuthMethods = app.fahrtenbuch.mobile.data.model.AuthMethods(),
+    /** Passkey-Verwaltung in den Einstellungen: Server bietet Passkeys an und das Gerät kann sie. */
+    val passkeysAvailable: Boolean = false,
     /** Google/Microsoft-Anmeldung wartet auf den Zwei-Faktor-Code. */
     val oauthMfaRequired: Boolean = false,
     val tracking: Boolean = false,
@@ -293,6 +296,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         "OAUTH_NOT_LINKED" -> str(R.string.oauth_error_not_linked)
         "OAUTH_CANCELLED", "access_denied" -> str(R.string.oauth_error_cancelled)
         else -> str(R.string.oauth_error_generic, code)
+    }
+
+    /** Prüft, ob der Menüpunkt „Passkeys“ in den Einstellungen erscheinen soll. */
+    fun loadPasskeySupport() {
+        if (!store.isServerMode || !PasskeySupport.isDeviceSupported(getApplication())) {
+            _state.value = _state.value.copy(passkeysAvailable = false)
+            return
+        }
+        viewModelScope.launch {
+            val supported = repository.serverSupportsPasskeys()
+            _state.value = _state.value.copy(passkeysAvailable = supported)
+        }
     }
 
     // Passkeys verwalten (Einstellungen). Die UI ruft den Credential Manager selbst auf,
