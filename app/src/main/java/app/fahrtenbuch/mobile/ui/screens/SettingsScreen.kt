@@ -50,6 +50,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.fahrtenbuch.mobile.BuildConfig
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.widthIn
+import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.api.AppMode
 import app.fahrtenbuch.mobile.data.api.SessionStore
@@ -96,11 +99,12 @@ fun SettingsScreen(
 
     LaunchedEffect(Unit) { viewModel.loadAccount() }
 
+    val windowLayout = LocalWindowLayout.current
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 24.dp)
+            .padding(horizontal = if (windowLayout.wide) 32.dp else 16.dp, vertical = 24.dp)
     ) {
         Text(
             stringResource(R.string.settings),
@@ -109,6 +113,8 @@ fun SettingsScreen(
             fontWeight = FontWeight.ExtraBold
         )
 
+        // Tablet quer: Konto/Verbindung/Darstellung links, App-Einstellungen rechts
+        val accountSection: @Composable ColumnScope.() -> Unit = {
         if (isServerMode) {
             ProfileCard(
                 user = appState.user,
@@ -182,7 +188,9 @@ fun SettingsScreen(
             },
             onSelect = onThemeModeChange
         )
+        }
 
+        val appSection: @Composable ColumnScope.() -> Unit = {
         SettingsSectionLabel(stringResource(R.string.vehicles))
         SettingsCard {
             SettingsRow(
@@ -280,6 +288,20 @@ fun SettingsScreen(
                     modifier = Modifier.padding(start = 8.dp),
                     fontWeight = FontWeight.Bold
                 )
+            }
+        }
+        }
+
+        if (windowLayout.twoPane) {
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                Column(Modifier.weight(1f), content = accountSection)
+                // Der Abschnittstitel links beginnt bei Server-Betrieb mit der Profilkarte (20 dp Abstand)
+                Column(Modifier.weight(1f).padding(top = if (isServerMode) 4.dp else 0.dp), content = appSection)
+            }
+        } else {
+            Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().align(Alignment.CenterHorizontally)) {
+                accountSection()
+                appSection()
             }
         }
     }

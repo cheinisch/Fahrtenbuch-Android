@@ -1,5 +1,10 @@
 package app.fahrtenbuch.mobile.ui.screens
 
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.background
+import androidx.compose.material3.VerticalDivider
+import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -106,22 +111,28 @@ fun TripsScreen(
         onRequestHandled()
     }
 
+    // Tablet quer: Liste links, Details rechts daneben
+    val twoPane = LocalWindowLayout.current.twoPane
     val selectedTrip = state.trips.firstOrNull { it.id == selectedTripId }
-    if (selectedTrip != null) {
+    val tripDetails: @Composable (Trip, Boolean) -> Unit = { trip, embedded ->
         TripDetailsScreen(
-            trip = selectedTrip,
+            trip = trip,
             points = state.tripPoints,
             loading = state.tripDetailsLoading,
             error = state.tripDetailsError,
             onBack = { selectedTripId = null },
-            onCategory = { viewModel.updateTripCategory(selectedTrip, it) },
-            onSpecialCategory = { viewModel.updateTripCategory(selectedTrip, selectedTrip.tripType, it) },
-            onPurpose = { purpose, contact, note, onDone -> viewModel.updateTripPurpose(selectedTrip, purpose, contact, note, onDone) },
+            onCategory = { viewModel.updateTripCategory(trip, it) },
+            onSpecialCategory = { viewModel.updateTripCategory(trip, trip.tripType, it) },
+            onPurpose = { purpose, contact, note, onDone -> viewModel.updateTripPurpose(trip, purpose, contact, note, onDone) },
             availableTags = state.availableTags,
             onLoadTags = viewModel::loadTags,
             onCreateTag = viewModel::createTag,
-            onTags = { tags, onDone -> viewModel.setTripTags(selectedTrip, tags, onDone) }
+            onTags = { tags, onDone -> viewModel.setTripTags(trip, tags, onDone) },
+            embedded = embedded
         )
+    }
+    if (!twoPane && selectedTrip != null) {
+        tripDetails(selectedTrip, false)
         return
     }
 
@@ -143,8 +154,20 @@ fun TripsScreen(
         state.vehicles.firstOrNull { it.id == trip.vehicleId }?.name ?: trip.vehicleName.orEmpty()
     }
 
+    // Zweispaltig ohne Auswahl: die neueste Fahrt der gefilterten Liste anzeigen
+    val firstFilteredId = filtered.firstOrNull()?.id
+    LaunchedEffect(twoPane, firstFilteredId, selectedTrip == null) {
+        if (twoPane && selectedTrip == null) {
+            filtered.firstOrNull()?.let { trip ->
+                selectedTripId = trip.id
+                viewModel.loadTripDetails(trip)
+            }
+        }
+    }
+
+    Row(Modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = if (twoPane) Modifier.width(420.dp).fillMaxHeight() else Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         item {
@@ -279,6 +302,7 @@ fun TripsScreen(
                             TripRow(
                                 trip = trip,
                                 vehicleName = vehicleName(trip),
+                                selected = twoPane && trip.id == selectedTripId,
                                 onClick = {
                                     selectedTripId = trip.id
                                     viewModel.loadTripDetails(trip)
@@ -289,6 +313,21 @@ fun TripsScreen(
                 }
             }
         }
+    }
+    if (twoPane) {
+        VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+        Box(Modifier.weight(1f).fillMaxHeight()) {
+            if (selectedTrip != null) {
+                tripDetails(selectedTrip, true)
+            } else {
+                Text(
+                    stringResource(R.string.trips_select_hint),
+                    modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
     }
 
     if (showPeriodDialog) {
@@ -438,11 +477,13 @@ private fun DayHeader(day: LocalDate?, totalKm: Double) {
 }
 
 @Composable
-private fun TripRow(trip: Trip, vehicleName: String, onClick: () -> Unit) {
+private fun TripRow(trip: Trip, vehicleName: String, onClick: () -> Unit, selected: Boolean = false) {
     val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Ausgewählte Fahrt in der zweispaltigen Ansicht hervorheben
+            .background(if (selected) colors.primaryContainer.copy(alpha = 0.6f) else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),

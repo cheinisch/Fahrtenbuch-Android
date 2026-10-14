@@ -1,6 +1,10 @@
 package app.fahrtenbuch.mobile.ui.screens
 
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
 import android.Manifest
 import android.annotation.SuppressLint
@@ -77,57 +81,15 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text(stringResource(R.string.vehicles), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text(stringResource(R.string.vehicles_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Row {
-                    IconButton(onClick = { showVehicleWizard = true }, enabled = !state.loading) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.vehicles_add))
-                    }
-                    IconButton(onClick = viewModel::loadVehicles, enabled = !state.loading) {
-                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.vehicles_reload))
-                    }
-                }
-            }
-        }
-
-        state.error?.let { message ->
-            item { Text(message, color = MaterialTheme.colorScheme.error) }
-        }
-
-        if (state.loading && state.vehicles.isEmpty()) {
-            item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-        }
-
-        if (!state.loading && state.vehicles.isEmpty()) {
-            item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            if (state.vehiclesLoadedFromServer)
-                                stringResource(R.string.vehicles_empty_server)
-                            else
-                                stringResource(R.string.vehicles_empty_local)
-                        )
-                        Button(onClick = { showVehicleWizard = true }) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.setup_first_vehicle))
-                        }
-                    }
-                }
-            }
-        }
-
-        items(state.vehicles, key = { it.id }) { vehicle ->
-            Card(Modifier.fillMaxWidth()) {
+    val windowLayout = LocalWindowLayout.current
+    // Tablet: Fahrzeuge als Raster (hochkant 2, quer 3 Spalten)
+    val columns = when {
+        windowLayout.twoPane -> 3
+        windowLayout.wide -> 2
+        else -> 1
+    }
+    val vehicleCard: @Composable (Vehicle, Modifier) -> Unit = { vehicle, cardModifier ->
+            Card(cardModifier) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Icon(Icons.Default.DirectionsCar, contentDescription = null)
@@ -184,6 +146,68 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                             Text(stringResource(R.string.vehicles_make_default))
                         }
                     }
+                }
+            }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(if (windowLayout.wide) 32.dp else 20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text(stringResource(R.string.vehicles), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.vehicles_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Row {
+                    IconButton(onClick = { showVehicleWizard = true }, enabled = !state.loading) {
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.vehicles_add))
+                    }
+                    IconButton(onClick = viewModel::loadVehicles, enabled = !state.loading) {
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.vehicles_reload))
+                    }
+                }
+            }
+        }
+
+        state.error?.let { message ->
+            item { Text(message, color = MaterialTheme.colorScheme.error) }
+        }
+
+        if (state.loading && state.vehicles.isEmpty()) {
+            item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        }
+
+        if (!state.loading && state.vehicles.isEmpty()) {
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            if (state.vehiclesLoadedFromServer)
+                                stringResource(R.string.vehicles_empty_server)
+                            else
+                                stringResource(R.string.vehicles_empty_local)
+                        )
+                        Button(onClick = { showVehicleWizard = true }) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.setup_first_vehicle))
+                        }
+                    }
+                }
+            }
+        }
+
+        if (columns == 1) {
+            items(state.vehicles, key = { it.id }) { vehicle ->
+                vehicleCard(vehicle, Modifier.fillMaxWidth())
+            }
+        } else {
+            items(state.vehicles.chunked(columns), key = { row -> row.first().id }) { row ->
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    row.forEach { vehicle -> vehicleCard(vehicle, Modifier.weight(1f).fillMaxHeight()) }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
         }

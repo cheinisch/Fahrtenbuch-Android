@@ -62,6 +62,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.RowScope
+import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.model.SpecialCategory
 import app.fahrtenbuch.mobile.data.model.Trip
@@ -129,12 +131,14 @@ fun StatisticsScreen(viewModel: AppViewModel) {
         vehicleName
     ).joinToString(" · ")
 
+    val windowLayout = LocalWindowLayout.current
+    val horizontalPadding = if (windowLayout.wide) 32.dp else 16.dp
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(start = horizontalPadding, end = horizontalPadding, top = 24.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(if (windowLayout.wide) 16.dp else 12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 4.dp),
@@ -150,8 +154,8 @@ fun StatisticsScreen(viewModel: AppViewModel) {
             }
         }
 
-        // Filter
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Filter: auf Smartphones zwei Zeilen, auf Tablets eine
+        val periodFilters: @Composable RowScope.() -> Unit = {
             FilterDropdown(
                 icon = Icons.Default.CalendarMonth,
                 label = year.toString(),
@@ -170,7 +174,7 @@ fun StatisticsScreen(viewModel: AppViewModel) {
                 modifier = Modifier.weight(1.3f)
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val scopeFilters: @Composable RowScope.() -> Unit = {
             FilterDropdown(
                 icon = Icons.Default.Category,
                 label = category?.let { localizedTripType(it) }
@@ -192,11 +196,17 @@ fun StatisticsScreen(viewModel: AppViewModel) {
                 modifier = Modifier.weight(1f)
             )
         }
+        if (windowLayout.wide) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                periodFilters()
+                scopeFilters()
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), content = periodFilters)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), content = scopeFilters)
+        }
 
-        SummaryCard(periodTrips, prefs)
-        CategoryCard(periodTrips, prefs)
-        SpecialCategoryCard(periodTrips, prefs)
-
+        val chart: @Composable () -> Unit = {
         if (month == null) {
             BarChartCard(
                 title = stringResource(R.string.statistics_per_month),
@@ -219,6 +229,24 @@ fun StatisticsScreen(viewModel: AppViewModel) {
                 prefs = prefs,
                 onBarClick = null
             )
+        }
+        }
+
+        // Tablet quer: Summe neben dem Diagramm, Kategorien nebeneinander darunter
+        if (windowLayout.twoPane) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.weight(1f)) { SummaryCard(periodTrips, prefs) }
+                Column(Modifier.weight(2f)) { chart() }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.weight(1f)) { CategoryCard(periodTrips, prefs) }
+                Column(Modifier.weight(1f)) { SpecialCategoryCard(periodTrips, prefs) }
+            }
+        } else {
+            SummaryCard(periodTrips, prefs)
+            CategoryCard(periodTrips, prefs)
+            SpecialCategoryCard(periodTrips, prefs)
+            chart()
         }
     }
 

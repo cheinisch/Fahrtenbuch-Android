@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Tablet layouts (from 600 dp width): navigation rail on the left instead of the bottom bar. In landscape (from 840 dp) the trip list and the trip details are shown side by side, the home screen, statistics and settings use two columns, vehicles are shown as a grid, and setup and login get a side panel with the app name. Trip details use two columns whenever there is enough width.
+
 ### Changed
 
 - Smartphones are locked to portrait orientation; tablets and unfolded foldables (smallest width ≥ 600 dp) can still rotate.

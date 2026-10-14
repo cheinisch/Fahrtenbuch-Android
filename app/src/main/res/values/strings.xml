@@ -384,4 +384,9 @@
     <string name="format_time_zone_device">Device time zone (%1$s)</string>
     <string name="format_time_zone_device_short">Device time zone</string>
     <string name="format_time_zone_hint">Trip times and days are shown in this time zone, regardless of the device setting.</string>
+    <string name="trips_select_hint">Select a trip on the left.</string>
+    <string name="auth_tagline">Record trips automatically, assign categories and create the tax export with one tap.</string>
+    <string name="auth_feature_bluetooth">Auto-start via Bluetooth</string>
+    <string name="auth_feature_offline">Works without a server</string>
+    <string name="auth_feature_export">Export as PDF or CSV</string>
 </resources>

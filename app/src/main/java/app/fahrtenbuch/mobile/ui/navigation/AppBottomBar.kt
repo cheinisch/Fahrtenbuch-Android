@@ -5,7 +5,18 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
@@ -87,6 +98,67 @@ fun AppBottomBar(
                 )
             }
         }
+    }
+}
+
+/**
+ * Navigationsleiste links für Tablets und aufgeklappte Foldables (ab 600 dp Breite).
+ * Gleiche Ziele und Darstellung wie die untere Leiste, nur senkrecht.
+ */
+@Composable
+fun AppNavigationRail(
+    destinations: List<BottomDestination>,
+    isSelected: (BottomDestination) -> Boolean,
+    onSelect: (BottomDestination) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Row {
+        NavigationRail(
+            modifier = Modifier.fillMaxHeight().width(96.dp),
+            containerColor = colors.surface,
+            // Die Insets setzt bereits das Scaffold
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        ) {
+            Spacer(Modifier.height(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                destinations.forEach { destination ->
+                    val selected = isSelected(destination)
+                    NavigationRailItem(
+                        selected = selected,
+                        onClick = { onSelect(destination) },
+                        icon = {
+                            if (destination.showRecordingDot) {
+                                val recordingLabel = stringResource(R.string.nav_recording_active)
+                                BadgedBox(
+                                    badge = { RecordingDot() },
+                                    modifier = Modifier.semantics { contentDescription = recordingLabel }
+                                ) {
+                                    Icon(destination.icon, contentDescription = null)
+                                }
+                            } else {
+                                Icon(destination.icon, contentDescription = null)
+                            }
+                        },
+                        label = {
+                            Text(
+                                destination.label,
+                                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                maxLines = 1
+                            )
+                        },
+                        alwaysShowLabel = true,
+                        colors = NavigationRailItemDefaults.colors(
+                            selectedIconColor = colors.primary,
+                            selectedTextColor = colors.onSurface,
+                            indicatorColor = colors.primaryContainer,
+                            unselectedIconColor = colors.onSurfaceVariant,
+                            unselectedTextColor = colors.onSurfaceVariant
+                        )
+                    )
+                }
+            }
+        }
+        VerticalDivider(color = colors.outlineVariant.copy(alpha = 0.6f))
     }
 }
 

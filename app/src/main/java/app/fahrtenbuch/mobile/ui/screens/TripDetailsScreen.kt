@@ -98,9 +98,11 @@ internal fun TripDetailsScreen(
     availableTags: List<Tag>,
     onLoadTags: () -> Unit,
     onCreateTag: (name: String, onCreated: (Tag) -> Unit) -> Unit,
-    onTags: (tags: List<Tag>, onDone: () -> Unit) -> Unit
+    onTags: (tags: List<Tag>, onDone: () -> Unit) -> Unit,
+    /** Als rechte Spalte neben der Liste (Tablet): kein Zurück-Button, Zurück schließt nichts. */
+    embedded: Boolean = false
 ) {
-    BackHandler(onBack = onBack)
+    BackHandler(enabled = !embedded, onBack = onBack)
     var editPurpose by rememberSaveable(trip.id) { mutableStateOf(false) }
     if (editPurpose) {
         TripPurposeDialog(
@@ -182,17 +184,19 @@ internal fun TripDetailsScreen(
                     .background(Brush.verticalGradient(listOf(colors.background.copy(alpha = 0f), colors.background)))
             )
 
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = colors.surface.copy(alpha = 0.9f),
-                border = BorderStroke(1.dp, colors.outlineVariant.copy(alpha = 0.5f)),
-                shadowElevation = 4.dp
-            ) {
-                IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.trip_detail_back))
+            if (!embedded) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.surface.copy(alpha = 0.9f),
+                    border = BorderStroke(1.dp, colors.outlineVariant.copy(alpha = 0.5f)),
+                    shadowElevation = 4.dp
+                ) {
+                    IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.trip_detail_back))
+                    }
                 }
             }
 
@@ -230,16 +234,14 @@ internal fun TripDetailsScreen(
             }
         }
 
-        Column(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
+        val overview: @Composable ColumnScope.() -> Unit = {
             TripMetricsCard(trip)
             TripTimelineCard(trip, start, end)
 
             if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
             error?.let { Text(it, color = colors.error, style = MaterialTheme.typography.bodyMedium) }
-
+        }
+        val classification: @Composable ColumnScope.() -> Unit = {
             SectionLabel(stringResource(R.string.category))
             CategorySelector(selected = trip.tripType, enabled = !loading, onSelect = onCategory)
 
@@ -255,6 +257,20 @@ internal fun TripDetailsScreen(
 
             SectionLabel(stringResource(R.string.trip_tags))
             TripTagsCard(trip, enabled = !loading, onEdit = { onLoadTags(); editTags = true })
+        }
+        // Breite Ansicht (Tablet): Kennzahlen/Verlauf links, Einordnung rechts
+        BoxWithConstraints(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)) {
+            if (maxWidth >= 700.dp) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp), content = overview)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp), content = classification)
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    overview()
+                    classification()
+                }
+            }
         }
         Spacer(Modifier.height(24.dp))
     }

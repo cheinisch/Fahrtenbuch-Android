@@ -384,4 +384,9 @@
     <string name="format_time_zone_device">Zeitzone des Geräts (%1$s)</string>
     <string name="format_time_zone_device_short">Gerätezeitzone</string>
     <string name="format_time_zone_hint">Uhrzeiten und Tage der Fahrten werden in dieser Zeitzone angezeigt – unabhängig von der Einstellung des Geräts.</string>
+    <string name="trips_select_hint">Wähle links eine Fahrt aus.</string>
+    <string name="auth_tagline">Fahrten automatisch aufzeichnen, Kategorien vergeben und den Steuer-Export mit einem Tipp erstellen.</string>
+    <string name="auth_feature_bluetooth">Auto-Start per Bluetooth</string>
+    <string name="auth_feature_offline">Funktioniert auch ohne Server</string>
+    <string name="auth_feature_export">Export als PDF oder CSV</string>
 </resources>

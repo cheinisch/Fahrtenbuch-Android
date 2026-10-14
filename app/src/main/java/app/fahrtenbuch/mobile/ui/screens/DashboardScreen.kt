@@ -66,6 +66,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.widthIn
+import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.data.model.Trip
@@ -142,11 +145,17 @@ fun DashboardScreen(
     }
     val unclassifiedCount = completed.count { it.tripType == TripType.UNCLASSIFIED }
 
+    val windowLayout = LocalWindowLayout.current
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 24.dp)
+            .padding(
+                start = if (windowLayout.wide) 32.dp else 16.dp,
+                end = if (windowLayout.wide) 32.dp else 16.dp,
+                top = 24.dp,
+                bottom = 24.dp
+            )
     ) {
         Column(Modifier.padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
@@ -161,6 +170,8 @@ fun DashboardScreen(
             )
         }
 
+        // Tablet quer: links Start und Kennzahlen, rechts offene Kategorien und letzte Fahrt
+        val primary: @Composable ColumnScope.() -> Unit = {
         // Hauptkarte: Fahrzeug, Aufzeichnungsstatus, Start/Stopp
         Surface(
             modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
@@ -236,7 +247,9 @@ fun DashboardScreen(
                 modifier = Modifier.weight(1f)
             )
         }
+        }
 
+        val secondary: @Composable ColumnScope.() -> Unit = {
         if (unclassifiedCount > 0) {
             UnclassifiedBanner(
                 count = unclassifiedCount,
@@ -267,6 +280,20 @@ fun DashboardScreen(
                 points = state.tripPoints.takeIf { points -> points.isNotEmpty() && points.all { it.tripId == null || it.tripId == latestTrip.id } },
                 onClick = { onOpenTrip(latestTrip) }
             )
+        }
+        }
+
+        if (windowLayout.twoPane) {
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                Column(Modifier.weight(1.1f), content = primary)
+                // Oberkante an der Hauptkarte ausrichten (die hat 20 dp Abstand zur Überschrift)
+                Column(Modifier.weight(1f).padding(top = 8.dp), content = secondary)
+            }
+        } else {
+            Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().align(Alignment.CenterHorizontally)) {
+                primary()
+                secondary()
+            }
         }
     }
 }

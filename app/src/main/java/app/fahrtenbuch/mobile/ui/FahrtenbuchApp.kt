@@ -1,5 +1,6 @@
 package app.fahrtenbuch.mobile.ui
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -26,6 +27,9 @@ import androidx.compose.ui.res.stringResource
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
 import app.fahrtenbuch.mobile.ui.navigation.AppBottomBar
+import app.fahrtenbuch.mobile.ui.navigation.AppNavigationRail
+import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
+import app.fahrtenbuch.mobile.ui.common.ProvideWindowLayout
 import app.fahrtenbuch.mobile.ui.navigation.BottomDestination
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -33,6 +37,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import app.fahrtenbuch.mobile.ui.screens.AuthFrame
 import app.fahrtenbuch.mobile.ui.screens.ConnectServerScreen
 import app.fahrtenbuch.mobile.ui.screens.DashboardScreen
 import app.fahrtenbuch.mobile.ui.screens.LoginScreen
@@ -57,20 +62,32 @@ fun FahrtenbuchApp(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     onThemeModeChange: (ThemeMode) -> Unit = {}
 ) {
+    ProvideWindowLayout {
+        AppContent(appViewModel, themeMode, onThemeModeChange)
+    }
+}
+
+@Composable
+private fun AppContent(
+    appViewModel: AppViewModel,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit
+) {
     val state by appViewModel.state.collectAsState()
+    val windowLayout = LocalWindowLayout.current
 
     if (state.appMode == AppMode.UNSET) {
-        FirstStartNavigation(appViewModel)
+        AuthFrame { FirstStartNavigation(appViewModel) }
         return
     }
 
     if (state.appMode == AppMode.SERVER && !state.serverConfigured) {
-        FirstStartNavigation(appViewModel)
+        AuthFrame { FirstStartNavigation(appViewModel) }
         return
     }
 
     if (state.appMode == AppMode.SERVER && !state.loggedIn) {
-        LoginScreen(appViewModel)
+        AuthFrame { LoginScreen(appViewModel) }
         return
     }
 
@@ -97,28 +114,36 @@ fun FahrtenbuchApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
+    val isSelected: (BottomDestination) -> Boolean = { destination ->
+        currentDestination?.hierarchy?.any { it.route == destination.route } == true ||
+            // Fahrzeuge erreicht man über die Einstellungen
+            (destination.route == "settings" && currentDestination?.route == "vehicles")
+    }
+    val onSelect: (BottomDestination) -> Unit = { destination ->
+        navController.navigate(destination.route) {
+            popUpTo(navController.graph.startDestinationId) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     CompositionLocalProvider(LocalUserPreferences provides state.preferences) {
     Scaffold(
         bottomBar = {
-            AppBottomBar(
-                destinations = destinations,
-                isSelected = { destination ->
-                    currentDestination?.hierarchy?.any { it.route == destination.route } == true
-                },
-                onSelect = { destination ->
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            )
+            // Tablets: Navigation links (siehe unten), Smartphones: unten
+            if (!windowLayout.useNavigationRail) {
+                AppBottomBar(destinations = destinations, isSelected = isSelected, onSelect = onSelect)
+            }
         }
     ) { padding ->
+        Row(Modifier.padding(padding)) {
+        if (windowLayout.useNavigationRail) {
+            AppNavigationRail(destinations = destinations, isSelected = isSelected, onSelect = onSelect)
+        }
         NavHost(
             navController = navController,
             startDestination = "tracking",
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.weight(1f)
         ) {
             composable("tracking") {
                 DashboardScreen(
@@ -145,6 +170,7 @@ fun FahrtenbuchApp(
                     onOpenVehicles = { navController.navigate("vehicles") }
                 )
             }
+        }
         }
     }
     }
