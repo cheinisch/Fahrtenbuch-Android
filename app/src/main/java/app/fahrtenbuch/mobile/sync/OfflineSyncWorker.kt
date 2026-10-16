@@ -190,7 +190,14 @@ private suspend fun adoptActiveTrip(
     val sameStart = runCatching {
         kotlin.math.abs(java.time.Duration.between(java.time.Instant.parse(active.startedAt), java.time.Instant.parse(local.startedAt)).toMillis()) < 1000
     }.getOrDefault(false)
-    if (active.vehicleId != local.vehicleId || !sameStart) return null
+    if (active.vehicleId != local.vehicleId || !sameStart) {
+        Log.w(
+            OfflineSyncWorker.TAG,
+            "Other trip recording on server: remoteId=$tripId vehicleId=${active.vehicleId} startedAt=${active.startedAt} " +
+                "status=${active.status}; local vehicleId=${local.vehicleId} startedAt=${local.startedAt}"
+        )
+        return null
+    }
     Log.i(OfflineSyncWorker.TAG, "Adopting active server trip: localId=${local.localId} remoteId=$tripId")
     return tripId
 }
