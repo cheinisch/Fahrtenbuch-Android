@@ -290,6 +290,10 @@ interface FahrtenbuchApi {
         @Body body: okhttp3.RequestBody
     ): Trip
 
+    /** Wie [deleteTrip], aber ohne Body-Erwartung (204) – für den Sync. */
+    @DELETE("trips/{id}")
+    suspend fun archiveTrip(@Path("id") id: Uuid): retrofit2.Response<Unit>
+
     @DELETE("trips/{id}")
     suspend fun deleteTrip(
         @Path("id") id: Uuid

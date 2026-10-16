@@ -181,7 +181,13 @@ data class TripInput(
     val notes: String? = null
 )
 
-data class StartTrackingRequest(val vehicleId: Uuid, val startedAt: String? = null, val timeZone: String? = null)
+data class StartTrackingRequest(
+    val vehicleId: Uuid,
+    val startedAt: String? = null,
+    val timeZone: String? = null,
+    /** Beim Start auf dem Gerät erzeugte Fahrt-ID (localId): macht den Start wiederholbar. */
+    val clientTripId: Uuid? = null
+)
 data class TrackPoint(
     val id: Uuid? = null,
     val tripId: Uuid? = null,
