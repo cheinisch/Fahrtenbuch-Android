@@ -41,7 +41,7 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                 try {
                     if (serverVehicles.none { it.id == local.vehicleId }) {
                         Log.e(TAG, "Vehicle missing from server list: localId=${local.localId} vehicleId=${local.vehicleId}; retaining data")
-                        dao.setTripSyncError(local.localId, "Fahrzeug nicht auf dem Server vorhanden")
+                        dao.setTripSyncError(local.localId, applicationContext.getString(app.fahrtenbuch.mobile.R.string.sync_error_vehicle_missing))
                         failedTrips++
                         return@forEach
                     }
@@ -56,12 +56,12 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                         "TRACKING_ALREADY_ACTIVE" -> applicationContext.getString(app.fahrtenbuch.mobile.R.string.sync_error_other_recording)
                         else -> json?.optString("message").orEmpty()
                     }
-                    dao.setTripSyncError(local.localId, "HTTP ${error.code()}: ${detail.ifBlank { "Synchronisierung fehlgeschlagen" }}")
+                    dao.setTripSyncError(local.localId, "HTTP ${error.code()}: ${detail.ifBlank { applicationContext.getString(app.fahrtenbuch.mobile.R.string.sync_error_generic) }}")
                     failedTrips++
                 } catch (error: Exception) {
                     if (error is kotlinx.coroutines.CancellationException) throw error
                     Log.e(TAG, "Trip failed: localId=${local.localId}; retaining data", error)
-                    dao.setTripSyncError(local.localId, error.message ?: "Synchronisierung fehlgeschlagen")
+                    dao.setTripSyncError(local.localId, error.message ?: applicationContext.getString(app.fahrtenbuch.mobile.R.string.sync_error_generic))
                     failedTrips++
                 }
             }
