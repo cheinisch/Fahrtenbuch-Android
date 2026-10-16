@@ -7,17 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-10-16
+
+Version code 31.
+
 ### Added
 
-- The login screen asks the server which sign-in methods it offers (`GET /auth/methods`): the TOTP field and the passkey button are hidden when the server disables them (`TOTP_ENABLED`/`PASSKEYS_ENABLED`); Older servers without the endpoint keep showing all login methods. The Passkeys entry in the settings only appears if passkeys are actually supported: the server offers them (on older servers: the passkey list endpoint exists) and the device can use them (Android 14+, or Google Play services on older versions); otherwise it is removed. Before the check has finished the entry stays hidden.
-- Passkeys in the settings (server mode): lists all passkeys of the account – created in the web dashboard or in the app – with creation date, last use and sync status; create a new passkey on the device via the Android Credential Manager, rename and delete. Requires a server with `ANDROID_APP_CERT_SHA256` set (asset links and app origin), so that passkeys work in the browser and the app alike.
+- Each trip now gets its own ID on the device when it starts, which the app sends as `clientTripId` to the server (`/tracking/start`). A repeated start of the same trip returns the existing server trip instead of failing. If a trip is still recording on the server but was already ended on this device, the next sync finishes it (points and stop); if the device discarded it, the server copy is deleted (moved to the archive). Recordings from the web dashboard or other devices are never touched. Requires the matching server version; older servers keep working with the vehicle/start-time fallback.
+
+### Changed
+
+- When the server reports a different trip that is still recording, the sync log now names its vehicle and start time, so the conflicting trip can be found in the web dashboard.
+
+### Fixed
+
+- Sync error texts for a vehicle missing on the server and for a generic sync failure were hard-coded in German; they now follow the app language.
+
+## [0.5.2] - 2026-10-16
+
+Version code 30.
+
+### Added
+
+- The login screen asks the server which sign-in methods it offers (`GET /auth/methods`): the TOTP field and the passkey button are hidden when the server disables them (`TOTP_ENABLED`/`PASSKEYS_ENABLED`); older servers without the endpoint keep showing all login methods. The Passkeys entry in the settings only appears if passkeys are actually supported: the server offers them (on older servers: the passkey list endpoint exists) and the device can use them (Android 14+, or Google Play services on older versions); otherwise it is removed. Before the check has finished the entry stays hidden.
+- Passkeys in the settings (server mode): lists all passkeys of the account – created in the web dashboard or in the app – with creation date, last use and sync status; create a new passkey on the device via the Android Credential Manager, rename and delete. Requires a current server: it publishes the official app in `/.well-known/assetlinks.json` and accepts its origin, so that passkeys work in the browser and the app alike (self-built APKs via `ANDROID_APP_CERT_SHA256`). The file must be publicly reachable, otherwise password managers such as Bitwarden report that the app does not support passkeys.
 - Backup (Settings › Backup): optional backup to the Google account via Android backup (off by default, can be switched on by the user) and a ZIP backup that can be saved and restored at any time. Both contain vehicles, trips (incl. GPS points, offline trips and tags) and settings, including server address and user name; login data is never included. After restoring on a new device you sign in again – the login form is pre-filled.
 - Sign in with Google or Microsoft: after entering the server address manually, the login screen asks the server which external sign-ins are set up (`GET /auth/oauth/providers`) and shows the matching buttons. The provider page opens in a Custom Tab; the app uses PKCE (`appCodeChallenge`/`appCodeVerifier`) and the redirect `fahrtenbuch://oauth/callback`, then exchanges the ticket via `POST /auth/oauth/exchange`. Accounts with two-factor authentication are asked for the TOTP code. The Google/Microsoft account must be linked to the Fahrtenbuch account in the web dashboard first.
 - Profile picture from Gravatar in the settings (server mode), if one exists for the account's e-mail address; otherwise the initials are shown as before. Only the SHA-256 hash of the address is sent to Gravatar. Can be switched off in the profile (synced with the server setting `gravatarEnabled`); if the server disables Gravatar (`GRAVATAR_ENABLED=false`), the app does not load it at all.
 
 ### Fixed
 
-- Each trip now gets its own ID on the device when it starts, which the app sends as `clientTripId` to the server (`/tracking/start`). A repeated start of the same trip returns the existing server trip instead of failing. If a trip is still recording on the server but was already ended on this device, the next sync finishes it (points and stop); if the device discarded it, the server copy is deleted (moved to the archive). Recordings from the web dashboard or other devices are never touched. Requires the matching server version; older servers keep working with the vehicle/start-time fallback.
 - Trips could get stuck in sync with `HTTP 409: Es wird bereits eine Fahrt aufgezeichnet`: if a sync was interrupted after the server had created the trip but before the app stored its ID, every retry tried to start it again. The app now takes over the running server trip when vehicle and start time match (newer servers answer such a repeated start with the existing trip directly). A different trip still recording on the server is reported with a clear message. In addition, a manual sync no longer cancels a running one, and ending a trip no longer overwrites a server ID stored at the same moment.
 - Android backup previously included everything, also access/refresh tokens and the device ID. Restoring such a backup on another device could reuse an already rotated refresh token and two devices shared one device ID. Tokens, device ID and the running recording now live in a separate preferences file that is never backed up (existing installations are migrated automatically).
 - Saving the profile (and other requests with free-form JSON bodies) failed with "Parameter type must not include a type variable or wildcard": Retrofit rejected the `Map<String, Any?>` parameters Kotlin compiles to wildcard types.
@@ -151,7 +170,9 @@ Version codes 21 and 22.
 
 Version code 20. State before the changes listed above.
 
-[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.2...v0.5.3
+[0.5.2]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/cheinisch/Fahrtenbuch-Android/compare/v0.4.2...v0.4.3
