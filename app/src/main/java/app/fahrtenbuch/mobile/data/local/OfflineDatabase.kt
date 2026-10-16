@@ -133,6 +133,9 @@ interface OfflineDao {
     suspend fun tripsMissingDetails(): List<OfflineTripEntity>
     @Query("UPDATE offline_trips SET startAddress=:startAddress, endAddress=:endAddress, distanceKm=:distanceKm WHERE localId=:localId")
     suspend fun setTripDetails(localId: String, startAddress: String?, endAddress: String?, distanceKm: Double?)
+    /** Beenden nur über gezielte Spalten: ein gleichzeitiger Sync darf seine remoteId nicht verlieren. */
+    @Query("UPDATE offline_trips SET endedAt=:endedAt, endTimeZone=:endTimeZone, state='STOPPED', pendingStop=1 WHERE localId=:localId")
+    suspend fun markTripStopped(localId: String, endedAt: String, endTimeZone: String?)
     @Query("UPDATE offline_trips SET remoteId=:remoteId WHERE localId=:localId") suspend fun setRemoteId(localId: String, remoteId: String)
     @Query("UPDATE offline_trips SET state='SYNCED', pendingStop=0, syncError=NULL WHERE localId=:localId") suspend fun markTripSynced(localId: String)
 

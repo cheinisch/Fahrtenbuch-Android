@@ -53,9 +53,12 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                 )
                 if (remoteId == null) {
                     Log.i(TAG, "POST tracking/start: localId=${local.localId} vehicleId=${local.vehicleId} startedAt=${local.startedAt}")
-                    val remote = api.startTracking(StartTrackingRequest(local.vehicleId, local.startedAt, local.startTimeZone))
-                    Log.i(TAG, "tracking/start OK: localId=${local.localId} remoteId=${remote.id}")
-                    remoteId = remote.id
+                    remoteId = try {
+                        api.startTracking(StartTrackingRequest(local.vehicleId, local.startedAt, local.startTimeZone)).id
+                    } catch (error: HttpException) {
+                        adoptActiveTrip(api, error, local) ?: throw error
+                    }
+                    Log.i(TAG, "tracking/start OK: localId=${local.localId} remoteId=$remoteId")
                     dao.setRemoteId(local.localId, remoteId)
                 }
                 while (true) {
@@ -107,9 +110,14 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
                     )
                 }
                 } catch (error: HttpException) {
-                    val body = runCatching { error.response()?.errorBody()?.string() }.getOrNull()
+                    val body = errorBody(error)
                     Log.e(TAG, "Trip failed: localId=${local.localId} HTTP ${error.code()} body=${body ?: "<empty>"}; retaining data", error)
-                    val detail = runCatching { org.json.JSONObject(body ?: "{}").optString("message") }.getOrNull().orEmpty()
+                    val json = runCatching { org.json.JSONObject(body ?: "{}") }.getOrNull()
+                    val detail = when (json?.optString("error")) {
+                        // Eine andere Fahrt läuft auf dem Server noch (z. B. im Web gestartet und nicht beendet)
+                        "TRACKING_ALREADY_ACTIVE" -> applicationContext.getString(app.fahrtenbuch.mobile.R.string.sync_error_other_recording)
+                        else -> json?.optString("message").orEmpty()
+                    }
                     dao.setTripSyncError(local.localId, "HTTP ${error.code()}: ${detail.ifBlank { "Synchronisierung fehlgeschlagen" }}")
                     failedTrips++
                 } catch (error: Exception) {
@@ -155,6 +163,36 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             Result.retry()
         }
     }
+}
+
+// Der Fehler-Body lässt sich nur einmal lesen; hier zwischengespeichert für Auswertung und Log
+private val errorBodies = java.util.WeakHashMap<HttpException, String?>()
+
+private fun errorBody(error: HttpException): String? = synchronized(errorBodies) {
+    errorBodies.getOrPut(error) { runCatching { error.response()?.errorBody()?.string() }.getOrNull() }
+}
+
+/**
+ * tracking/start lieferte 409 TRACKING_ALREADY_ACTIVE: Ist die laufende Server-Fahrt genau diese
+ * (gleiches Fahrzeug, gleiche Startzeit), wurde sie schon angelegt und nur die Antwort ging
+ * verloren – dann wird sie übernommen. Neuere Server antworten in diesem Fall direkt mit 200.
+ */
+private suspend fun adoptActiveTrip(
+    api: app.fahrtenbuch.mobile.data.api.FahrtenbuchApi,
+    error: HttpException,
+    local: app.fahrtenbuch.mobile.data.local.OfflineTripEntity
+): String? {
+    if (error.code() != 409) return null
+    val json = runCatching { org.json.JSONObject(errorBody(error) ?: "{}") }.getOrNull() ?: return null
+    if (json.optString("error") != "TRACKING_ALREADY_ACTIVE") return null
+    val tripId = json.optJSONObject("details")?.optString("tripId")?.takeIf { it.isNotBlank() } ?: return null
+    val active = runCatching { api.getTrip(tripId) }.getOrNull() ?: return null
+    val sameStart = runCatching {
+        kotlin.math.abs(java.time.Duration.between(java.time.Instant.parse(active.startedAt), java.time.Instant.parse(local.startedAt)).toMillis()) < 1000
+    }.getOrDefault(false)
+    if (active.vehicleId != local.vehicleId || !sameStart) return null
+    Log.i(OfflineSyncWorker.TAG, "Adopting active server trip: localId=${local.localId} remoteId=$tripId")
+    return tripId
 }
 
 private fun app.fahrtenbuch.mobile.data.local.TrackPointEntity.toApi() = TrackPoint(

@@ -26,7 +26,9 @@ object SyncScheduler {
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "fahrtenbuch-sync",
-                ExistingWorkPolicy.REPLACE,
+                // Nicht REPLACE: das würde einen laufenden Sync mitten im Request abbrechen
+                // (z. B. nach tracking/start, bevor die remoteId gespeichert ist)
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
                 request
             )
         } else {

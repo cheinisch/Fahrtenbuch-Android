@@ -86,14 +86,7 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
         val dao = OfflineDatabase.get(context).dao()
         val trip = dao.trip(localId) ?: return
 
-        dao.putTrip(
-            trip.copy(
-                endedAt = Instant.now().toString(),
-                endTimeZone = java.time.ZoneId.systemDefault().id,
-                state = "STOPPED",
-                pendingStop = true
-            )
-        )
+        dao.markTripStopped(trip.localId, Instant.now().toString(), java.time.ZoneId.systemDefault().id)
         store.activeTripId = null
         store.activeVehicleId = null
         store.activeBluetoothMac = null

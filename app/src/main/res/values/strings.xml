@@ -452,4 +452,5 @@
     <string name="passkeys_delete">Delete</string>
     <string name="passkeys_delete_title">Delete passkey?</string>
     <string name="passkeys_delete_text">“%1$s” can no longer be used to sign in. Also remove it from your password manager.</string>
+    <string name="sync_error_other_recording">Another trip is still being recorded on the server (e.g. started in the web dashboard). End it there, then this trip will be synced.</string>
 </resources>

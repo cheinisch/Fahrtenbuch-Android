@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Trips could get stuck in sync with `HTTP 409: Es wird bereits eine Fahrt aufgezeichnet`: if a sync was interrupted after the server had created the trip but before the app stored its ID, every retry tried to start it again. The app now takes over the running server trip when vehicle and start time match (newer servers answer such a repeated start with the existing trip directly). A different trip still recording on the server is reported with a clear message. In addition, a manual sync no longer cancels a running one, and ending a trip no longer overwrites a server ID stored at the same moment.
 - Android backup previously included everything, also access/refresh tokens and the device ID. Restoring such a backup on another device could reuse an already rotated refresh token and two devices shared one device ID. Tokens, device ID and the running recording now live in a separate preferences file that is never backed up (existing installations are migrated automatically).
 - Saving the profile (and other requests with free-form JSON bodies) failed with "Parameter type must not include a type variable or wildcard": Retrofit rejected the `Map<String, Any?>` parameters Kotlin compiles to wildcard types.
 

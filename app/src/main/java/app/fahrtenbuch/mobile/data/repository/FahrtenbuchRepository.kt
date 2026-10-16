@@ -534,7 +534,7 @@ class FahrtenbuchRepository(
     suspend fun stopTracking(localId: Uuid, endOdometer: Int?, note: String?): Trip {
         val local = dao.trip(localId) ?: error("Lokale Fahrt nicht gefunden")
         val endedAt = Instant.now().toString()
-        dao.putTrip(local.copy(endedAt = endedAt, state = "STOPPED", pendingStop = true, endTimeZone = java.time.ZoneId.systemDefault().id))
+        dao.markTripStopped(localId, endedAt, java.time.ZoneId.systemDefault().id)
         store.activeTripId = null
         if (store.isServerMode) SyncScheduler.enqueue(context)
         return local.toUiTrip(endedAt).copy(syncState = if (store.isLocalMode) "LOCAL" else "PENDING")

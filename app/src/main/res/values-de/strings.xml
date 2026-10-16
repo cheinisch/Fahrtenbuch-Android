@@ -452,4 +452,5 @@
     <string name="passkeys_delete">Löschen</string>
     <string name="passkeys_delete_title">Passkey löschen?</string>
     <string name="passkeys_delete_text">„%1$s“ kann danach nicht mehr zur Anmeldung verwendet werden. Entferne ihn auch aus deinem Passwortmanager.</string>
+    <string name="sync_error_other_recording">Auf dem Server läuft noch eine andere Aufzeichnung (z. B. im Web-Dashboard gestartet). Beende sie dort, dann wird diese Fahrt übertragen.</string>
 </resources>
