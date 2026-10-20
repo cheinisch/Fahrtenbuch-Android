@@ -127,6 +127,10 @@
     <string name="trip_tags_add">Tag hinzufügen</string>
     <string name="trip_detail_back">Zurück</string>
     <string name="trip_detail_fullscreen">Karte vergrößern</string>
+    <string name="trip_map_matched">Auf Straße gelegt (%1$s) · GPS-Distanz %2$s</string>
+    <string name="trip_original_route">Originalroute</string>
+    <string name="trip_map_matching_rejected">Map-Matching nicht übernommen: %1$s</string>
+    <string name="trip_map_matching_failed">Map-Matching fehlgeschlagen: %1$s</string>
     <string name="trip_detail_close_map">Karte schließen</string>
     <string name="trips_sync">Fahrten synchronisieren</string>
     <string name="filter_all_vehicles">Alle Fahrzeuge</string>

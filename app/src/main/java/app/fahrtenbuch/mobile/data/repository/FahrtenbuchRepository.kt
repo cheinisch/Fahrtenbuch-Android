@@ -470,6 +470,26 @@ class FahrtenbuchRepository(
         dao.points(id).map { TrackPoint(id = it.id.toString(), tripId = id, lat = it.lat, lon = it.lon, altitude = it.altitude, accuracy = it.accuracy, speed = it.speed, bearing = it.bearing, recordedAt = it.recordedAt) }
     } else api.tripPoints(id)
 
+    /**
+     * Straßenroute einer gematchten Fahrt als Punkte für die Karte. Leer im lokalen
+     * Modus, wenn der Server (noch) nicht gematcht hat oder das Ergebnis abgelehnt wurde.
+     */
+    suspend fun tripMatchedRoute(id: Uuid): List<TrackPoint> {
+        if (store.isLocalMode) return emptyList()
+        val route = try {
+            api.tripMatchedRoute(id)
+        } catch (error: retrofit2.HttpException) {
+            // 404: kein Matching vorhanden bzw. älterer Server ohne Endpunkt
+            if (error.code() == 404) return emptyList() else throw error
+        }
+        if (route.status != "applied") return emptyList()
+        return route.coordinates
+            .filter { it.size >= 2 }
+            .map { (lat, lon) -> TrackPoint(tripId = id, lat = lat, lon = lon, recordedAt = "") }
+            .takeIf { it.size >= 2 }
+            .orEmpty()
+    }
+
     suspend fun updateTripCategory(
         trip: Trip,
         type: TripType,

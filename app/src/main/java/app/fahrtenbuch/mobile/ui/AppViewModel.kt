@@ -15,6 +15,7 @@ import app.fahrtenbuch.mobile.data.model.PairQrPayload
 import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.TrackPoint
+import app.fahrtenbuch.mobile.data.model.Uuid
 import app.fahrtenbuch.mobile.data.model.Vehicle
 import app.fahrtenbuch.mobile.data.repository.FahrtenbuchRepository
 import app.fahrtenbuch.mobile.sync.SyncScheduler
@@ -30,6 +31,8 @@ data class AppUiState(
     val vehicles: List<Vehicle> = emptyList(),
     val trips: List<Trip> = emptyList(),
     val tripPoints: List<TrackPoint> = emptyList(),
+    /** Straßenroute der ausgewählten Fahrt (Map-Matching), leer = nur GPS-Punkte. */
+    val tripMatchedRoute: List<TrackPoint> = emptyList(),
     val tripDetailsLoading: Boolean = false,
     val tripDetailsError: String? = null,
     /** Alle Tags des Kontos bzw. des Geräts (für die Auswahl in den Fahrtdetails). */
@@ -605,8 +608,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Zuletzt geöffnete Fahrt – verspätete Antworten einer anderen Fahrt werden verworfen. */
+    private var detailsTripId: Uuid? = null
+
     fun loadTripDetails(trip: Trip) {
-        _state.value = _state.value.copy(tripPoints = emptyList(), tripDetailsLoading = true, tripDetailsError = null)
+        detailsTripId = trip.id
+        _state.value = _state.value.copy(tripPoints = emptyList(), tripMatchedRoute = emptyList(), tripDetailsLoading = true, tripDetailsError = null)
         if (!store.isLocalMode && trip.syncState != "SYNCED") {
             _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = str(R.string.error_route_after_sync))
             return
@@ -615,6 +622,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             runCatching { repository.tripPoints(trip.id) }
                 .onSuccess { _state.value = _state.value.copy(tripPoints = it, tripDetailsLoading = false) }
                 .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
+        }
+        // Nur für gematchte Fahrten nachladen; ein Fehler hier lässt die GPS-Route stehen.
+        if (trip.isMapMatched) {
+            viewModelScope.launch {
+                runCatching { repository.tripMatchedRoute(trip.id) }
+                    .onSuccess { route ->
+                        if (detailsTripId == trip.id) _state.value = _state.value.copy(tripMatchedRoute = route)
+                    }
+            }
         }
     }
 

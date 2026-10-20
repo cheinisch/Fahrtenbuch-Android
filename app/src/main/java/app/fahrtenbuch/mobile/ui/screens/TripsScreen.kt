@@ -118,6 +118,7 @@ fun TripsScreen(
         TripDetailsScreen(
             trip = trip,
             points = state.tripPoints,
+            matchedPoints = state.tripMatchedRoute,
             loading = state.tripDetailsLoading,
             error = state.tripDetailsError,
             onBack = { selectedTripId = null },

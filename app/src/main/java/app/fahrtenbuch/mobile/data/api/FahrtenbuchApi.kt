@@ -304,6 +304,11 @@ interface FahrtenbuchApi {
         @Path("id") id: Uuid
     ): List<TrackPoint>
 
+    @GET("trips/{id}/matched-route")
+    suspend fun tripMatchedRoute(
+        @Path("id") id: Uuid
+    ): app.fahrtenbuch.mobile.data.model.TripMatchedRoute
+
     // ---------------------------------------------------------------------
     // GPS-Tracking
     // ---------------------------------------------------------------------

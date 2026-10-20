@@ -73,6 +73,7 @@ import app.fahrtenbuch.mobile.ui.map.TripRouteMap
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
 import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatDistance
+import app.fahrtenbuch.mobile.ui.common.formatDistanceWithUnit
 import app.fahrtenbuch.mobile.ui.common.formatSpeed
 import app.fahrtenbuch.mobile.ui.common.speedUnitLabel
 import app.fahrtenbuch.mobile.ui.common.formatTripDate
@@ -100,8 +101,13 @@ internal fun TripDetailsScreen(
     onCreateTag: (name: String, onCreated: (Tag) -> Unit) -> Unit,
     onTags: (tags: List<Tag>, onDone: () -> Unit) -> Unit,
     /** Als rechte Spalte neben der Liste (Tablet): kein Zurück-Button, Zurück schließt nichts. */
-    embedded: Boolean = false
+    embedded: Boolean = false,
+    /** Straßenroute aus dem Map-Matching des Servers; leer = nur GPS-Punkte. */
+    matchedPoints: List<TrackPoint> = emptyList()
 ) {
+    // Wie im Web: gematchte Fahrten zeigen die Straße, „Originalroute“ die GPS-Linie
+    var showOriginal by rememberSaveable(trip.id) { mutableStateOf(false) }
+    val mapPoints = if (matchedPoints.isNotEmpty() && !showOriginal) matchedPoints else points
     BackHandler(enabled = !embedded, onBack = onBack)
     var editPurpose by rememberSaveable(trip.id) { mutableStateOf(false) }
     if (editPurpose) {
@@ -128,8 +134,8 @@ internal fun TripDetailsScreen(
     var mapFullscreen by rememberSaveable(trip.id) { mutableStateOf(false) }
     // Später registriert und damit vorrangig: Zurück schließt zuerst die Vollbildkarte.
     BackHandler(enabled = mapFullscreen) { mapFullscreen = false }
-    if (mapFullscreen && points.isNotEmpty()) {
-        FullscreenTripMap(points = points, onClose = { mapFullscreen = false })
+    if (mapFullscreen && mapPoints.isNotEmpty()) {
+        FullscreenTripMap(points = mapPoints, onClose = { mapFullscreen = false })
         return
     }
     val scrollState = rememberScrollState()
@@ -161,8 +167,8 @@ internal fun TripDetailsScreen(
                 .background(colors.surfaceContainer)
         ) {
             when {
-                points.isNotEmpty() -> TripRouteMap(
-                    points = points,
+                mapPoints.isNotEmpty() -> TripRouteMap(
+                    points = mapPoints,
                     modifier = Modifier.fillMaxSize(),
                     // Oben schwebende Buttons, unten Titel und Verlauf über der Karte
                     contentPadding = MapPadding(top = 88.dp, bottom = 150.dp),
@@ -200,7 +206,7 @@ internal fun TripDetailsScreen(
                 }
             }
 
-            if (points.isNotEmpty()) {
+            if (mapPoints.isNotEmpty()) {
                 MapOverlayButton(
                     icon = Icons.Default.Fullscreen,
                     contentDescription = stringResource(R.string.trip_detail_fullscreen),
@@ -236,6 +242,12 @@ internal fun TripDetailsScreen(
 
         val overview: @Composable ColumnScope.() -> Unit = {
             TripMetricsCard(trip)
+            TripMapMatchingInfo(
+                trip = trip,
+                canToggle = matchedPoints.isNotEmpty(),
+                showOriginal = showOriginal,
+                onToggle = { showOriginal = !showOriginal }
+            )
             TripTimelineCard(trip, start, end)
 
             if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -273,6 +285,59 @@ internal fun TripDetailsScreen(
             }
         }
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+/** Hinweis zum Map-Matching und Umschalter auf die GPS-Originalroute. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TripMapMatchingInfo(
+    trip: Trip,
+    canToggle: Boolean,
+    showOriginal: Boolean,
+    onToggle: () -> Unit
+) {
+    val matching = trip.mapMatching ?: return
+    val colors = MaterialTheme.colorScheme
+    val prefs = LocalUserPreferences.current
+    val provider = when (matching.provider) {
+        "atlas" -> "Dawarich Atlas"
+        "valhalla" -> "Valhalla"
+        "osrm" -> "OSRM"
+        else -> matching.provider.orEmpty()
+    }
+    when (matching.status) {
+        "applied" -> Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                stringResource(
+                    R.string.trip_map_matched,
+                    provider,
+                    formatDistanceWithUnit(matching.rawDistanceMeters?.let { it / 1000.0 }, prefs)
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.primary,
+                modifier = Modifier.weight(1f)
+            )
+            if (canToggle) {
+                FilterChip(
+                    selected = showOriginal,
+                    onClick = onToggle,
+                    label = { Text(stringResource(R.string.trip_original_route)) }
+                )
+            }
+        }
+        "rejected", "failed" -> Text(
+            stringResource(
+                if (matching.status == "rejected") R.string.trip_map_matching_rejected else R.string.trip_map_matching_failed,
+                matching.message ?: "–"
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.onSurfaceVariant
+        )
     }
 }
 

@@ -166,7 +166,30 @@ data class Trip(
     val vehicleName: String? = null,
     /** Der Server liefert Tags als Objekte ({id, name, color}). */
     val tags: List<Tag> = emptyList(),
+    /** Map-Matching-Ergebnis vom Server (null = nicht gematcht oder älterer Server). */
+    val mapMatching: TripMapMatching? = null,
     val syncState: String = "SYNCED"
+) {
+    /** Die Fahrt wurde auf das Straßennetz gelegt und die Distanz übernommen. */
+    val isMapMatched: Boolean get() = mapMatching?.status == "applied"
+}
+
+/** Zusammenfassung des Map-Matchings je Fahrt (API: Trip.mapMatching). */
+data class TripMapMatching(
+    /** applied | rejected | failed – als String, damit neue Serverwerte nicht crashen. */
+    val status: String,
+    val provider: String? = null,
+    val matchedAt: String? = null,
+    val rawDistanceMeters: Long? = null,
+    val matchedDistanceMeters: Long? = null,
+    val message: String? = null
+)
+
+/** Auf die Straße gelegte Route (GET /trips/{id}/matched-route), Koordinaten als [lat, lon]. */
+data class TripMatchedRoute(
+    val status: String,
+    val provider: String? = null,
+    val coordinates: List<List<Double>> = emptyList()
 )
 
 data class TripInput(
