@@ -114,6 +114,11 @@ fun TripsScreen(
     // Tablet quer: Liste links, Details rechts daneben
     val twoPane = LocalWindowLayout.current.twoPane
     val selectedTrip = state.trips.firstOrNull { it.id == selectedTripId }
+    // Straßenroute nachladen, wenn die Fahrt erst nach dem Öffnen als gematcht bekannt
+    // wird (lokale Kopie ohne mapMatching) oder Map-Matching im Profil eingeschaltet wird
+    LaunchedEffect(selectedTrip?.id, selectedTrip?.isMapMatched, state.preferences.showMapMatching) {
+        selectedTrip?.let(viewModel::ensureMatchedRoute)
+    }
     val tripDetails: @Composable (Trip, Boolean) -> Unit = { trip, embedded ->
         TripDetailsScreen(
             trip = trip,

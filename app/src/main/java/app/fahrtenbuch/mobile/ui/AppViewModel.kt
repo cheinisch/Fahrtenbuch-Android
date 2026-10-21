@@ -457,6 +457,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             runCatching { repository.setMapMatchingEnabled(enabled) }
                 .onSuccess { prefs ->
                     // Abgeschaltet: geladene Straßenroute sofort verwerfen
+                    if (!prefs.showMapMatching) matchedRouteTripId = null
                     _state.value = _state.value.copy(
                         preferences = prefs,
                         tripMatchedRoute = if (prefs.showMapMatching) _state.value.tripMatchedRoute else emptyList()
@@ -627,6 +628,28 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Zuletzt geöffnete Fahrt – verspätete Antworten einer anderen Fahrt werden verworfen. */
     private var detailsTripId: Uuid? = null
 
+    /** Fahrt, für die die Straßenroute schon angefragt bzw. geladen ist. */
+    private var matchedRouteTripId: Uuid? = null
+
+    /**
+     * Straßenroute der geöffneten Fahrt laden, sobald sie als gematcht bekannt ist.
+     * Wird auch nachträglich aufgerufen: Fahrten aus dem lokalen Speicher kennen
+     * mapMatching nicht, erst die Antwort des Servers liefert es nach.
+     */
+    fun ensureMatchedRoute(trip: Trip) {
+        if (!trip.isMapMatched || !_state.value.preferences.showMapMatching) return
+        if (detailsTripId != trip.id || matchedRouteTripId == trip.id) return
+        matchedRouteTripId = trip.id
+        viewModelScope.launch {
+            runCatching { repository.tripMatchedRoute(trip.id) }
+                .onSuccess { route ->
+                    if (detailsTripId == trip.id) _state.value = _state.value.copy(tripMatchedRoute = route)
+                }
+                // Fehler: GPS-Route bleibt; beim nächsten Anlass erneut versuchen
+                .onFailure { if (matchedRouteTripId == trip.id) matchedRouteTripId = null }
+        }
+    }
+
     fun loadTripDetails(trip: Trip) {
         detailsTripId = trip.id
         _state.value = _state.value.copy(tripPoints = emptyList(), tripMatchedRoute = emptyList(), tripDetailsLoading = true, tripDetailsError = null)
@@ -639,16 +662,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onSuccess { _state.value = _state.value.copy(tripPoints = it, tripDetailsLoading = false) }
                 .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
         }
-        // Nur für gematchte Fahrten nachladen und nur, wenn Server und Profil Map-Matching
-        // erlauben; ein Fehler hier lässt die GPS-Route stehen.
-        if (trip.isMapMatched && _state.value.preferences.showMapMatching) {
-            viewModelScope.launch {
-                runCatching { repository.tripMatchedRoute(trip.id) }
-                    .onSuccess { route ->
-                        if (detailsTripId == trip.id) _state.value = _state.value.copy(tripMatchedRoute = route)
-                    }
-            }
-        }
+        matchedRouteTripId = null
+        ensureMatchedRoute(trip)
     }
 
     fun updateTripCategory(
