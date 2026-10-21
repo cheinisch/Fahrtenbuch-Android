@@ -313,8 +313,11 @@ data class UserPreferences(
     /** Gravatar tatsächlich verwenden: Nutzer und Server erlauben es. */
     val useGravatar: Boolean get() = gravatarEnabled && gravatarAvailable
 
-    /** Straßenroute und Map-Matching-Hinweis nur zeigen, wenn Server und Profil es erlauben. */
-    val showMapMatching: Boolean get() = mapMatchingEnabled && mapMatchingAvailable
+    /**
+     * Straßenroute und Map-Matching-Hinweis nur zeigen, wenn die App-Funktion an ist und
+     * Server und Profil es erlauben. Vorerst aus: die App zeigt immer die GPS-Route.
+     */
+    val showMapMatching: Boolean get() = AppFeatures.SHOW_MAP_MATCHING && mapMatchingEnabled && mapMatchingAvailable
 
     /** Gültige Zeitzone; ungültige oder fehlende IDs fallen auf das Gerät zurück. */
     fun zoneId(): java.time.ZoneId =

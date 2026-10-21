@@ -1,5 +1,6 @@
 package app.fahrtenbuch.mobile.ui.screens.settings
 
+import app.fahrtenbuch.mobile.data.model.AppFeatures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -99,25 +100,27 @@ fun ProfileEditDialog(
                         onCheckedChange = onGravatarChange
                     )
                 }
-                // Map-Matching verwenden: automatisch matchen und Straßenroute zeigen
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(stringResource(R.string.map_matching_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                        Text(
-                            stringResource(if (mapMatchingAvailable) R.string.map_matching_text else R.string.map_matching_unavailable),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                // Map-Matching verwenden: automatisch matchen und Straßenroute zeigen (vorerst ausgeblendet)
+                if (AppFeatures.SHOW_MAP_MATCHING) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(stringResource(R.string.map_matching_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(if (mapMatchingAvailable) R.string.map_matching_text else R.string.map_matching_unavailable),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = mapMatchingEnabled && mapMatchingAvailable,
+                            enabled = mapMatchingAvailable && !loading,
+                            onCheckedChange = onMapMatchingChange
                         )
                     }
-                    Switch(
-                        checked = mapMatchingEnabled && mapMatchingAvailable,
-                        enabled = mapMatchingAvailable && !loading,
-                        onCheckedChange = onMapMatchingChange
-                    )
                 }
                 formatLastLogin(user?.lastLoginAt)?.let {
                     Text(
