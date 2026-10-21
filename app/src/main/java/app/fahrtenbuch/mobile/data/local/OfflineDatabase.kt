@@ -65,8 +65,8 @@ data class MatchedRouteEntity(
     val pointCount: Int
 )
 
-/** Nur Fahrt-ID und Stand einer gespeicherten Straßenroute (für den Sync). */
-data class MatchedRouteVersion(val tripId: String, val matchedAt: String?)
+/** Fahrt-ID, Stand und Punktzahl einer gespeicherten Straßenroute (für den Sync). */
+data class MatchedRouteVersion(val tripId: String, val matchedAt: String?, val pointCount: Int)
 
 @Entity(tableName = "tags")
 data class TagEntity(
@@ -145,7 +145,7 @@ interface OfflineDao {
     @Query("DELETE FROM trips") suspend fun clearTripRecords()
 
     @Query("SELECT * FROM matched_routes WHERE tripId=:tripId") suspend fun matchedRoute(tripId: String): MatchedRouteEntity?
-    @Query("SELECT tripId, matchedAt FROM matched_routes") suspend fun matchedRouteVersions(): List<MatchedRouteVersion>
+    @Query("SELECT tripId, matchedAt, pointCount FROM matched_routes") suspend fun matchedRouteVersions(): List<MatchedRouteVersion>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putMatchedRoute(value: MatchedRouteEntity)
     /** Routen von Fahrten entfernen, die es nicht mehr gibt oder die nicht (mehr) gematcht sind. */
     @Query("DELETE FROM matched_routes WHERE tripId NOT IN (SELECT id FROM trips WHERE mapMatchingStatus = 'applied')")

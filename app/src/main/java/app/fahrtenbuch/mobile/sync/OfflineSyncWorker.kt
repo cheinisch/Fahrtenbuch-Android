@@ -82,12 +82,15 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             // Map-Matching: Einstellungen und Straßenrouten gematchter Fahrten mitziehen,
             // damit sie offline verfügbar sind. Fehler hier lassen den Sync nicht scheitern.
             runCatching { api.mySettings().settings }.getOrNull()?.let(store::cacheMapMatchingSettings)
-            try {
+            Log.i(TAG, "Map matching: enabled=${store.mapMatchingEnabled} available=${store.mapMatchingAvailable}")
+            val routes = try {
                 MatchedRouteCache.syncRoutes(api, dao, store)
             } catch (error: Exception) {
                 if (error is kotlinx.coroutines.CancellationException) throw error
                 Log.w(TAG, "Matched route sync failed", error)
+                null
             }
+            logSyncedTrips(dao, trips, routes)
 
             Log.i(TAG, "Sync completed: failedTrips=$failedTrips")
             if (failedTrips > 0) Result.failure() else Result.success()
@@ -180,7 +183,9 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             Log.i(
                 TAG,
                 "tracking/stop OK: localId=${local.localId} remoteId=$remoteId " +
-                    "distanceKm=${completed.distanceKm} durationSeconds=${completed.durationSeconds}"
+                    "distanceKm=${completed.distanceKm} durationSeconds=${completed.durationSeconds} " +
+                    // Der Server matcht nach dem Upload im Hintergrund; das Ergebnis kommt mit einem späteren Sync
+                    "mapMatching=${completed.mapMatching?.status ?: "pending/none"}"
             )
         }
     }
@@ -346,3 +351,66 @@ private fun Trip.toEntity() = TripEntity(
     startTimeZone = startTimeZone,
     endTimeZone = endTimeZone
 ).withMapMatching(mapMatching)
+
+/**
+ * Sync-Protokoll: eine Zeile je Fahrt vom Server mit Eckdaten und Map-Matching-Stand,
+ * danach eine Zusammenfassung. Orte nur als Stadt, nicht die volle Adresse.
+ */
+private suspend fun logSyncedTrips(
+    dao: app.fahrtenbuch.mobile.data.local.OfflineDao,
+    trips: List<Trip>,
+    routes: MatchedRouteCache.RouteSyncResult?
+) {
+    val stored = dao.matchedRouteVersions().associate { it.tripId to it.pointCount }
+    var applied = 0
+    var rejected = 0
+    var failed = 0
+    var none = 0
+    trips.forEach { trip ->
+        when (trip.mapMatching?.status) {
+            "applied" -> applied++
+            "rejected" -> rejected++
+            "failed" -> failed++
+            else -> none++
+        }
+        Log.i(OfflineSyncWorker.TAG, describeTrip(trip, routeState(trip, routes, stored)))
+    }
+    Log.i(
+        OfflineSyncWorker.TAG,
+        "Trips synced: total=${trips.size} mapMatched=$applied rejected=$rejected failed=$failed notMatched=$none | " +
+            "routes loadedNow=${routes?.loaded?.size ?: 0} stored=${stored.size} " +
+            "notLoaded=${routes?.failed?.size ?: 0} pendingNextSync=${routes?.deferred?.size ?: 0}"
+    )
+}
+
+private fun routeState(trip: Trip, routes: MatchedRouteCache.RouteSyncResult?, stored: Map<String, Int>): String {
+    if (trip.mapMatching?.status != "applied") return "-"
+    val storedText = stored[trip.id]?.let { "stored ($it pts)" } ?: "missing"
+    return when {
+        routes == null -> "$storedText, route sync failed"
+        !routes.enabled -> "$storedText, not loaded (map matching off or not set up)"
+        routes.loaded.containsKey(trip.id) -> "loaded now (${routes.loaded[trip.id]} pts)"
+        routes.failed.containsKey(trip.id) -> "$storedText, not loaded: ${routes.failed[trip.id]}"
+        routes.deferred.contains(trip.id) -> "$storedText, pending (next sync)"
+        else -> storedText
+    }
+}
+
+private fun describeTrip(trip: Trip, route: String): String {
+    fun kmOf(value: Double?) = value?.let { String.format(java.util.Locale.ROOT, "%.1f km", it) } ?: "-"
+    fun kmFromMeters(meters: Long?) = meters?.let { String.format(java.util.Locale.ROOT, "%.1f km", it / 1000.0) } ?: "-"
+    fun place(address: String?) = app.fahrtenbuch.mobile.ui.common.parseAddress(address)
+        ?.let { it.city ?: it.name } ?: "-"
+    val duration = trip.durationSeconds?.let { "%d:%02d h".format(java.util.Locale.ROOT, it / 3600, (it % 3600) / 60) } ?: "-"
+    val matching = trip.mapMatching?.let { m ->
+        when (m.status) {
+            "applied" -> "applied via ${m.provider ?: "?"} (${m.matchedAt ?: "?"}), GPS ${kmFromMeters(m.rawDistanceMeters)} -> road ${kmFromMeters(m.matchedDistanceMeters)}"
+            else -> "${m.status}: ${m.message ?: "-"}"
+        }
+    } ?: "none"
+    return "Trip ${trip.id} | ${trip.startedAt} (${trip.startTimeZone ?: "-"}) | " +
+        "${place(trip.startAddress)} -> ${place(trip.endAddress)} | " +
+        "type=${trip.tripType.apiValue}${trip.specialCategory?.let { "/$it" } ?: ""} | " +
+        "vehicle=${trip.vehicleName ?: trip.vehicleId} | ${kmOf(trip.distanceKm)} | $duration | status=${trip.status} | " +
+        "matching=$matching | route=$route"
+}

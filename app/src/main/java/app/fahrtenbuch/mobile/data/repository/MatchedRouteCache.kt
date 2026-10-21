@@ -78,30 +78,51 @@ internal object MatchedRouteCache {
         return sampled.map { (lat, lon) -> TrackPoint(tripId = tripId, lat = lat, lon = lon, recordedAt = "") }
     }
 
+    /** Was der Routen-Sync je Fahrt getan hat – für das Sync-Protokoll. */
+    data class RouteSyncResult(
+        /** False: Map-Matching im Profil aus oder auf dem Server nicht eingerichtet. */
+        val enabled: Boolean,
+        /** Jetzt geladen: Fahrt-ID → Punktzahl. */
+        val loaded: Map<String, Int> = emptyMap(),
+        /** Laden fehlgeschlagen: Fahrt-ID → Grund. */
+        val failed: Map<String, String> = emptyMap(),
+        /** Fehlend, aber wegen des Limits pro Lauf erst beim nächsten Sync. */
+        val deferred: Set<String> = emptySet()
+    )
+
     /**
      * Beim Sync: Routen gematchter Fahrten laden, die lokal fehlen oder veraltet sind
      * (neuere zuerst), und Routen nicht mehr gematchter Fahrten entfernen.
      */
-    suspend fun syncRoutes(api: FahrtenbuchApi, dao: OfflineDao, store: SessionStore) {
+    suspend fun syncRoutes(api: FahrtenbuchApi, dao: OfflineDao, store: SessionStore): RouteSyncResult {
         dao.pruneMatchedRoutes()
-        if (!store.mapMatchingEnabled || !store.mapMatchingAvailable) return
+        if (!store.mapMatchingEnabled || !store.mapMatchingAvailable) return RouteSyncResult(enabled = false)
         val known = dao.matchedRouteVersions().associate { it.tripId to it.matchedAt }
-        val missing = dao.trips()
+        val outdated = dao.trips()
             .filter { it.mapMatchingStatus == "applied" }
             .filter { trip -> !known.containsKey(trip.id) || known[trip.id] != trip.mapMatchingMatchedAt }
-            .take(MAX_PER_SYNC)
-        var loaded = 0
-        for (trip in missing) {
+        val batch = outdated.take(MAX_PER_SYNC)
+        val loaded = LinkedHashMap<String, Int>()
+        val failed = LinkedHashMap<String, String>()
+        for ((index, trip) in batch.withIndex()) {
             try {
-                if (fetch(api, dao, trip.id).isNotEmpty()) loaded++
+                val points = fetch(api, dao, trip.id).size
+                if (points > 0) loaded[trip.id] = points else failed[trip.id] = "keine Route vom Server (nicht mehr gematcht?)"
             } catch (error: Exception) {
                 if (error is kotlinx.coroutines.CancellationException) throw error
                 // Netz weg o. Ä.: Rest beim nächsten Sync
                 Log.w(TAG, "Matched route not loaded: tripId=${trip.id}", error)
+                failed[trip.id] = error.message ?: error::class.java.simpleName
+                batch.drop(index + 1).forEach { failed[it.id] = "übersprungen nach Fehler" }
                 break
             }
         }
-        Log.i(TAG, "Matched routes: loaded=$loaded pending=${missing.size - loaded}")
+        return RouteSyncResult(
+            enabled = true,
+            loaded = loaded,
+            failed = failed,
+            deferred = outdated.drop(MAX_PER_SYNC).map { it.id }.toSet()
+        )
     }
 
     private fun sample(points: List<Pair<Double, Double>>, maximum: Int): List<Pair<Double, Double>> {
