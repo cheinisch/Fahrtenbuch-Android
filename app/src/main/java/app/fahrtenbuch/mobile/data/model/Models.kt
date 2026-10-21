@@ -303,7 +303,7 @@ data class UserPreferences(
     val gravatarEnabled: Boolean = true,
     /** False, wenn der Server Gravatar abgeschaltet hat (GRAVATAR_ENABLED=false). */
     val gravatarAvailable: Boolean = true,
-    /** Map-Matching im Benutzerprofil eingeschaltet (API: autoMapMatchingEnabled). */
+    /** „Map-Matching verwenden“ im Benutzerprofil (API: mapMatchingEnabled). */
     val mapMatchingEnabled: Boolean = true,
     /** False, wenn auf dem Server kein Map-Matching eingerichtet ist (API: mapMatchingAvailable). */
     val mapMatchingAvailable: Boolean = true
@@ -355,6 +355,8 @@ data class UserSettingsDto(
     val gravatarEnabled: Boolean? = null,
     val gravatarAvailable: Boolean? = null,
     /** Fehlt bei älteren Servern – dann bleibt der zuletzt bekannte Wert (Standard an). */
+    val mapMatchingEnabled: Boolean? = null,
+    /** Vorabversion des Feldes (nur noch lesend als Rückfall). */
     val autoMapMatchingEnabled: Boolean? = null,
     val mapMatchingAvailable: Boolean? = null
 )

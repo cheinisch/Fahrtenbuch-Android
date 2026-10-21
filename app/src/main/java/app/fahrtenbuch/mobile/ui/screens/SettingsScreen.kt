@@ -361,7 +361,10 @@ fun SettingsScreen(
             },
             gravatarEnabled = appState.preferences.gravatarEnabled,
             gravatarAvailable = appState.preferences.gravatarAvailable,
-            onGravatarChange = viewModel::setGravatarEnabled
+            onGravatarChange = viewModel::setGravatarEnabled,
+            mapMatchingEnabled = appState.preferences.mapMatchingEnabled,
+            mapMatchingAvailable = appState.preferences.mapMatchingAvailable,
+            onMapMatchingChange = viewModel::setMapMatchingEnabled
         )
         SettingsDialog.SERVER -> ServerSettingsDialog(
             serverUrl = appState.serverUrl,

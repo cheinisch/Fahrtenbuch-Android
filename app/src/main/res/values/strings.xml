@@ -402,6 +402,9 @@
     <string name="gravatar_title">Profile picture from Gravatar</string>
     <string name="gravatar_text">Loads your Gravatar image. A hash of your e-mail address is sent to Gravatar.</string>
     <string name="gravatar_disabled_by_server">Gravatar is disabled on this server.</string>
+    <string name="map_matching_title">Use map matching</string>
+    <string name="map_matching_text">Snaps uploaded trips to the road network and shows them along the road. Off: GPS route only. Distances already applied stay.</string>
+    <string name="map_matching_unavailable">Map matching is not set up on this server.</string>
     <string name="sign_in_google">Sign in with Google</string>
     <string name="sign_in_microsoft">Sign in with Microsoft</string>
     <string name="sign_in_with">Sign in with %1$s</string>

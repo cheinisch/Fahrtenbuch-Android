@@ -37,7 +37,12 @@ fun ProfileEditDialog(
     gravatarEnabled: Boolean = true,
     gravatarAvailable: Boolean = true,
     /** Wird sofort gespeichert, unabhängig vom Speichern-Button. */
-    onGravatarChange: (Boolean) -> Unit = {}
+    onGravatarChange: (Boolean) -> Unit = {},
+    mapMatchingEnabled: Boolean = true,
+    /** False: auf dem Server ist kein Map-Matching eingerichtet – Schalter gesperrt. */
+    mapMatchingAvailable: Boolean = false,
+    /** Wird sofort gespeichert, wie Gravatar. */
+    onMapMatchingChange: (Boolean) -> Unit = {}
 ) {
     var displayName by rememberSaveable { mutableStateOf(user?.displayName.orEmpty()) }
     var username by rememberSaveable { mutableStateOf((user?.loginName ?: user?.username).orEmpty()) }
@@ -92,6 +97,26 @@ fun ProfileEditDialog(
                         checked = gravatarEnabled && gravatarAvailable,
                         enabled = gravatarAvailable && !loading,
                         onCheckedChange = onGravatarChange
+                    )
+                }
+                // Map-Matching verwenden: automatisch matchen und Straßenroute zeigen
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(stringResource(R.string.map_matching_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(if (mapMatchingAvailable) R.string.map_matching_text else R.string.map_matching_unavailable),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = mapMatchingEnabled && mapMatchingAvailable,
+                        enabled = mapMatchingAvailable && !loading,
+                        onCheckedChange = onMapMatchingChange
                     )
                 }
                 formatLastLogin(user?.lastLoginAt)?.let {

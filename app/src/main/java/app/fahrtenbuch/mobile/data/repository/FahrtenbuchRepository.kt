@@ -270,7 +270,7 @@ class FahrtenbuchRepository(
         settings.timeFormat?.let { store.timeFormat = it }
         settings.gravatarEnabled?.let { store.gravatarEnabled = it }
         settings.gravatarAvailable?.let { store.gravatarAvailable = it }
-        settings.autoMapMatchingEnabled?.let { store.mapMatchingEnabled = it }
+        (settings.mapMatchingEnabled ?: settings.autoMapMatchingEnabled)?.let { store.mapMatchingEnabled = it }
         settings.mapMatchingAvailable?.let { store.mapMatchingAvailable = it }
     }
 
@@ -282,6 +282,16 @@ class FahrtenbuchRepository(
             cacheSettings(api.updateMySettingsJson(body))
         } else {
             store.gravatarEnabled = enabled
+        }
+        return cachedPreferences()
+    }
+
+    /** „Map-Matching verwenden“ ein- oder ausschalten (nur Server-Modus, mit dem Konto synchronisiert). */
+    suspend fun setMapMatchingEnabled(enabled: Boolean): UserPreferences {
+        if (store.isServerMode) {
+            val body = JSONObject().put("mapMatchingEnabled", enabled).toString()
+                .toRequestBody("application/json".toMediaType())
+            cacheSettings(api.updateMySettingsJson(body))
         }
         return cachedPreferences()
     }

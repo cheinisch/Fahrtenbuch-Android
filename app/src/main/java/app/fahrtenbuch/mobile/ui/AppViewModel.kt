@@ -452,6 +452,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setMapMatchingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            runCatching { repository.setMapMatchingEnabled(enabled) }
+                .onSuccess { prefs ->
+                    // Abgeschaltet: geladene Straßenroute sofort verwerfen
+                    _state.value = _state.value.copy(
+                        preferences = prefs,
+                        tripMatchedRoute = if (prefs.showMapMatching) _state.value.tripMatchedRoute else emptyList()
+                    )
+                }
+                .onFailure { _state.value = _state.value.copy(error = ApiFactory.readableError(it)) }
+        }
+    }
+
     fun loadAccount() {
         loadPreferences()
         if (!store.hasAuthenticatedSession) return

@@ -402,6 +402,9 @@
     <string name="gravatar_title">Profilbild von Gravatar</string>
     <string name="gravatar_text">Lädt dein Gravatar-Bild. Dafür wird ein Hash deiner E-Mail-Adresse an Gravatar übertragen.</string>
     <string name="gravatar_disabled_by_server">Gravatar ist auf diesem Server deaktiviert.</string>
+    <string name="map_matching_title">Map-Matching verwenden</string>
+    <string name="map_matching_text">Legt hochgeladene Fahrten auf das Straßennetz und zeigt sie entlang der Straße. Aus: nur die GPS-Route. Bereits übernommene Distanzen bleiben.</string>
+    <string name="map_matching_unavailable">Auf diesem Server ist kein Map-Matching eingerichtet.</string>
     <string name="sign_in_google">Mit Google anmelden</string>
     <string name="sign_in_microsoft">Mit Microsoft anmelden</string>
     <string name="sign_in_with">Mit %1$s anmelden</string>
