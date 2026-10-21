@@ -72,7 +72,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(
                 store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone,
                 gravatarEnabled = store.gravatarEnabled,
-                gravatarAvailable = store.isServerMode && store.gravatarAvailable
+                gravatarAvailable = store.isServerMode && store.gravatarAvailable,
+                mapMatchingEnabled = store.mapMatchingEnabled,
+                mapMatchingAvailable = store.isServerMode && store.mapMatchingAvailable
             )
         )
     )
@@ -623,8 +625,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 .onSuccess { _state.value = _state.value.copy(tripPoints = it, tripDetailsLoading = false) }
                 .onFailure { _state.value = _state.value.copy(tripDetailsLoading = false, tripDetailsError = ApiFactory.readableError(it)) }
         }
-        // Nur für gematchte Fahrten nachladen; ein Fehler hier lässt die GPS-Route stehen.
-        if (trip.isMapMatched) {
+        // Nur für gematchte Fahrten nachladen und nur, wenn Server und Profil Map-Matching
+        // erlauben; ein Fehler hier lässt die GPS-Route stehen.
+        if (trip.isMapMatched && _state.value.preferences.showMapMatching) {
             viewModelScope.launch {
                 runCatching { repository.tripMatchedRoute(trip.id) }
                     .onSuccess { route ->

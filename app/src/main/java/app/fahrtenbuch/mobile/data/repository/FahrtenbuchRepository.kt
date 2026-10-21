@@ -221,7 +221,10 @@ class FahrtenbuchRepository(
             store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone,
             gravatarEnabled = store.gravatarEnabled,
             // Gravatar braucht ein Server-Konto (E-Mail-Adresse)
-            gravatarAvailable = store.isServerMode && store.gravatarAvailable
+            gravatarAvailable = store.isServerMode && store.gravatarAvailable,
+            mapMatchingEnabled = store.mapMatchingEnabled,
+            // Map-Matching macht nur der Server
+            mapMatchingAvailable = store.isServerMode && store.mapMatchingAvailable
         )
 
     /** Im Server-Modus vom Server laden und lokal merken; sonst bzw. bei Fehlern der lokale Stand. */
@@ -267,6 +270,8 @@ class FahrtenbuchRepository(
         settings.timeFormat?.let { store.timeFormat = it }
         settings.gravatarEnabled?.let { store.gravatarEnabled = it }
         settings.gravatarAvailable?.let { store.gravatarAvailable = it }
+        settings.autoMapMatchingEnabled?.let { store.mapMatchingEnabled = it }
+        settings.mapMatchingAvailable?.let { store.mapMatchingAvailable = it }
     }
 
     /** Gravatar als Profilbild ein- oder ausschalten (wird mit dem Konto synchronisiert). */

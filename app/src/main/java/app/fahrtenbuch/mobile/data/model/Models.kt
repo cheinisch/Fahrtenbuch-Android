@@ -302,10 +302,17 @@ data class UserPreferences(
     /** Profilbild von Gravatar laden (persönliche Einstellung, Standard an). */
     val gravatarEnabled: Boolean = true,
     /** False, wenn der Server Gravatar abgeschaltet hat (GRAVATAR_ENABLED=false). */
-    val gravatarAvailable: Boolean = true
+    val gravatarAvailable: Boolean = true,
+    /** Map-Matching im Benutzerprofil eingeschaltet (API: autoMapMatchingEnabled). */
+    val mapMatchingEnabled: Boolean = true,
+    /** False, wenn auf dem Server kein Map-Matching eingerichtet ist (API: mapMatchingAvailable). */
+    val mapMatchingAvailable: Boolean = true
 ) {
     /** Gravatar tatsächlich verwenden: Nutzer und Server erlauben es. */
     val useGravatar: Boolean get() = gravatarEnabled && gravatarAvailable
+
+    /** Straßenroute und Map-Matching-Hinweis nur zeigen, wenn Server und Profil es erlauben. */
+    val showMapMatching: Boolean get() = mapMatchingEnabled && mapMatchingAvailable
 
     /** Gültige Zeitzone; ungültige oder fehlende IDs fallen auf das Gerät zurück. */
     fun zoneId(): java.time.ZoneId =
@@ -319,7 +326,9 @@ data class UserPreferences(
             time: String?,
             zone: String? = null,
             gravatarEnabled: Boolean = true,
-            gravatarAvailable: Boolean = true
+            gravatarAvailable: Boolean = true,
+            mapMatchingEnabled: Boolean = true,
+            mapMatchingAvailable: Boolean = true
         ) = UserPreferences(
             distanceUnit = DistanceUnit.entries.firstOrNull { it.apiValue == distance } ?: DistanceUnit.KM,
             speedUnit = SpeedUnit.entries.firstOrNull { it.apiValue == speed } ?: SpeedUnit.KMH,
@@ -327,7 +336,9 @@ data class UserPreferences(
             timeFormat = TimeFormatPreference.entries.firstOrNull { it.apiValue == time } ?: TimeFormatPreference.H24,
             timeZone = zone?.takeIf { it.isNotBlank() },
             gravatarEnabled = gravatarEnabled,
-            gravatarAvailable = gravatarAvailable
+            gravatarAvailable = gravatarAvailable,
+            mapMatchingEnabled = mapMatchingEnabled,
+            mapMatchingAvailable = mapMatchingAvailable
         )
     }
 }
@@ -342,7 +353,10 @@ data class UserSettingsDto(
     val dateFormat: String? = null,
     val timeFormat: String? = null,
     val gravatarEnabled: Boolean? = null,
-    val gravatarAvailable: Boolean? = null
+    val gravatarAvailable: Boolean? = null,
+    /** Fehlt bei älteren Servern – dann bleibt der zuletzt bekannte Wert (Standard an). */
+    val autoMapMatchingEnabled: Boolean? = null,
+    val mapMatchingAvailable: Boolean? = null
 )
 
 /** GET /health – Systemstatus und Version des Servers. */

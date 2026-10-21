@@ -162,6 +162,16 @@ class SessionStore(context: Context) {
         get() = prefs.getBoolean("gravatar_available", true)
         set(value) { prefs.edit().putBoolean("gravatar_available", value).apply() }
 
+    // Map-Matching: Profil-Schalter und Server-Verfügbarkeit (Standard an, damit ältere
+    // Server ohne diese Felder gematchte Fahrten weiter zeigen)
+    var mapMatchingEnabled: Boolean
+        get() = prefs.getBoolean("map_matching_enabled", true)
+        set(value) { prefs.edit().putBoolean("map_matching_enabled", value).apply() }
+
+    var mapMatchingAvailable: Boolean
+        get() = prefs.getBoolean("map_matching_available", true)
+        set(value) { prefs.edit().putBoolean("map_matching_available", value).apply() }
+
     var trackingIntervalSeconds: Int
         get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
         set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }

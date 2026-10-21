@@ -110,9 +110,12 @@ internal fun TripDetailsScreen(
     /** Straßenroute aus dem Map-Matching des Servers; leer = nur GPS-Punkte. */
     matchedPoints: List<TrackPoint> = emptyList()
 ) {
-    // Wie im Web: gematchte Fahrten zeigen die Straße, „Originalroute“ die GPS-Linie
+    // Auf dem Server oder im Profil abgeschaltet: nur die GPS-Route, kein Hinweis
+    val matchingVisible = LocalUserPreferences.current.showMapMatching
+    val roadPoints = if (matchingVisible) matchedPoints else emptyList()
+    // Wie im Web: gematchte Fahrten zeigen die Straße, „Original zeigen“ die GPS-Linie
     var showOriginal by rememberSaveable(trip.id) { mutableStateOf(false) }
-    val mapPoints = if (matchedPoints.isNotEmpty() && !showOriginal) matchedPoints else points
+    val mapPoints = if (roadPoints.isNotEmpty() && !showOriginal) roadPoints else points
     BackHandler(enabled = !embedded, onBack = onBack)
     var editPurpose by rememberSaveable(trip.id) { mutableStateOf(false) }
     if (editPurpose) {
@@ -247,12 +250,14 @@ internal fun TripDetailsScreen(
 
         val overview: @Composable ColumnScope.() -> Unit = {
             TripMetricsCard(trip)
-            TripMapMatchingInfo(
-                trip = trip,
-                canToggle = matchedPoints.isNotEmpty(),
-                showOriginal = showOriginal,
-                onToggle = { showOriginal = !showOriginal }
-            )
+            if (matchingVisible) {
+                TripMapMatchingInfo(
+                    trip = trip,
+                    canToggle = roadPoints.isNotEmpty(),
+                    showOriginal = showOriginal,
+                    onToggle = { showOriginal = !showOriginal }
+                )
+            }
             TripTimelineCard(trip, start, end)
 
             if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())

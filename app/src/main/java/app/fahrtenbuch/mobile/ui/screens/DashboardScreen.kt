@@ -278,7 +278,7 @@ fun DashboardScreen(
             LatestTripCard(
                 trip = latestTrip,
                 // Gematchte Fahrt: Straßenroute statt GPS-Linie
-                points = state.tripMatchedRoute.takeIf { route -> route.isNotEmpty() && route.all { it.tripId == latestTrip.id } }
+                points = state.tripMatchedRoute.takeIf { route -> state.preferences.showMapMatching && route.isNotEmpty() && route.all { it.tripId == latestTrip.id } }
                     ?: state.tripPoints.takeIf { points -> points.isNotEmpty() && points.all { it.tripId == null || it.tripId == latestTrip.id } },
                 onClick = { onOpenTrip(latestTrip) }
             )
