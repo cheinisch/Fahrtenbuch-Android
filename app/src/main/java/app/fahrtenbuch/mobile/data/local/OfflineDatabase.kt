@@ -42,8 +42,31 @@ data class TripEntity(
     val syncState: String = "SYNCED",
     val specialCategory: String? = null,
     val startTimeZone: String? = null,
-    val endTimeZone: String? = null
+    val endTimeZone: String? = null,
+    // Map-Matching des Servers (null = nicht gematcht), damit gematchte Fahrten
+    // auch offline und direkt nach dem Start als solche erkannt werden
+    val mapMatchingStatus: String? = null,
+    val mapMatchingProvider: String? = null,
+    val mapMatchingMatchedAt: String? = null,
+    val mapMatchingRawDistanceMeters: Long? = null,
+    val mapMatchingMatchedDistanceMeters: Long? = null,
+    val mapMatchingMessage: String? = null
 )
+
+/**
+ * Straßenroute einer gematchten Server-Fahrt, als Polyline (Präzision 1e-6) kompakt
+ * gespeichert. [matchedAt] erkennt, ob der Server inzwischen neu gematcht hat.
+ */
+@Entity(tableName = "matched_routes")
+data class MatchedRouteEntity(
+    @PrimaryKey val tripId: String,
+    val matchedAt: String?,
+    val polyline: String,
+    val pointCount: Int
+)
+
+/** Nur Fahrt-ID und Stand einer gespeicherten Straßenroute (für den Sync). */
+data class MatchedRouteVersion(val tripId: String, val matchedAt: String?)
 
 @Entity(tableName = "tags")
 data class TagEntity(
@@ -121,6 +144,14 @@ interface OfflineDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTripRecords(values: List<TripEntity>)
     @Query("DELETE FROM trips") suspend fun clearTripRecords()
 
+    @Query("SELECT * FROM matched_routes WHERE tripId=:tripId") suspend fun matchedRoute(tripId: String): MatchedRouteEntity?
+    @Query("SELECT tripId, matchedAt FROM matched_routes") suspend fun matchedRouteVersions(): List<MatchedRouteVersion>
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putMatchedRoute(value: MatchedRouteEntity)
+    /** Routen von Fahrten entfernen, die es nicht mehr gibt oder die nicht (mehr) gematcht sind. */
+    @Query("DELETE FROM matched_routes WHERE tripId NOT IN (SELECT id FROM trips WHERE mapMatchingStatus = 'applied')")
+    suspend fun pruneMatchedRoutes()
+    @Query("DELETE FROM matched_routes") suspend fun clearMatchedRoutes()
+
     @Query("SELECT * FROM tags ORDER BY name COLLATE NOCASE") suspend fun tags(): List<TagEntity>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTags(values: List<TagEntity>)
     @Query("DELETE FROM tags") suspend fun clearTags()
@@ -164,6 +195,7 @@ interface OfflineDao {
     ) {
         clearPoints()
         clearOfflineTrips()
+        clearMatchedRoutes()
         clearTripRecords()
         clearTags()
         clearVehicles()
@@ -201,9 +233,10 @@ interface OfflineDao {
         TripEntity::class,
         TagEntity::class,
         OfflineTripEntity::class,
-        TrackPointEntity::class
+        TrackPointEntity::class,
+        MatchedRouteEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -218,9 +251,25 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trips ADD COLUMN mapMatchingStatus TEXT")
+                db.execSQL("ALTER TABLE trips ADD COLUMN mapMatchingProvider TEXT")
+                db.execSQL("ALTER TABLE trips ADD COLUMN mapMatchingMatchedAt TEXT")
+                db.execSQL("ALTER TABLE trips ADD COLUMN mapMatchingRawDistanceMeters INTEGER")
+                db.execSQL("ALTER TABLE trips ADD COLUMN mapMatchingMatchedDistanceMeters INTEGER")
+                db.execSQL("ALTER TABLE trips ADD COLUMN mapMatchingMessage TEXT")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS matched_routes (" +
+                        "tripId TEXT NOT NULL, matchedAt TEXT, polyline TEXT NOT NULL, " +
+                        "pointCount INTEGER NOT NULL, PRIMARY KEY(tripId))"
+                )
+            }
         }
 
         private val MIGRATION_8_9 = object : Migration(8, 9) {

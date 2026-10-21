@@ -641,7 +641,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (detailsTripId != trip.id || matchedRouteTripId == trip.id) return
         matchedRouteTripId = trip.id
         viewModelScope.launch {
-            runCatching { repository.tripMatchedRoute(trip.id) }
+            runCatching { repository.tripMatchedRoute(trip.id, trip.mapMatching?.matchedAt) }
                 .onSuccess { route ->
                     if (detailsTripId == trip.id) _state.value = _state.value.copy(tripMatchedRoute = route)
                 }

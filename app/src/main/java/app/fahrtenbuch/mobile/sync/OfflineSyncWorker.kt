@@ -16,6 +16,9 @@ import app.fahrtenbuch.mobile.data.local.VehicleEntity
 import app.fahrtenbuch.mobile.data.local.TripEntity
 import app.fahrtenbuch.mobile.data.local.TagEntity
 import app.fahrtenbuch.mobile.data.model.*
+import app.fahrtenbuch.mobile.data.repository.MatchedRouteCache
+import app.fahrtenbuch.mobile.data.repository.cacheMapMatchingSettings
+import app.fahrtenbuch.mobile.data.repository.withMapMatching
 
 class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     companion object {
@@ -75,6 +78,16 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             dao.replaceVehicles(vehicles.map { it.toEntity() })
             dao.replaceTrips(trips.map { it.toEntity() })
             dao.replaceTags(tags.map { TagEntity(it.id, it.name, color = it.color) })
+
+            // Map-Matching: Einstellungen und Straßenrouten gematchter Fahrten mitziehen,
+            // damit sie offline verfügbar sind. Fehler hier lassen den Sync nicht scheitern.
+            runCatching { api.mySettings().settings }.getOrNull()?.let(store::cacheMapMatchingSettings)
+            try {
+                MatchedRouteCache.syncRoutes(api, dao, store)
+            } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                Log.w(TAG, "Matched route sync failed", error)
+            }
 
             Log.i(TAG, "Sync completed: failedTrips=$failedTrips")
             if (failedTrips > 0) Result.failure() else Result.success()
@@ -332,4 +345,4 @@ private fun Trip.toEntity() = TripEntity(
     specialCategory = specialCategory,
     startTimeZone = startTimeZone,
     endTimeZone = endTimeZone
-)
+).withMapMatching(mapMatching)

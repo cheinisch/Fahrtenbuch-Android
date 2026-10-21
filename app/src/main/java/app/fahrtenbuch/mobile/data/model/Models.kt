@@ -189,6 +189,8 @@ data class TripMapMatching(
 data class TripMatchedRoute(
     val status: String,
     val provider: String? = null,
+    /** Stand des Matchings; ändert er sich, wird die gespeicherte Route ersetzt. */
+    val matchedAt: String? = null,
     val coordinates: List<List<Double>> = emptyList()
 )
 

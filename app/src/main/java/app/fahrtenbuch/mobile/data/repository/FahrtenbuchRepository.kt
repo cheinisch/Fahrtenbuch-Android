@@ -270,8 +270,7 @@ class FahrtenbuchRepository(
         settings.timeFormat?.let { store.timeFormat = it }
         settings.gravatarEnabled?.let { store.gravatarEnabled = it }
         settings.gravatarAvailable?.let { store.gravatarAvailable = it }
-        (settings.mapMatchingEnabled ?: settings.autoMapMatchingEnabled)?.let { store.mapMatchingEnabled = it }
-        settings.mapMatchingAvailable?.let { store.mapMatchingAvailable = it }
+        store.cacheMapMatchingSettings(settings)
     }
 
     /** Gravatar als Profilbild ein- oder ausschalten (wird mit dem Konto synchronisiert). */
@@ -486,23 +485,19 @@ class FahrtenbuchRepository(
     } else api.tripPoints(id)
 
     /**
-     * Straßenroute einer gematchten Fahrt als Punkte für die Karte. Leer im lokalen
-     * Modus, wenn der Server (noch) nicht gematcht hat oder das Ergebnis abgelehnt wurde.
+     * Straßenroute einer gematchten Fahrt für die Karte: zuerst aus dem lokalen Speicher
+     * (Stand [matchedAt]), sonst vom Server und dann gespeichert. Offline notfalls eine
+     * ältere gespeicherte Route. Leer im lokalen Modus oder ohne Matching.
      */
-    suspend fun tripMatchedRoute(id: Uuid): List<TrackPoint> {
+    suspend fun tripMatchedRoute(id: Uuid, matchedAt: String?): List<TrackPoint> {
         if (store.isLocalMode) return emptyList()
-        val route = try {
-            api.tripMatchedRoute(id)
-        } catch (error: retrofit2.HttpException) {
-            // 404: kein Matching vorhanden bzw. älterer Server ohne Endpunkt
-            if (error.code() == 404) return emptyList() else throw error
+        MatchedRouteCache.read(dao, id, matchedAt)?.let { return it }
+        return try {
+            MatchedRouteCache.fetch(api, dao, id)
+        } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) throw error
+            MatchedRouteCache.read(dao, id, matchedAt, acceptStale = true) ?: throw error
         }
-        if (route.status != "applied") return emptyList()
-        return route.coordinates
-            .filter { it.size >= 2 }
-            .map { (lat, lon) -> TrackPoint(tripId = id, lat = lat, lon = lon, recordedAt = "") }
-            .takeIf { it.size >= 2 }
-            .orEmpty()
     }
 
     suspend fun updateTripCategory(
@@ -705,7 +700,7 @@ private fun Trip.toEntity() = TripEntity(
     specialCategory = specialCategory,
     startTimeZone = startTimeZone,
     endTimeZone = endTimeZone
-)
+).withMapMatching(mapMatching)
 
 private fun TripEntity.toModel() = Trip(
     id = id,
@@ -728,5 +723,6 @@ private fun TripEntity.toModel() = Trip(
     syncState = syncState,
     specialCategory = specialCategory,
     startTimeZone = startTimeZone,
-    endTimeZone = endTimeZone
+    endTimeZone = endTimeZone,
+    mapMatching = mapMatchingModel()
 )
