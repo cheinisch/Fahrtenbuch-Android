@@ -24,13 +24,17 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -306,7 +310,7 @@ private fun TripMapMatchingInfo(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(Icons.Default.Route, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
+            Icon(RoadIcon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
             Text(
                 stringResource(
                     R.string.trip_map_matched,
@@ -336,9 +340,34 @@ private fun TripMapMatchingInfo(
             ),
             style = MaterialTheme.typography.bodySmall,
             color = colors.onSurfaceVariant,
-            modifier = Modifier.padding(start = 4.dp)
+            modifier = Modifier.padding(start = 4.dp, top = 4.dp, end = 4.dp, bottom = 2.dp)
         )
     }
+}
+
+/** Straße mit Mittelstreifen (wie im Mockup), als Strich-Icon im 24er Raster. */
+private val RoadIcon: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Road",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = null,
+            stroke = SolidColor(Color.Black),
+            strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round,
+            strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(4f, 19f); lineTo(9f, 5f)
+            moveTo(20f, 19f); lineTo(15f, 5f)
+            moveTo(12f, 6f); verticalLineToRelative(2f)
+            moveTo(12f, 11f); verticalLineToRelative(2f)
+            moveTo(12f, 16f); verticalLineToRelative(2f)
+        }
+    }.build()
 }
 
 @Composable
