@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Trips that the server snapped to the road network (map matching) are drawn along the road in the trip details, the trip list on tablets and the latest-trip card, instead of straight lines between sparse GPS points. The trip details show the service used and the original GPS distance; an "Original route" chip switches the map back to the raw GPS line. If matching was rejected or failed, the reason is shown. Requires a server with map matching (`GET /trips/{id}/matched-route`); older servers and local mode keep showing the GPS route.
+- Trips that the server snapped to the road network (map matching) are drawn along the road in the trip details, the trip list on tablets and the latest-trip card, instead of straight lines between sparse GPS points. The trip details show a small note with the original GPS distance; a "Show original" text button switches the map back to the raw GPS line. If matching was rejected or failed, the reason is shown. Requires a server with map matching (`GET /trips/{id}/matched-route`); older servers and local mode keep showing the GPS route.
 
 ## [0.5.3] - 2026-10-16
 

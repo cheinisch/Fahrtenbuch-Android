@@ -127,8 +127,9 @@
     <string name="trip_tags_add">Add tag</string>
     <string name="trip_detail_back">Back</string>
     <string name="trip_detail_fullscreen">Expand map</string>
-    <string name="trip_map_matched">Snapped to roads (%1$s) · GPS distance %2$s</string>
-    <string name="trip_original_route">Original route</string>
+    <string name="trip_map_matched">Snapped to roads · GPS %1$s</string>
+    <string name="trip_show_original_route">Show original</string>
+    <string name="trip_show_road_route">Show road route</string>
     <string name="trip_map_matching_rejected">Map matching not applied: %1$s</string>
     <string name="trip_map_matching_failed">Map matching failed: %1$s</string>
     <string name="trip_detail_close_map">Close map</string>

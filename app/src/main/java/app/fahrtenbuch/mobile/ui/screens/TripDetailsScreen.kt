@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -288,8 +289,7 @@ internal fun TripDetailsScreen(
     }
 }
 
-/** Hinweis zum Map-Matching und Umschalter auf die GPS-Originalroute. */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Dezenter Hinweis zum Map-Matching mit Textumschalter auf die GPS-Originalroute. */
 @Composable
 private fun TripMapMatchingInfo(
     trip: Trip,
@@ -300,34 +300,33 @@ private fun TripMapMatchingInfo(
     val matching = trip.mapMatching ?: return
     val colors = MaterialTheme.colorScheme
     val prefs = LocalUserPreferences.current
-    val provider = when (matching.provider) {
-        "atlas" -> "Dawarich Atlas"
-        "valhalla" -> "Valhalla"
-        "osrm" -> "OSRM"
-        else -> matching.provider.orEmpty()
-    }
     when (matching.status) {
         "applied" -> Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(start = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Icon(Icons.Default.Route, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
             Text(
                 stringResource(
                     R.string.trip_map_matched,
-                    provider,
                     formatDistanceWithUnit(matching.rawDistanceMeters?.let { it / 1000.0 }, prefs)
                 ),
                 style = MaterialTheme.typography.bodySmall,
-                color = colors.primary,
+                color = colors.onSurfaceVariant,
                 modifier = Modifier.weight(1f)
             )
             if (canToggle) {
-                FilterChip(
-                    selected = showOriginal,
+                TextButton(
                     onClick = onToggle,
-                    label = { Text(stringResource(R.string.trip_original_route)) }
-                )
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Text(
+                        stringResource(if (showOriginal) R.string.trip_show_road_route else R.string.trip_show_original_route),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
         "rejected", "failed" -> Text(
@@ -336,7 +335,8 @@ private fun TripMapMatchingInfo(
                 matching.message ?: "–"
             ),
             style = MaterialTheme.typography.bodySmall,
-            color = colors.onSurfaceVariant
+            color = colors.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp)
         )
     }
 }
