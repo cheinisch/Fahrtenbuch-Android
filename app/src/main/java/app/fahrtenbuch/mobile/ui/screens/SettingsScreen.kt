@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Straighten
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +59,7 @@ import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.ui.common.UserAvatar
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.api.AppMode
+import app.fahrtenbuch.mobile.data.api.GeocoderProvider
 import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.model.DateFormatPreference
 import app.fahrtenbuch.mobile.data.model.DistanceUnit
@@ -71,6 +73,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.AboutDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.BackupDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.PasskeysDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.FormatPreferencesDialog
+import app.fahrtenbuch.mobile.ui.screens.settings.GeocodingDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.LogoutConfirmDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.OpenSourceLicensesDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.PermissionsDialog
@@ -83,7 +86,7 @@ import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES, BACKUP, PASSKEYS }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES, BACKUP, PASSKEYS, GEOCODING }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -98,6 +101,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val sessionStore = remember { SessionStore(context) }
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
+    var geocoderProvider by remember { mutableStateOf(sessionStore.geocoderProvider) }
+    var photonUrl by remember { mutableStateOf(sessionStore.photonUrl) }
     var dialog by rememberSaveable { mutableStateOf(SettingsDialog.NONE) }
     val isServerMode = appState.appMode == AppMode.SERVER
     val (permissionStatus, refreshPermissions) = rememberPermissionStatus()
@@ -184,6 +189,23 @@ fun SettingsScreen(
                 ) {
                     Text(stringResource(R.string.migrate_to_server))
                 }
+            }
+
+            // Nur im lokalen Modus: im Server-Modus löst der Fahrtenbuch-Server die Adressen auf
+            SettingsSectionLabel(stringResource(R.string.geocoding_title))
+            SettingsCard {
+                SettingsRow(
+                    icon = Icons.Default.TravelExplore,
+                    title = stringResource(R.string.geocoding_row_title),
+                    subtitle = when (geocoderProvider) {
+                        GeocoderProvider.SYSTEM -> stringResource(R.string.geocoding_system)
+                        GeocoderProvider.PHOTON -> stringResource(
+                            R.string.geocoding_row_photon,
+                            photonUrl?.let(::serverHost) ?: "–"
+                        )
+                    },
+                    onClick = { dialog = SettingsDialog.GEOCODING }
+                )
             }
         }
 
@@ -412,6 +434,20 @@ fun SettingsScreen(
         )
         // Zurück aus der Lizenzliste führt wieder zu „Über die App“
         SettingsDialog.LIBRARIES -> OpenSourceLicensesDialog(onDismiss = { dialog = SettingsDialog.ABOUT })
+        SettingsDialog.GEOCODING -> GeocodingDialog(
+            provider = geocoderProvider,
+            photonUrl = photonUrl,
+            onDismiss = { dialog = SettingsDialog.NONE },
+            onSave = { provider, url ->
+                sessionStore.geocoderProvider = provider
+                sessionStore.photonUrl = url
+                geocoderProvider = provider
+                photonUrl = url
+                dialog = SettingsDialog.NONE
+                // Fahrten ohne Adresse gleich mit dem neuen Dienst erneut auflösen
+                viewModel.resolveLocalTripDetails()
+            }
+        )
         SettingsDialog.NONE -> Unit
     }
 }

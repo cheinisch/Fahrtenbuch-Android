@@ -463,4 +463,23 @@
     <string name="sync_error_other_recording">Another trip is still being recorded on the server (e.g. started in the web dashboard). End it there, then this trip will be synced.</string>
     <string name="sync_error_vehicle_missing">The vehicle does not exist on the server.</string>
     <string name="sync_error_generic">Synchronization failed.</string>
+    <string name="geocoding_title">Address lookup</string>
+    <string name="geocoding_row_title">Geocoding service</string>
+    <string name="geocoding_row_photon">Photon · %1$s</string>
+    <string name="geocoding_intro">Trips recorded on this device get their start and destination address from the GPS coordinates. Choose which service resolves them.</string>
+    <string name="geocoding_system">Android system</string>
+    <string name="geocoding_system_help">Uses the geocoder built into Android (usually Google). No setup needed.</string>
+    <string name="geocoding_photon">Photon server</string>
+    <string name="geocoding_photon_help">Your own Photon server or a public one, based on OpenStreetMap.</string>
+    <string name="geocoding_photon_url">Photon address</string>
+    <string name="geocoding_photon_url_help">Root address of the server, e.g. https://photon.example.com</string>
+    <string name="geocoding_photon_url_invalid">Not a valid address.</string>
+    <string name="geocoding_photon_use_public">Suggestion: public server photon.komoot.io</string>
+    <string name="geocoding_photon_public_note">The public server by komoot is free but meant for light use only. For many trips, a self-hosted Photon server is the better choice.</string>
+    <string name="geocoding_photon_privacy">Start and end coordinates of your trips are sent to this server.</string>
+    <string name="geocoding_test">Test connection</string>
+    <string name="geocoding_testing">Testing…</string>
+    <string name="geocoding_test_ok">Works: %1$s</string>
+    <string name="geocoding_test_empty">The server answered but returned no address for the test location (Frankfurt). Check the index region.</string>
+    <string name="geocoding_test_failed">Connection failed: %1$s</string>
 </resources>

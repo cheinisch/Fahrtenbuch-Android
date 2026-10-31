@@ -463,4 +463,23 @@
     <string name="sync_error_other_recording">Auf dem Server läuft noch eine andere Aufzeichnung (z. B. im Web-Dashboard gestartet). Beende sie dort, dann wird diese Fahrt übertragen.</string>
     <string name="sync_error_vehicle_missing">Das Fahrzeug ist auf dem Server nicht vorhanden.</string>
     <string name="sync_error_generic">Synchronisierung fehlgeschlagen.</string>
+    <string name="geocoding_title">Adressauflösung</string>
+    <string name="geocoding_row_title">Geocoding-Dienst</string>
+    <string name="geocoding_row_photon">Photon · %1$s</string>
+    <string name="geocoding_intro">Fahrten auf diesem Gerät bekommen Start- und Zieladresse aus den GPS-Koordinaten. Wähle, welcher Dienst sie auflöst.</string>
+    <string name="geocoding_system">Android-System</string>
+    <string name="geocoding_system_help">Nutzt den in Android eingebauten Geocoder (meist Google). Keine Einrichtung nötig.</string>
+    <string name="geocoding_photon">Photon-Server</string>
+    <string name="geocoding_photon_help">Eigener oder öffentlicher Photon-Server auf Basis von OpenStreetMap.</string>
+    <string name="geocoding_photon_url">Photon-Adresse</string>
+    <string name="geocoding_photon_url_help">Basisadresse des Servers, z. B. https://photon.example.com</string>
+    <string name="geocoding_photon_url_invalid">Keine gültige Adresse.</string>
+    <string name="geocoding_photon_use_public">Vorschlag: öffentlicher Server photon.komoot.io</string>
+    <string name="geocoding_photon_public_note">Der öffentliche Server von komoot ist kostenlos, aber nur für geringe Last gedacht. Bei vielen Fahrten ist ein eigener Photon-Server die bessere Wahl.</string>
+    <string name="geocoding_photon_privacy">Start- und Zielkoordinaten deiner Fahrten werden an diesen Server gesendet.</string>
+    <string name="geocoding_test">Verbindung testen</string>
+    <string name="geocoding_testing">Teste …</string>
+    <string name="geocoding_test_ok">Funktioniert: %1$s</string>
+    <string name="geocoding_test_empty">Der Server antwortet, liefert für den Testort (Frankfurt) aber keine Adresse. Prüfe die Region des Index.</string>
+    <string name="geocoding_test_failed">Verbindung fehlgeschlagen: %1$s</string>
 </resources>
