@@ -749,6 +749,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Z. B. nach Wechsel des Geocoding-Dienstes: offene Adressen sofort erneut auflösen. */
+    fun resolveLocalTripDetails() {
+        viewModelScope.launch { resolveTripDetails() }
+    }
+
     /** Adressen und Strecke für Fahrten auf dem Gerät ergänzen und die Liste danach aktualisieren. */
     private suspend fun resolveTripDetails() {
         val changed = runCatching { repository.resolveLocalTripDetails() }.getOrDefault(false)

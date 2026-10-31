@@ -4,6 +4,8 @@ import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.os.Build
+import app.fahrtenbuch.mobile.data.api.GeocoderProvider
+import app.fahrtenbuch.mobile.data.api.SessionStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -11,8 +13,10 @@ import java.util.Locale
 import kotlin.coroutines.resume
 
 /**
- * Löst Koordinaten über den Android-Geocoder in eine Adresse auf – ohne eigenen Server
- * und ohne API-Key. Der Geocoder des Systems braucht eine Internetverbindung; ohne Netz
+ * Löst Koordinaten in eine Adresse auf – über einen Photon-Server, wenn in den Einstellungen
+ * hinterlegt, sonst über den Android-Geocoder.
+ *
+ * Der Android-Geocoder braucht keinen eigenen Server und keinen API-Key. Der Geocoder des Systems braucht eine Internetverbindung; ohne Netz
  * (oder auf Geräten ohne Geocoder-Dienst) liefert er null, und der Aufrufer versucht es
  * später erneut.
  *
@@ -22,6 +26,17 @@ import kotlin.coroutines.resume
 internal object ReverseGeocoder {
 
     suspend fun lookup(context: Context, lat: Double, lon: Double): String? {
+        val store = SessionStore(context)
+        val photonUrl = store.photonUrl
+        if (store.geocoderProvider == GeocoderProvider.PHOTON && photonUrl != null) {
+            // Kein Rückfall auf den System-Geocoder: wer Photon wählt, will meist gerade nicht,
+            // dass Koordinaten an Google gehen. Fehler → null, der nächste Lauf versucht es erneut.
+            return runCatching { PhotonGeocoder.reverse(photonUrl, lat, lon) }.getOrNull()
+        }
+        return systemLookup(context, lat, lon)
+    }
+
+    private suspend fun systemLookup(context: Context, lat: Double, lon: Double): String? {
         if (!Geocoder.isPresent()) return null
         val geocoder = Geocoder(context, Locale.getDefault())
         val address = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

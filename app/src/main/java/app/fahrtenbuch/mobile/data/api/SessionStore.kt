@@ -6,6 +6,8 @@ import java.util.UUID
 
 enum class AppMode { UNSET, LOCAL, SERVER }
 
+enum class GeocoderProvider { SYSTEM, PHOTON }
+
 class SessionStore(context: Context) {
     /** Einstellungen, Server-Adresse usw. – dürfen gesichert werden (Google-Backup, ZIP). */
     private val prefs = context.getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
@@ -171,6 +173,19 @@ class SessionStore(context: Context) {
     var mapMatchingAvailable: Boolean
         get() = prefs.getBoolean("map_matching_available", true)
         set(value) { prefs.edit().putBoolean("map_matching_available", value).apply() }
+
+    /**
+     * Adressauflösung im lokalen Modus: SYSTEM = Android-Geocoder, PHOTON = Photon-Server
+     * unter [photonUrl]. Im Server-Modus löst der Fahrtenbuch-Server selbst auf.
+     */
+    var geocoderProvider: GeocoderProvider
+        get() = runCatching { GeocoderProvider.valueOf(prefs.getString("geocoder_provider", null) ?: "") }
+            .getOrDefault(GeocoderProvider.SYSTEM)
+        set(value) { prefs.edit().putString("geocoder_provider", value.name).apply() }
+
+    var photonUrl: String?
+        get() = prefs.getString("photon_url", null)?.takeIf { it.isNotBlank() }
+        set(value) { prefs.edit().putString("photon_url", value?.trim()?.takeIf { it.isNotBlank() }).apply() }
 
     var trackingIntervalSeconds: Int
         get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
