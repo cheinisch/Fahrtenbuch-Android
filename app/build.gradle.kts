@@ -14,8 +14,8 @@ android {
         applicationId = "app.fahrtenbuch.mobile"
         minSdk = 29
         targetSdk = 36
-        versionCode = 32
-        versionName = "0.5.4"
+        versionCode = 33
+        versionName = "0.6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
