@@ -104,7 +104,7 @@ Kotlin · Jetpack Compose · Material 3 · Navigation Compose · Room · WorkMan
 
 ## Localization
 
-Strings live in `app/src/main/res/values/strings.xml` (English, default) and `values-de/strings.xml` (German). Every user-facing text must exist in both files – a missing key silently falls back to English.
+Strings live in `app/src/main/res/values/strings.xml` (English, default) and the translations `values-de` (German), `values-fr` (French), `values-it` (Italian), `values-es` (Spanish), `values-pt` (Portuguese), `values-nl` (Dutch), `values-pl` (Polish), `values-sv` (Swedish), `values-nb` (Norwegian), `values-fi` (Finnish) and `values-da` (Danish). Every user-facing text must exist in all files – a missing key silently falls back to English.
 
 ## Contributing
 
