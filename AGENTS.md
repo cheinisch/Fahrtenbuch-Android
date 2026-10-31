@@ -36,7 +36,7 @@ There is no CI yet; build locally before pushing larger changes. If you cannot b
 
 ## Conventions
 
-- **Strings:** never hardcode user-facing text. Add every key to both `res/values/strings.xml` (English) and `res/values-de/strings.xml` (German). Escape `&` as `&amp;` and apostrophes as `\'`. Use `plurals` for counts.
+- **Strings:** never hardcode user-facing text. Add every key to `res/values/strings.xml` (English) and to every translation: `values-de` (German), `values-fr` (French), `values-it` (Italian), `values-es` (Spanish), `values-pt` (Portuguese, European). Escape `&` as `&amp;` and apostrophes as `\'`. Use `plurals` for counts.
   - In composables use `stringResource`; in the ViewModel use `str(R.string.…)`; in services/receivers use `context.getString`.
 - **Formatting:** distances, speeds, dates and times go through the helpers in `ui/common/TripFormat.kt` with `LocalUserPreferences.current` (km/mi, km/h/mph, EU/US date, 12h/24h). Stored values are always km, km/h and ISO-8601 UTC – never convert stored data. Never use `ZoneId.systemDefault()` to display trip times: use `prefs.forTrip(trip)` (trip's `startTimeZone`/`endTimeZone`, else account/selected zone) with the format helpers, `tripLocalDate(trip, prefs)` and `today(prefs)`. Only when *recording* a trip is the device zone captured (`OfflineTripEntity.startTimeZone`/`endTimeZone`).
 - **Tablets:** use `LocalWindowLayout.current` (`ui/common/WindowLayout.kt`): `useNavigationRail`/`wide` from 600 dp, `twoPane` from 840 dp. Phones keep the single-column layout; new screens should not assume a phone width (no fixed widths, use `widthIn(max = …)` for readable columns).
