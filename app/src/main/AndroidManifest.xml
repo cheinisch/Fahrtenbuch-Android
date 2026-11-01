@@ -55,6 +55,11 @@
             </intent-filter>
         </receiver>
 
+        <!-- Buttons der Fahrtende-Benachrichtigung; nur intern per PendingIntent erreichbar -->
+        <receiver
+            android:name=".location.TripClassifyReceiver"
+            android:exported="false" />
+
         <service
             android:name=".location.TripTrackingService"
             android:exported="false"

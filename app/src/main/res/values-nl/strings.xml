@@ -222,6 +222,9 @@
     <string name="license_plate_example">bijv. AB-123-C</string>
     <string name="tracking_notification_title">Rit wordt geregistreerd</string>
     <string name="tracking_notification_text">Registratie actief · gps wordt vastgelegd.</string>
+    <string name="trip_end_channel_name">Einde rit</string>
+    <string name="trip_end_notification_title">Rit beëindigd</string>
+    <string name="trip_end_notification_text">Hoe wil je deze rit indelen?</string>
     <string name="error_server_scheme">Het serveradres moet beginnen met https:// of http://.</string>
     <string name="error_qr_server">De QR-code bevat geen geldig serveradres.</string>
     <string name="error_pair_failed">Aanmelden van het apparaat mislukt.</string>

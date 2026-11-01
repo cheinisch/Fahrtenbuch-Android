@@ -222,6 +222,9 @@
     <string name="license_plate_example">esim. ABC-123</string>
     <string name="tracking_notification_title">Ajoa tallennetaan</string>
     <string name="tracking_notification_text">Tallennus käynnissä · GPS tallentuu.</string>
+    <string name="trip_end_channel_name">Ajon päättyminen</string>
+    <string name="trip_end_notification_title">Ajo päättyi</string>
+    <string name="trip_end_notification_text">Miten ajo luokitellaan?</string>
     <string name="error_server_scheme">Palvelimen osoitteen on alettava https:// tai http://.</string>
     <string name="error_qr_server">QR-koodi ei sisällä kelvollista palvelimen osoitetta.</string>
     <string name="error_pair_failed">Laitteen kirjautuminen epäonnistui.</string>

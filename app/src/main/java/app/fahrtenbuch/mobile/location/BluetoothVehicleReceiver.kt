@@ -95,6 +95,8 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
             Intent(context, TripTrackingService::class.java)
                 .setAction(TripTrackingService.ACTION_STOP)
         )
+        // Vor dem Sync, damit der Tipp auf einen Button den Stop sicher noch vor sich hat
+        TripEndNotifier.show(context, trip.localId)
         SyncScheduler.pushIfOnline(context)
     }
 }

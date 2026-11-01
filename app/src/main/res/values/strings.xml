@@ -222,6 +222,9 @@
     <string name="license_plate_example">e.g. AB-CD 123</string>
     <string name="tracking_notification_title">Recording trip</string>
     <string name="tracking_notification_text">Tracking active · recording GPS.</string>
+    <string name="trip_end_channel_name">Trip ended</string>
+    <string name="trip_end_notification_title">Trip ended</string>
+    <string name="trip_end_notification_text">How should this trip be classified?</string>
     <string name="error_server_scheme">The server address must start with https:// or http://.</string>
     <string name="error_qr_server">The QR code does not contain a valid server address.</string>
     <string name="error_pair_failed">Device sign-in failed.</string>

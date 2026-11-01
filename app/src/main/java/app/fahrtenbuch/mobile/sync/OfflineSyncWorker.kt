@@ -156,7 +156,8 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
         if (local.pendingStop && local.endedAt != null) {
             // Lokal erfassten Fahrtzweck/Kontakt/Notiz vor dem Stop senden: schlägt es fehl,
             // wird beim nächsten Lauf beides wiederholt
-            if (local.purpose != null || local.contact != null || local.notes != null) {
+            // Auch eine bereits gesetzte Fahrtart (z. B. per Benachrichtigung) mitsenden
+            if (local.type != "unclassified" || local.purpose != null || local.contact != null || local.notes != null) {
                 val body = org.json.JSONObject()
                     .put("category", local.type)
                     .put("specialCategory", local.specialCategory ?: org.json.JSONObject.NULL)

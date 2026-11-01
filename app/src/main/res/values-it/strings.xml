@@ -226,6 +226,9 @@
     <string name="license_plate_example">es. AB 123 CD</string>
     <string name="tracking_notification_title">Registrazione viaggio</string>
     <string name="tracking_notification_text">Registrazione attiva · GPS in corso.</string>
+    <string name="trip_end_channel_name">Fine viaggio</string>
+    <string name="trip_end_notification_title">Viaggio terminato</string>
+    <string name="trip_end_notification_text">Come vuoi classificare questo viaggio?</string>
     <string name="error_server_scheme">L\'indirizzo del server deve iniziare con https:// o http://.</string>
     <string name="error_qr_server">Il codice QR non contiene un indirizzo server valido.</string>
     <string name="error_pair_failed">Accesso del dispositivo non riuscito.</string>

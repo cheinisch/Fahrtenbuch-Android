@@ -226,6 +226,9 @@
     <string name="license_plate_example">p. ex. AA-00-AA</string>
     <string name="tracking_notification_title">A registar viagem</string>
     <string name="tracking_notification_text">Registo ativo · a gravar GPS.</string>
+    <string name="trip_end_channel_name">Fim da viagem</string>
+    <string name="trip_end_notification_title">Viagem terminada</string>
+    <string name="trip_end_notification_text">Como quer classificar esta viagem?</string>
     <string name="error_server_scheme">O endereço do servidor tem de começar por https:// ou http://.</string>
     <string name="error_qr_server">O código QR não contém um endereço de servidor válido.</string>
     <string name="error_pair_failed">Falha ao iniciar sessão no dispositivo.</string>

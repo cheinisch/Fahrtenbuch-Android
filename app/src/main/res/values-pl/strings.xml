@@ -230,6 +230,9 @@
     <string name="license_plate_example">np. WA 12345</string>
     <string name="tracking_notification_title">Rejestrowanie przejazdu</string>
     <string name="tracking_notification_text">Rejestracja aktywna · zapisywanie GPS.</string>
+    <string name="trip_end_channel_name">Koniec przejazdu</string>
+    <string name="trip_end_notification_title">Przejazd zakończony</string>
+    <string name="trip_end_notification_text">Jak sklasyfikować ten przejazd?</string>
     <string name="error_server_scheme">Adres serwera musi zaczynać się od https:// lub http://.</string>
     <string name="error_qr_server">Kod QR nie zawiera prawidłowego adresu serwera.</string>
     <string name="error_pair_failed">Logowanie urządzenia nie powiodło się.</string>
