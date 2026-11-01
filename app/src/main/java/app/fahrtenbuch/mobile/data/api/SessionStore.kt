@@ -168,6 +168,11 @@ class SessionStore(context: Context) {
         get() = prefs.getBoolean("map_matching_enabled", true)
         set(value) { prefs.edit().putBoolean("map_matching_enabled", value).apply() }
 
+    // Zeitfenster fürs Zusammenführen von Fahrten (Server-Profil, Standard 120 s)
+    var tripMergeGapSeconds: Int
+        get() = prefs.getInt("trip_merge_gap_seconds", 120)
+        set(value) { prefs.edit().putInt("trip_merge_gap_seconds", value).apply() }
+
     var mapMatchingAvailable: Boolean
         get() = prefs.getBoolean("map_matching_available", true)
         set(value) { prefs.edit().putBoolean("map_matching_available", value).apply() }

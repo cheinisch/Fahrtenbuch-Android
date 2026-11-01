@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Merge window setting in the profile dialog (Settings → Profile): maximum pause in seconds (0–900, default 120) up to which the server merges recordings of different devices into one trip. Synced with the account (`tripMergeGapSeconds`).
+
 - French, Italian, Spanish, Portuguese (European), Dutch, Polish, Swedish, Norwegian (Bokmål), Finnish and Danish translations of the app.
 
 - Trips that the server snapped to the road network (map matching) are drawn along the road in the trip details, the trip list on tablets and the latest-trip card, instead of straight lines between sparse GPS points. The trip details show a small note with the original GPS distance; a "Show original" text button switches the map back to the raw GPS line. If matching was rejected or failed, the reason is shown. Requires a server with map matching (`GET /trips/{id}/matched-route`); older servers and local mode keep showing the GPS route. Hidden when the server has no map matching service (`mapMatchingAvailable`) or the user switched map matching off (`mapMatchingEnabled`); the app then shows only the GPS route and no note. Both values come from `GET /users/me/settings`.

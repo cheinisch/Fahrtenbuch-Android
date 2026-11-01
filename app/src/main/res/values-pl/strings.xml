@@ -417,6 +417,9 @@
     <string name="map_matching_title">Używaj dopasowania do mapy</string>
     <string name="map_matching_text">Dopasowuje przesłane przejazdy do sieci dróg i pokazuje je wzdłuż drogi. Wyłączone: tylko trasa GPS. Już zastosowane dystanse pozostają.</string>
     <string name="map_matching_unavailable">Dopasowanie do mapy nie jest skonfigurowane na tym serwerze.</string>
+    <string name="trip_merge_gap_label">Łącz nagrania przy przerwie do (sekundy)</string>
+    <string name="trip_merge_gap_text">Jeśli dwa urządzenia nagrywają ten sam przejazd, serwer łączy je, gdy przerwa między nimi jest nie dłuższa niż ta wartość. 0 = tylko nakładające się nagrania. Domyślnie: 120.</string>
+    <string name="trip_merge_gap_invalid">Wpisz liczbę całkowitą od 0 do 900.</string>
     <string name="sign_in_google">Zaloguj się przez Google</string>
     <string name="sign_in_microsoft">Zaloguj się przez Microsoft</string>
     <string name="sign_in_with">Zaloguj się przez %1$s</string>

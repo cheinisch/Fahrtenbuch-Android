@@ -74,7 +74,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 gravatarEnabled = store.gravatarEnabled,
                 gravatarAvailable = store.isServerMode && store.gravatarAvailable,
                 mapMatchingEnabled = store.mapMatchingEnabled,
-                mapMatchingAvailable = store.isServerMode && store.mapMatchingAvailable
+                mapMatchingAvailable = store.isServerMode && store.mapMatchingAvailable,
+                tripMergeGapSeconds = store.tripMergeGapSeconds
             )
         )
     )
@@ -463,6 +464,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         tripMatchedRoute = if (prefs.showMapMatching) _state.value.tripMatchedRoute else emptyList()
                     )
                 }
+                .onFailure { _state.value = _state.value.copy(error = ApiFactory.readableError(it)) }
+        }
+    }
+
+    fun setTripMergeGapSeconds(seconds: Int) {
+        viewModelScope.launch {
+            runCatching { repository.setTripMergeGapSeconds(seconds) }
+                .onSuccess { _state.value = _state.value.copy(preferences = it) }
                 .onFailure { _state.value = _state.value.copy(error = ApiFactory.readableError(it)) }
         }
     }

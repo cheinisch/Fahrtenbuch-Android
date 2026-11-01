@@ -405,6 +405,9 @@
     <string name="map_matching_title">Map matching gebruiken</string>
     <string name="map_matching_text">Lijnt geüploade ritten uit op het wegennet en toont ze langs de weg. Uit: alleen gps-route. Al toegepaste afstanden blijven behouden.</string>
     <string name="map_matching_unavailable">Map matching is op deze server niet ingesteld.</string>
+    <string name="trip_merge_gap_label">Opnamen samenvoegen tot een pauze van (seconden)</string>
+    <string name="trip_merge_gap_text">Nemen twee apparaten dezelfde rit op, dan voegt de server ze samen als de pauze ertussen hooguit zo lang is. 0 = alleen overlappende opnamen. Standaard: 120.</string>
+    <string name="trip_merge_gap_invalid">Voer een geheel getal van 0 tot 900 in.</string>
     <string name="sign_in_google">Inloggen met Google</string>
     <string name="sign_in_microsoft">Inloggen met Microsoft</string>
     <string name="sign_in_with">Inloggen met %1$s</string>

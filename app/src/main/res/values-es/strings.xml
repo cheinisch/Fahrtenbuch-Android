@@ -411,6 +411,9 @@
     <string name="map_matching_title">Usar ajuste al mapa</string>
     <string name="map_matching_text">Ajusta los viajes subidos a la red de carreteras y los muestra a lo largo de la vía. Desactivado: solo ruta GPS. Las distancias ya aplicadas se mantienen.</string>
     <string name="map_matching_unavailable">El ajuste al mapa no está configurado en este servidor.</string>
+    <string name="trip_merge_gap_label">Unir grabaciones con una pausa de hasta (segundos)</string>
+    <string name="trip_merge_gap_text">Si dos dispositivos graban el mismo trayecto, el servidor los une si la pausa entre ambos es como máximo esta. 0 = solo grabaciones solapadas. Predeterminado: 120.</string>
+    <string name="trip_merge_gap_invalid">Introduce un número entero de 0 a 900.</string>
     <string name="sign_in_google">Iniciar sesión con Google</string>
     <string name="sign_in_microsoft">Iniciar sesión con Microsoft</string>
     <string name="sign_in_with">Iniciar sesión con %1$s</string>

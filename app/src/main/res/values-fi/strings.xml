@@ -405,6 +405,9 @@
     <string name="map_matching_title">Käytä karttasovitusta</string>
     <string name="map_matching_text">Sovittaa ladatut ajot tieverkkoon ja näyttää ne tietä pitkin. Pois: vain GPS-reitti. Jo käytetyt matkat säilyvät.</string>
     <string name="map_matching_unavailable">Karttasovitusta ei ole määritetty tällä palvelimella.</string>
+    <string name="trip_merge_gap_label">Yhdistä tallennukset enintään tauolla (sekuntia)</string>
+    <string name="trip_merge_gap_text">Jos kaksi laitetta tallentaa saman matkan, palvelin yhdistää ne, kun niiden välinen tauko on enintään tämän pituinen. 0 = vain päällekkäiset tallennukset. Oletus: 120.</string>
+    <string name="trip_merge_gap_invalid">Anna kokonaisluku väliltä 0–900.</string>
     <string name="sign_in_google">Kirjaudu Googlella</string>
     <string name="sign_in_microsoft">Kirjaudu Microsoftilla</string>
     <string name="sign_in_with">Kirjaudu: %1$s</string>

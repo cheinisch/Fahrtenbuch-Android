@@ -411,6 +411,9 @@
     <string name="map_matching_title">Utiliser le recalage cartographique</string>
     <string name="map_matching_text">Recale les trajets envoyés sur le réseau routier et les affiche le long de la route. Désactivé : tracé GPS uniquement. Les distances déjà appliquées sont conservées.</string>
     <string name="map_matching_unavailable">Le recalage cartographique n\'est pas configuré sur ce serveur.</string>
+    <string name="trip_merge_gap_label">Fusionner les enregistrements jusqu\'à une pause de (secondes)</string>
+    <string name="trip_merge_gap_text">Si deux appareils enregistrent le même trajet, le serveur les fusionne lorsque la pause entre eux est au plus de cette durée. 0 = uniquement les enregistrements qui se chevauchent. Par défaut : 120.</string>
+    <string name="trip_merge_gap_invalid">Saisissez un nombre entier de 0 à 900.</string>
     <string name="sign_in_google">Se connecter avec Google</string>
     <string name="sign_in_microsoft">Se connecter avec Microsoft</string>
     <string name="sign_in_with">Se connecter avec %1$s</string>

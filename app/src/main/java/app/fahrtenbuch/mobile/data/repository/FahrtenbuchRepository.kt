@@ -224,7 +224,8 @@ class FahrtenbuchRepository(
             gravatarAvailable = store.isServerMode && store.gravatarAvailable,
             mapMatchingEnabled = store.mapMatchingEnabled,
             // Map-Matching macht nur der Server
-            mapMatchingAvailable = store.isServerMode && store.mapMatchingAvailable
+            mapMatchingAvailable = store.isServerMode && store.mapMatchingAvailable,
+            tripMergeGapSeconds = store.tripMergeGapSeconds
         )
 
     /** Im Server-Modus vom Server laden und lokal merken; sonst bzw. bei Fehlern der lokale Stand. */
@@ -271,6 +272,7 @@ class FahrtenbuchRepository(
         settings.gravatarEnabled?.let { store.gravatarEnabled = it }
         settings.gravatarAvailable?.let { store.gravatarAvailable = it }
         store.cacheMapMatchingSettings(settings)
+        settings.tripMergeGapSeconds?.let { store.tripMergeGapSeconds = it }
     }
 
     /** Gravatar als Profilbild ein- oder ausschalten (wird mit dem Konto synchronisiert). */
@@ -289,6 +291,16 @@ class FahrtenbuchRepository(
     suspend fun setMapMatchingEnabled(enabled: Boolean): UserPreferences {
         if (store.isServerMode) {
             val body = JSONObject().put("mapMatchingEnabled", enabled).toString()
+                .toRequestBody("application/json".toMediaType())
+            cacheSettings(api.updateMySettingsJson(body))
+        }
+        return cachedPreferences()
+    }
+
+    /** Zeitfenster (0–900 s) fürs Zusammenführen von Fahrten setzen (nur Server-Modus, mit dem Konto synchronisiert). */
+    suspend fun setTripMergeGapSeconds(seconds: Int): UserPreferences {
+        if (store.isServerMode) {
+            val body = JSONObject().put("tripMergeGapSeconds", seconds.coerceIn(0, 900)).toString()
                 .toRequestBody("application/json".toMediaType())
             cacheSettings(api.updateMySettingsJson(body))
         }

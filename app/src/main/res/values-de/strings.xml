@@ -405,6 +405,9 @@
     <string name="map_matching_title">Map-Matching verwenden</string>
     <string name="map_matching_text">Legt hochgeladene Fahrten auf das Straßennetz und zeigt sie entlang der Straße. Aus: nur die GPS-Route. Bereits übernommene Distanzen bleiben.</string>
     <string name="map_matching_unavailable">Auf diesem Server ist kein Map-Matching eingerichtet.</string>
+    <string name="trip_merge_gap_label">Aufzeichnungen zusammenführen bis Pause (Sekunden)</string>
+    <string name="trip_merge_gap_text">Zeichnen zwei Geräte dieselbe Fahrt auf, führt der Server sie zusammen, wenn die Pause dazwischen höchstens so lang ist. 0 = nur überlappende Aufzeichnungen. Standard: 120.</string>
+    <string name="trip_merge_gap_invalid">Ganze Zahl von 0 bis 900 eingeben.</string>
     <string name="sign_in_google">Mit Google anmelden</string>
     <string name="sign_in_microsoft">Mit Microsoft anmelden</string>
     <string name="sign_in_with">Mit %1$s anmelden</string>
