@@ -492,4 +492,24 @@
     <string name="sync_error_other_recording">Auf dem Server läuft noch eine andere Aufzeichnung (z. B. im Web-Dashboard gestartet). Beende sie dort, dann wird diese Fahrt übertragen.</string>
     <string name="sync_error_vehicle_missing">Das Fahrzeug ist auf dem Server nicht vorhanden.</string>
     <string name="sync_error_generic">Synchronisierung fehlgeschlagen.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Bearbeiten</string>
+    <string name="vehicles_edit_title">Fahrzeug bearbeiten</string>
+    <string name="vehicles_more_actions">Weitere Aktionen für %1$s</string>
+    <string name="vehicles_inactive">Inaktiv</string>
+    <string name="vehicles_reactivate">Wieder anmelden</string>
+    <string name="vehicles_remove">Fahrzeug entfernen…</string>
+    <string name="vehicles_remove_title">Fahrzeug entfernen</string>
+    <string name="vehicles_remove_question">Was soll mit „%1$s“ passieren?</string>
+    <string name="vehicles_remove_deactivate">Deaktivieren</string>
+    <string name="vehicles_remove_deactivate_hint">Das Fahrzeug wird abgemeldet und kann später wieder angemeldet werden.</string>
+    <string name="vehicles_remove_delete">Löschen</string>
+    <string name="vehicles_remove_delete_hint">Das Fahrzeug wird aus der Liste entfernt.</string>
+    <string name="vehicles_remove_trips_hint">Alle Fahrten bleiben erhalten.</string>
+    <string name="vehicles_remove_trips_hint_delete">Alle Fahrten bleiben erhalten. Die Bluetooth-Zuordnung wird entfernt.</string>
+    <string name="error_vehicle_update">Fahrzeug konnte nicht gespeichert werden: %1$s</string>
+    <string name="error_vehicle_deactivate">Fahrzeug konnte nicht deaktiviert werden: %1$s</string>
+    <string name="error_vehicle_activate">Fahrzeug konnte nicht wieder angemeldet werden: %1$s</string>
+    <string name="error_vehicle_delete">Fahrzeug konnte nicht gelöscht werden: %1$s</string>
+    <string name="error_vehicle_delete_recording">Das Fahrzeug kann während einer laufenden Aufzeichnung nicht gelöscht werden.</string>
 </resources>

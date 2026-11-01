@@ -3,6 +3,7 @@ package app.fahrtenbuch.mobile.data.api
 import app.fahrtenbuch.mobile.data.model.ApiMessage
 import app.fahrtenbuch.mobile.data.model.BluetoothMacRequest
 import app.fahrtenbuch.mobile.data.model.CreateVehicleRequest
+import app.fahrtenbuch.mobile.data.model.DeregisterVehicleRequest
 import app.fahrtenbuch.mobile.data.model.Dashboard
 import app.fahrtenbuch.mobile.data.model.DeviceInfo
 import app.fahrtenbuch.mobile.data.model.ForgotPasswordRequest
@@ -234,6 +235,22 @@ interface FahrtenbuchApi {
         @Body request: UpdateVehicleRequest
     ): Vehicle
 
+    /**
+     * PUT /vehicles/{id} ersetzt das ganze Fahrzeug: nicht gesendete Felder (Hersteller,
+     * Modell, VIN, Kilometerstand, Notizen, Leasingdaten …) werden geleert. Zum Ändern
+     * einzelner Felder deshalb erst dieses Objekt holen, anpassen und komplett zurückschicken.
+     */
+    @GET("vehicles/{vehicleId}")
+    suspend fun getVehicleRaw(
+        @Path("vehicleId") id: Uuid
+    ): MutableMap<String, Any?>
+
+    @PUT("vehicles/{vehicleId}")
+    suspend fun updateVehicleRaw(
+        @Path("vehicleId") id: Uuid,
+        @Body body: MutableMap<String, Any?>
+    ): Vehicle
+
     @PUT("vehicles/{vehicleId}/default")
     suspend fun setDefaultVehicle(
         @Path("vehicleId") vehicleId: Uuid
@@ -243,6 +260,19 @@ interface FahrtenbuchApi {
     suspend fun setBluetooth(
         @Path("vehicleId") id: Uuid,
         @Body request: BluetoothMacRequest
+    ): Vehicle
+
+    /** Fahrzeug abmelden (deaktivieren); die Fahrten bleiben erhalten. */
+    @POST("vehicles/{vehicleId}/deregister")
+    suspend fun deregisterVehicle(
+        @Path("vehicleId") id: Uuid,
+        @Body request: DeregisterVehicleRequest = DeregisterVehicleRequest()
+    ): Vehicle
+
+    /** Abgemeldetes Fahrzeug wieder anmelden. */
+    @POST("vehicles/{vehicleId}/register")
+    suspend fun registerVehicle(
+        @Path("vehicleId") id: Uuid
     ): Vehicle
 
     // ---------------------------------------------------------------------

@@ -499,4 +499,24 @@
     <string name="sync_error_other_recording">Ainda está a ser registada outra viagem no servidor (p. ex. iniciada no painel web). Termine-a lá e depois esta viagem será sincronizada.</string>
     <string name="sync_error_vehicle_missing">O veículo não existe no servidor.</string>
     <string name="sync_error_generic">Falha na sincronização.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Editar</string>
+    <string name="vehicles_edit_title">Editar veículo</string>
+    <string name="vehicles_more_actions">Mais ações para %1$s</string>
+    <string name="vehicles_inactive">Inativo</string>
+    <string name="vehicles_reactivate">Reativar</string>
+    <string name="vehicles_remove">Remover veículo…</string>
+    <string name="vehicles_remove_title">Remover veículo</string>
+    <string name="vehicles_remove_question">O que pretende fazer com «%1$s»?</string>
+    <string name="vehicles_remove_deactivate">Desativar</string>
+    <string name="vehicles_remove_deactivate_hint">O veículo é desativado e pode ser reativado mais tarde.</string>
+    <string name="vehicles_remove_delete">Eliminar</string>
+    <string name="vehicles_remove_delete_hint">O veículo é removido da lista.</string>
+    <string name="vehicles_remove_trips_hint">Todas as viagens são mantidas.</string>
+    <string name="vehicles_remove_trips_hint_delete">Todas as viagens são mantidas. A associação Bluetooth é removida.</string>
+    <string name="error_vehicle_update">Não foi possível guardar o veículo: %1$s</string>
+    <string name="error_vehicle_deactivate">Não foi possível desativar o veículo: %1$s</string>
+    <string name="error_vehicle_activate">Não foi possível reativar o veículo: %1$s</string>
+    <string name="error_vehicle_delete">Não foi possível eliminar o veículo: %1$s</string>
+    <string name="error_vehicle_delete_recording">O veículo não pode ser eliminado durante uma gravação em curso.</string>
 </resources>

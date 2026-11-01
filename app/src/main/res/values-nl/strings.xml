@@ -492,4 +492,24 @@
     <string name="sync_error_other_recording">Op de server wordt nog een andere rit geregistreerd (bijv. gestart in het webdashboard). Beëindig die daar, dan wordt deze rit gesynchroniseerd.</string>
     <string name="sync_error_vehicle_missing">Het voertuig bestaat niet op de server.</string>
     <string name="sync_error_generic">Synchronisatie mislukt.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Bewerken</string>
+    <string name="vehicles_edit_title">Voertuig bewerken</string>
+    <string name="vehicles_more_actions">Meer acties voor %1$s</string>
+    <string name="vehicles_inactive">Inactief</string>
+    <string name="vehicles_reactivate">Opnieuw aanmelden</string>
+    <string name="vehicles_remove">Voertuig verwijderen…</string>
+    <string name="vehicles_remove_title">Voertuig verwijderen</string>
+    <string name="vehicles_remove_question">Wat moet er met “%1$s” gebeuren?</string>
+    <string name="vehicles_remove_deactivate">Deactiveren</string>
+    <string name="vehicles_remove_deactivate_hint">Het voertuig wordt afgemeld en kan later opnieuw worden aangemeld.</string>
+    <string name="vehicles_remove_delete">Verwijderen</string>
+    <string name="vehicles_remove_delete_hint">Het voertuig wordt uit de lijst verwijderd.</string>
+    <string name="vehicles_remove_trips_hint">Alle ritten blijven behouden.</string>
+    <string name="vehicles_remove_trips_hint_delete">Alle ritten blijven behouden. De Bluetooth-koppeling wordt verwijderd.</string>
+    <string name="error_vehicle_update">Voertuig kon niet worden opgeslagen: %1$s</string>
+    <string name="error_vehicle_deactivate">Voertuig kon niet worden gedeactiveerd: %1$s</string>
+    <string name="error_vehicle_activate">Voertuig kon niet opnieuw worden aangemeld: %1$s</string>
+    <string name="error_vehicle_delete">Voertuig kon niet worden verwijderd: %1$s</string>
+    <string name="error_vehicle_delete_recording">Het voertuig kan tijdens een lopende opname niet worden verwijderd.</string>
 </resources>

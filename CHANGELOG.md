@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Vehicles can be edited and removed in the app. Each vehicle card has a "Edit" button for name and license plate, and an overflow menu with "Set as default vehicle", "Odometer reminder" and "Remove vehicle". Removing asks what should happen: **Deactivate** deregisters the vehicle (server: `POST /vehicles/{id}/deregister`) so it can be re-registered later, **Delete** takes it off the list (`DELETE /vehicles/{id}`). All trips are kept either way, so there is nothing to reassign; deleting also drops the Bluetooth assignment. Deregistered vehicles are listed under "Inactive" with a "Re-register" button, are not offered when starting a trip and are never picked as the default vehicle. Works in server and in local mode; a vehicle with a running recording cannot be deleted. Vehicles shared by other users show no edit or remove actions.
+
 ### Changed
 
 - The road route (map matching) is hidden in the app for now: maps in the trip details, the trip list and the latest-trip card always show the recorded GPS route, the map matching note is gone and the "Use map matching" switch is hidden in the profile dialog. Matching on the server and the local route cache keep working, so it can be switched back on with `AppFeatures.SHOW_MAP_MATCHING`.

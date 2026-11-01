@@ -499,4 +499,24 @@
     <string name="sync_error_other_recording">Un autre trajet est encore en cours d\'enregistrement sur le serveur (p. ex. démarré dans le tableau de bord web). Terminez-le là-bas, puis ce trajet sera synchronisé.</string>
     <string name="sync_error_vehicle_missing">Le véhicule n\'existe pas sur le serveur.</string>
     <string name="sync_error_generic">La synchronisation a échoué.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Modifier</string>
+    <string name="vehicles_edit_title">Modifier le véhicule</string>
+    <string name="vehicles_more_actions">Autres actions pour %1$s</string>
+    <string name="vehicles_inactive">Inactif</string>
+    <string name="vehicles_reactivate">Réactiver</string>
+    <string name="vehicles_remove">Supprimer le véhicule…</string>
+    <string name="vehicles_remove_title">Supprimer le véhicule</string>
+    <string name="vehicles_remove_question">Que faire de « %1$s » ?</string>
+    <string name="vehicles_remove_deactivate">Désactiver</string>
+    <string name="vehicles_remove_deactivate_hint">Le véhicule est désinscrit et peut être réactivé plus tard.</string>
+    <string name="vehicles_remove_delete">Supprimer</string>
+    <string name="vehicles_remove_delete_hint">Le véhicule est retiré de la liste.</string>
+    <string name="vehicles_remove_trips_hint">Tous les trajets sont conservés.</string>
+    <string name="vehicles_remove_trips_hint_delete">Tous les trajets sont conservés. L\'association Bluetooth est supprimée.</string>
+    <string name="error_vehicle_update">Le véhicule n\'a pas pu être enregistré : %1$s</string>
+    <string name="error_vehicle_deactivate">Le véhicule n\'a pas pu être désactivé : %1$s</string>
+    <string name="error_vehicle_activate">Le véhicule n\'a pas pu être réactivé : %1$s</string>
+    <string name="error_vehicle_delete">Le véhicule n\'a pas pu être supprimé : %1$s</string>
+    <string name="error_vehicle_delete_recording">Le véhicule ne peut pas être supprimé pendant un enregistrement en cours.</string>
 </resources>

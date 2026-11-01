@@ -31,6 +31,9 @@ import java.util.UUID
 /** Verhindert parallele Ortsauflösung, auch über mehrere Repository-Instanzen. */
 private val detailsMutex = Mutex()
 
+/** Ein Fahrzeug mit laufender Aufzeichnung kann nicht gelöscht werden (Server: 409). */
+class VehicleRecordingException : IllegalStateException("vehicle has an active recording")
+
 class FahrtenbuchRepository(
     private val context: Context,
     private val api: FahrtenbuchApi,
@@ -404,6 +407,64 @@ class FahrtenbuchRepository(
         return updated
     }
 
+    /**
+     * Name und Kennzeichen ändern. Der Server ersetzt bei PUT /vehicles/{id} das ganze
+     * Fahrzeug, daher wird der aktuelle Stand geholt, angepasst und komplett zurückgeschickt –
+     * sonst gingen Hersteller, Modell, Kilometerstand, Notizen und Leasingdaten verloren.
+     */
+    suspend fun updateVehicle(vehicleId: Uuid, name: String, licensePlate: String?): Vehicle {
+        val cleanName = name.trim()
+        val cleanPlate = licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() }
+        val now = Instant.now().toString()
+
+        if (store.isLocalMode) {
+            val current = dao.vehicle(vehicleId) ?: error("Lokales Fahrzeug nicht gefunden")
+            dao.updateVehicleDetails(vehicleId, cleanName, cleanPlate, now)
+            dao.renameVehicleInTrips(vehicleId, cleanName)
+            return current.copy(name = cleanName, licensePlate = cleanPlate, updatedAt = now).toModel()
+        }
+
+        val body = api.getVehicleRaw(vehicleId)
+        body["name"] = cleanName
+        body["licensePlate"] = cleanPlate
+        val updated = api.updateVehicleRaw(vehicleId, body)
+        dao.putVehicle(updated.toEntity())
+        runCatching { dao.renameVehicleInTrips(vehicleId, updated.name) }
+        return updated
+    }
+
+    /** Fahrzeug abmelden bzw. wieder anmelden. Die Fahrten bleiben in beiden Fällen erhalten. */
+    suspend fun setVehicleRegistered(vehicleId: Uuid, registered: Boolean): Vehicle {
+        val now = Instant.now().toString()
+        if (store.isLocalMode) {
+            val current = dao.vehicle(vehicleId) ?: error("Lokales Fahrzeug nicht gefunden")
+            val deregisteredAt = if (registered) null else now
+            dao.setVehicleDeregistered(vehicleId, deregisteredAt, now)
+            return current.copy(
+                deregisteredAt = deregisteredAt,
+                isDefault = if (registered) current.isDefault else false,
+                updatedAt = now
+            ).toModel()
+        }
+        val updated = if (registered) api.registerVehicle(vehicleId) else api.deregisterVehicle(vehicleId)
+        dao.putVehicle(updated.toEntity())
+        return updated
+    }
+
+    /**
+     * Fahrzeug löschen. Der Server archiviert es (Fahrten bleiben), lokal wird die Zeile nur
+     * als archiviert markiert, weil Fahrten und noch nicht übertragene Aufzeichnungen darauf verweisen.
+     */
+    suspend fun deleteVehicle(vehicleId: Uuid) {
+        if (store.isLocalMode) {
+            if (dao.recordingTripCount(vehicleId) > 0) throw VehicleRecordingException()
+            dao.setVehicleArchived(vehicleId, Instant.now().toString(), Instant.now().toString())
+            return
+        }
+        api.deleteVehicle(vehicleId)
+        dao.deleteVehicleRow(vehicleId)
+    }
+
     suspend fun trips(forceNetwork: Boolean = true): List<Trip> {
         if (forceNetwork) runCatching { api.getTrips(limit = 500) }.onSuccess { values ->
             dao.putTripRecords(values.map(Trip::toEntity))
@@ -459,10 +520,15 @@ class FahrtenbuchRepository(
      */
     private suspend fun migrateStandaloneDataIfNeeded() {
         if (!store.migrationPending) return
-        val localVehicles = dao.vehicles()
+        // Auch archivierte Fahrzeuge, sonst tauchen lokal gelöschte nach dem Wechsel wieder auf.
+        val localVehicles = dao.allVehicles()
         val serverVehicles = api.getVehicles().toMutableList()
 
         for (local in localVehicles.filter { it.syncState == "LOCAL" }) {
+            // Gelöschte Fahrzeuge nur anlegen, wenn noch Aufzeichnungen darauf warten.
+            val deleted = local.archivedAt != null
+            if (deleted && dao.offlineTripCount(local.id) == 0) continue
+
             val existing = serverVehicles.firstOrNull { remote ->
                 (!local.licensePlate.isNullOrBlank() && remote.licensePlate.equals(local.licensePlate, ignoreCase = true)) ||
                     remote.name.equals(local.name, ignoreCase = true)
@@ -471,6 +537,13 @@ class FahrtenbuchRepository(
             dao.remapOfflineTripsVehicle(local.id, remote.id)
             if (!local.bluetoothMac.isNullOrBlank() && remote.bluetoothMac.isNullOrBlank()) {
                 runCatching { api.setBluetooth(remote.id, BluetoothMacRequest(local.bluetoothMac)) }
+            }
+            if (deleted && existing == null) {
+                // Erst nach dem Umhängen löschen, damit die Fahrten hochgeladen werden können.
+                runCatching { api.deleteVehicle(remote.id) }.onSuccess { serverVehicles.remove(remote) }
+            } else if (local.deregisteredAt != null && existing == null) {
+                runCatching { api.deregisterVehicle(remote.id) }
+                    .onSuccess { updated -> serverVehicles[serverVehicles.indexOf(remote)] = updated }
             }
         }
 
@@ -684,7 +757,8 @@ private fun Vehicle.toEntity() = VehicleEntity(
     bluetoothMac = bluetoothMac,
     createdAt = createdAt,
     updatedAt = updatedAt,
-    isDefault = isDefault
+    isDefault = isDefault,
+    deregisteredAt = deregisteredAt ?: updatedAt?.takeIf { isDeregistered }
 )
 
 private fun VehicleEntity.toModel() = Vehicle(
@@ -694,7 +768,9 @@ private fun VehicleEntity.toModel() = Vehicle(
     bluetoothMac = bluetoothMac,
     createdAt = createdAt,
     updatedAt = updatedAt,
-    isDefault = isDefault
+    isDefault = isDefault,
+    isDeregistered = deregisteredAt != null,
+    deregisteredAt = deregisteredAt
 )
 
 private fun Trip.toEntity() = TripEntity(

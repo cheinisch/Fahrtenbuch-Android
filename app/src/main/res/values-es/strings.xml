@@ -499,4 +499,24 @@
     <string name="sync_error_other_recording">Todavía se está registrando otro viaje en el servidor (p. ej. iniciado en el panel web). Finalízalo allí y después se sincronizará este viaje.</string>
     <string name="sync_error_vehicle_missing">El vehículo no existe en el servidor.</string>
     <string name="sync_error_generic">Error de sincronización.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Editar</string>
+    <string name="vehicles_edit_title">Editar vehículo</string>
+    <string name="vehicles_more_actions">Más acciones para %1$s</string>
+    <string name="vehicles_inactive">Inactivo</string>
+    <string name="vehicles_reactivate">Reactivar</string>
+    <string name="vehicles_remove">Quitar vehículo…</string>
+    <string name="vehicles_remove_title">Quitar vehículo</string>
+    <string name="vehicles_remove_question">¿Qué quieres hacer con «%1$s»?</string>
+    <string name="vehicles_remove_deactivate">Desactivar</string>
+    <string name="vehicles_remove_deactivate_hint">El vehículo se da de baja y se puede reactivar más tarde.</string>
+    <string name="vehicles_remove_delete">Eliminar</string>
+    <string name="vehicles_remove_delete_hint">El vehículo se quita de la lista.</string>
+    <string name="vehicles_remove_trips_hint">Todos los trayectos se conservan.</string>
+    <string name="vehicles_remove_trips_hint_delete">Todos los trayectos se conservan. Se elimina la asignación de Bluetooth.</string>
+    <string name="error_vehicle_update">No se ha podido guardar el vehículo: %1$s</string>
+    <string name="error_vehicle_deactivate">No se ha podido desactivar el vehículo: %1$s</string>
+    <string name="error_vehicle_activate">No se ha podido reactivar el vehículo: %1$s</string>
+    <string name="error_vehicle_delete">No se ha podido eliminar el vehículo: %1$s</string>
+    <string name="error_vehicle_delete_recording">El vehículo no se puede eliminar mientras hay una grabación en curso.</string>
 </resources>

@@ -506,4 +506,24 @@
     <string name="sync_error_other_recording">Na serwerze trwa jeszcze rejestrowanie innego przejazdu (np. rozpoczętego w panelu w przeglądarce). Zakończ go tam, a ten przejazd zostanie zsynchronizowany.</string>
     <string name="sync_error_vehicle_missing">Pojazd nie istnieje na serwerze.</string>
     <string name="sync_error_generic">Synchronizacja nie powiodła się.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Edytuj</string>
+    <string name="vehicles_edit_title">Edytuj pojazd</string>
+    <string name="vehicles_more_actions">Więcej działań dla %1$s</string>
+    <string name="vehicles_inactive">Nieaktywny</string>
+    <string name="vehicles_reactivate">Aktywuj ponownie</string>
+    <string name="vehicles_remove">Usuń pojazd…</string>
+    <string name="vehicles_remove_title">Usuń pojazd</string>
+    <string name="vehicles_remove_question">Co zrobić z pojazdem „%1$s”?</string>
+    <string name="vehicles_remove_deactivate">Dezaktywuj</string>
+    <string name="vehicles_remove_deactivate_hint">Pojazd zostanie wyrejestrowany i można go później aktywować ponownie.</string>
+    <string name="vehicles_remove_delete">Usuń</string>
+    <string name="vehicles_remove_delete_hint">Pojazd zostanie usunięty z listy.</string>
+    <string name="vehicles_remove_trips_hint">Wszystkie przejazdy zostaną zachowane.</string>
+    <string name="vehicles_remove_trips_hint_delete">Wszystkie przejazdy zostaną zachowane. Przypisanie Bluetooth zostanie usunięte.</string>
+    <string name="error_vehicle_update">Nie udało się zapisać pojazdu: %1$s</string>
+    <string name="error_vehicle_deactivate">Nie udało się dezaktywować pojazdu: %1$s</string>
+    <string name="error_vehicle_activate">Nie udało się ponownie aktywować pojazdu: %1$s</string>
+    <string name="error_vehicle_delete">Nie udało się usunąć pojazdu: %1$s</string>
+    <string name="error_vehicle_delete_recording">Nie można usunąć pojazdu podczas trwającego nagrywania.</string>
 </resources>

@@ -18,6 +18,7 @@ import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.data.model.Uuid
 import app.fahrtenbuch.mobile.data.model.Vehicle
 import app.fahrtenbuch.mobile.data.repository.FahrtenbuchRepository
+import app.fahrtenbuch.mobile.data.repository.VehicleRecordingException
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -829,9 +830,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Vorauswahl: Standardfahrzeug vom Server bzw. lokal, sonst das erste. */
-    private fun defaultVehicleId(vehicles: List<Vehicle>): String? =
-        (vehicles.firstOrNull { it.isDefault } ?: vehicles.firstOrNull())?.id
+    /** Vorauswahl: Standardfahrzeug vom Server bzw. lokal, sonst das erste – nie ein abgemeldetes. */
+    private fun defaultVehicleId(vehicles: List<Vehicle>): String? {
+        val active = vehicles.filterNot { it.isDeregistered }
+        return (active.firstOrNull { it.isDefault } ?: active.firstOrNull())?.id
+    }
 
     fun setDefaultVehicle(vehicleId: String) {
         viewModelScope.launch {
@@ -869,6 +872,80 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value = _state.value.copy(
                         loading = false,
                         error = it.message ?: str(R.string.error_vehicle_create)
+                    )
+                }
+        }
+    }
+
+    fun updateVehicle(vehicleId: String, name: String, licensePlate: String?, onSaved: () -> Unit = {}) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.updateVehicle(vehicleId, name, licensePlate) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = _state.value.vehicles.map { if (it.id == updated.id) updated else it },
+                        error = null
+                    )
+                    onSaved()
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = str(R.string.error_vehicle_update, ApiFactory.readableError(error))
+                    )
+                }
+        }
+    }
+
+    /** Fahrzeug abmelden (deaktivieren) oder wieder anmelden. */
+    fun setVehicleRegistered(vehicleId: String, registered: Boolean, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.setVehicleRegistered(vehicleId, registered) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = _state.value.vehicles.map { if (it.id == updated.id) updated else it },
+                        error = null
+                    )
+                    onDone()
+                }
+                .onFailure { error ->
+                    val message = if (registered) R.string.error_vehicle_activate else R.string.error_vehicle_deactivate
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = str(message, ApiFactory.readableError(error))
+                    )
+                }
+        }
+    }
+
+    fun deleteVehicle(vehicleId: String, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.deleteVehicle(vehicleId) }
+                .onSuccess {
+                    val vehicles = _state.value.vehicles.filterNot { it.id == vehicleId }
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = vehicles,
+                        selectedVehicleId = _state.value.selectedVehicleId
+                            ?.takeIf { it != vehicleId }
+                            ?: defaultVehicleId(vehicles),
+                        error = null
+                    )
+                    onDone()
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = if (error is VehicleRecordingException) {
+                            str(R.string.error_vehicle_delete_recording)
+                        } else {
+                            str(R.string.error_vehicle_delete, ApiFactory.readableError(error))
+                        }
                     )
                 }
         }

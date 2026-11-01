@@ -17,7 +17,14 @@ data class VehicleEntity(
     val createdAt: String?,
     val updatedAt: String?,
     val syncState: String = "SYNCED",
-    @ColumnInfo(defaultValue = "0") val isDefault: Boolean = false
+    @ColumnInfo(defaultValue = "0") val isDefault: Boolean = false,
+    /** Abgemeldet (deaktiviert): bleibt in der Liste, wird aber nicht mehr genutzt. */
+    val deregisteredAt: String? = null,
+    /**
+     * Gelöscht. Im lokalen Modus wird nur archiviert statt die Zeile zu entfernen,
+     * weil Fahrten und noch nicht übertragene Aufzeichnungen darauf verweisen.
+     */
+    val archivedAt: String? = null
 )
 
 @Entity(tableName = "trips", indices = [Index("vehicleId"), Index("startedAt")])
@@ -122,9 +129,28 @@ interface OfflineDao {
     @Query("SELECT * FROM cache WHERE `key` = :key") suspend fun cache(key: String): CacheEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putCache(value: CacheEntity)
 
-    @Query("SELECT * FROM vehicles ORDER BY name COLLATE NOCASE") suspend fun vehicles(): List<VehicleEntity>
+    /** Gelöschte Fahrzeuge bleiben in der Tabelle, tauchen aber nirgends mehr auf. Inaktive ans Ende. */
+    @Query("SELECT * FROM vehicles WHERE archivedAt IS NULL ORDER BY (deregisteredAt IS NOT NULL), name COLLATE NOCASE")
+    suspend fun vehicles(): List<VehicleEntity>
+    /** Auch archivierte – nur für die Übernahme lokaler Daten auf einen Server. */
+    @Query("SELECT * FROM vehicles ORDER BY name COLLATE NOCASE") suspend fun allVehicles(): List<VehicleEntity>
     @Query("SELECT * FROM vehicles WHERE id=:id") suspend fun vehicle(id: String): VehicleEntity?
-    @Query("SELECT * FROM vehicles WHERE bluetoothMac=:mac COLLATE NOCASE LIMIT 1") suspend fun vehicleByBluetooth(mac: String): VehicleEntity?
+    /** Kein Auto-Start für gelöschte oder abgemeldete Fahrzeuge. */
+    @Query("SELECT * FROM vehicles WHERE bluetoothMac=:mac COLLATE NOCASE AND archivedAt IS NULL AND deregisteredAt IS NULL LIMIT 1")
+    suspend fun vehicleByBluetooth(mac: String): VehicleEntity?
+    @Query("UPDATE vehicles SET name=:name, licensePlate=:licensePlate, updatedAt=:updatedAt WHERE id=:id")
+    suspend fun updateVehicleDetails(id: String, name: String, licensePlate: String?, updatedAt: String)
+    /** Name der Fahrten mitziehen, damit gespeicherte Fahrten nicht den alten Namen zeigen. */
+    @Query("UPDATE trips SET vehicleName=:name WHERE vehicleId=:id")
+    suspend fun renameVehicleInTrips(id: String, name: String)
+    @Query("UPDATE vehicles SET deregisteredAt=:at, isDefault=0, updatedAt=:updatedAt WHERE id=:id")
+    suspend fun setVehicleDeregistered(id: String, at: String?, updatedAt: String)
+    @Query("UPDATE vehicles SET archivedAt=:at, isDefault=0, bluetoothMac=NULL, updatedAt=:updatedAt WHERE id=:id")
+    suspend fun setVehicleArchived(id: String, at: String, updatedAt: String)
+    @Query("DELETE FROM vehicles WHERE id=:id") suspend fun deleteVehicleRow(id: String)
+    @Query("SELECT COUNT(*) FROM offline_trips WHERE vehicleId=:id AND state='RECORDING'")
+    suspend fun recordingTripCount(id: String): Int
+    @Query("SELECT COUNT(*) FROM offline_trips WHERE vehicleId=:id") suspend fun offlineTripCount(id: String): Int
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putVehicle(value: VehicleEntity)
     @Query("UPDATE vehicles SET bluetoothMac=:mac, updatedAt=:updatedAt WHERE id=:id") suspend fun setVehicleBluetooth(id: String, mac: String?, updatedAt: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putVehicles(values: List<VehicleEntity>)
@@ -236,7 +262,7 @@ interface OfflineDao {
         TrackPointEntity::class,
         MatchedRouteEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -251,9 +277,16 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN deregisteredAt TEXT")
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN archivedAt TEXT")
+            }
         }
 
         private val MIGRATION_9_10 = object : Migration(9, 10) {

@@ -110,6 +110,9 @@ data class CreateVehicleRequest(val name: String, val licensePlate: String? = nu
 data class UpdateVehicleRequest(val name: String? = null, val licensePlate: String? = null)
 data class BluetoothMacRequest(val bluetoothMac: String?)
 
+/** Abmelden muss der Server ausdrücklich bestätigt bekommen. */
+data class DeregisterVehicleRequest(val confirmed: Boolean = true)
+
 /** Erinnerung an den Kilometerstand je Fahrzeug (Server: /odometer/reminder-settings/{vehicleId}). */
 data class OdometerReminderSettings(
     val enabled: Boolean = false,
@@ -164,7 +167,12 @@ data class Vehicle(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     /** Standardfahrzeug des Benutzers (Server: is_default, setzen per PUT /vehicles/{id}/default) */
-    val isDefault: Boolean = false
+    val isDefault: Boolean = false,
+    /** Abgemeldetes ("deaktiviertes") Fahrzeug: Fahrten bleiben, es wird aber nicht mehr genutzt. */
+    val isDeregistered: Boolean = false,
+    val deregisteredAt: String? = null,
+    /** Freigegebene Fahrzeuge anderer Nutzer dürfen nicht bearbeitet oder entfernt werden. */
+    val isOwner: Boolean = true
 )
 
 data class Trip(

@@ -499,4 +499,24 @@
     <string name="sync_error_other_recording">Sul server è ancora in registrazione un altro viaggio (es. avviato nella dashboard web). Terminalo lì, poi questo viaggio verrà sincronizzato.</string>
     <string name="sync_error_vehicle_missing">Il veicolo non esiste sul server.</string>
     <string name="sync_error_generic">Sincronizzazione non riuscita.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Modifica</string>
+    <string name="vehicles_edit_title">Modifica veicolo</string>
+    <string name="vehicles_more_actions">Altre azioni per %1$s</string>
+    <string name="vehicles_inactive">Inattivo</string>
+    <string name="vehicles_reactivate">Riattiva</string>
+    <string name="vehicles_remove">Rimuovi veicolo…</string>
+    <string name="vehicles_remove_title">Rimuovi veicolo</string>
+    <string name="vehicles_remove_question">Che cosa vuoi fare con «%1$s»?</string>
+    <string name="vehicles_remove_deactivate">Disattiva</string>
+    <string name="vehicles_remove_deactivate_hint">Il veicolo viene disattivato e può essere riattivato in seguito.</string>
+    <string name="vehicles_remove_delete">Elimina</string>
+    <string name="vehicles_remove_delete_hint">Il veicolo viene rimosso dall\'elenco.</string>
+    <string name="vehicles_remove_trips_hint">Tutti i viaggi vengono conservati.</string>
+    <string name="vehicles_remove_trips_hint_delete">Tutti i viaggi vengono conservati. L\'associazione Bluetooth viene rimossa.</string>
+    <string name="error_vehicle_update">Impossibile salvare il veicolo: %1$s</string>
+    <string name="error_vehicle_deactivate">Impossibile disattivare il veicolo: %1$s</string>
+    <string name="error_vehicle_activate">Impossibile riattivare il veicolo: %1$s</string>
+    <string name="error_vehicle_delete">Impossibile eliminare il veicolo: %1$s</string>
+    <string name="error_vehicle_delete_recording">Il veicolo non può essere eliminato durante una registrazione in corso.</string>
 </resources>
