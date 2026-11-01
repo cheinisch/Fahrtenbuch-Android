@@ -431,6 +431,9 @@
     <string name="map_matching_title">Bruk kartmatching</string>
     <string name="map_matching_text">Tilpasser opplastede turer til veinettet og viser dem langs veien. Av: bare GPS-rute. Allerede brukte distanser beholdes.</string>
     <string name="map_matching_unavailable">Kartmatching er ikke satt opp på denne serveren.</string>
+    <string name="trip_merge_gap_label">Slå sammen opptak med pause på inntil (sekunder)</string>
+    <string name="trip_merge_gap_text">Hvis to enheter registrerer samme tur, slår serveren dem sammen når pausen mellom dem er høyst så lang. 0 = bare overlappende opptak. Standard: 120.</string>
+    <string name="trip_merge_gap_invalid">Skriv inn et heltall fra 0 til 900.</string>
     <string name="sign_in_google">Logg på med Google</string>
     <string name="sign_in_microsoft">Logg på med Microsoft</string>
     <string name="sign_in_with">Logg på med %1$s</string>

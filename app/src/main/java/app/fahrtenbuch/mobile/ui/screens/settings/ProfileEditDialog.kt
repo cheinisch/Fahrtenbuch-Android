@@ -23,6 +23,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Switch
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.data.model.User
@@ -43,13 +48,23 @@ fun ProfileEditDialog(
     /** False: auf dem Server ist kein Map-Matching eingerichtet – Schalter gesperrt. */
     mapMatchingAvailable: Boolean = false,
     /** Wird sofort gespeichert, wie Gravatar. */
-    onMapMatchingChange: (Boolean) -> Unit = {}
+    onMapMatchingChange: (Boolean) -> Unit = {},
+    /** Max. Pause in Sekunden fürs Zusammenführen von Fahrten (0–900); wird wie Gravatar sofort gespeichert. */
+    tripMergeGapSeconds: Int = 120,
+    onTripMergeGapChange: (Int) -> Unit = {}
 ) {
     var displayName by rememberSaveable { mutableStateOf(user?.displayName.orEmpty()) }
     var username by rememberSaveable { mutableStateOf((user?.loginName ?: user?.username).orEmpty()) }
     var email by rememberSaveable { mutableStateOf(user?.email.orEmpty()) }
     // Fehler erst nach einem Speicherversuch zeigen, nicht ältere aus anderen Bereichen.
     var submitted by rememberSaveable { mutableStateOf(false) }
+    // Zeitfenster fürs Zusammenführen: gespeichert bei „Fertig“, Fokusverlust und Speichern
+    var mergeGapText by rememberSaveable(tripMergeGapSeconds) { mutableStateOf(tripMergeGapSeconds.toString()) }
+    val mergeGapValue = mergeGapText.toIntOrNull()
+    val mergeGapValid = mergeGapValue != null && mergeGapValue in 0..900
+    fun commitMergeGap() {
+        if (mergeGapValue != null && mergeGapValid && mergeGapValue != tripMergeGapSeconds) onTripMergeGapChange(mergeGapValue)
+    }
 
     AlertDialog(
         onDismissRequest = { if (!loading) onDismiss() },
@@ -122,6 +137,18 @@ fun ProfileEditDialog(
                         )
                     }
                 }
+                OutlinedTextField(
+                    value = mergeGapText,
+                    onValueChange = { mergeGapText = it.filter(Char::isDigit).take(3) },
+                    label = { Text(stringResource(R.string.trip_merge_gap_label)) },
+                    supportingText = { Text(stringResource(if (mergeGapValid) R.string.trip_merge_gap_text else R.string.trip_merge_gap_invalid)) },
+                    isError = !mergeGapValid,
+                    singleLine = true,
+                    enabled = !loading,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { commitMergeGap() }),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).onFocusChanged { if (!it.isFocused) commitMergeGap() }
+                )
                 formatLastLogin(user?.lastLoginAt)?.let {
                     Text(
                         stringResource(R.string.settings_last_login, it),
@@ -139,6 +166,7 @@ fun ProfileEditDialog(
                 enabled = !loading && username.isNotBlank() && email.isNotBlank(),
                 onClick = {
                     submitted = true
+                    commitMergeGap()
                     onSave(displayName.trim(), username.trim(), email.trim())
                 }
             ) {

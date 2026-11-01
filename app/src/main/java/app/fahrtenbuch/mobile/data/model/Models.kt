@@ -333,7 +333,9 @@ data class UserPreferences(
     /** „Map-Matching verwenden“ im Benutzerprofil (API: mapMatchingEnabled). */
     val mapMatchingEnabled: Boolean = true,
     /** False, wenn auf dem Server kein Map-Matching eingerichtet ist (API: mapMatchingAvailable). */
-    val mapMatchingAvailable: Boolean = true
+    val mapMatchingAvailable: Boolean = true,
+    /** Max. Pause in Sekunden, bis zu der der Server Aufzeichnungen verschiedener Geräte zu einer Fahrt zusammenführt (API: tripMergeGapSeconds, 0–900). */
+    val tripMergeGapSeconds: Int = 120
 ) {
     /** Gravatar tatsächlich verwenden: Nutzer und Server erlauben es. */
     val useGravatar: Boolean get() = gravatarEnabled && gravatarAvailable
@@ -358,7 +360,8 @@ data class UserPreferences(
             gravatarEnabled: Boolean = true,
             gravatarAvailable: Boolean = true,
             mapMatchingEnabled: Boolean = true,
-            mapMatchingAvailable: Boolean = true
+            mapMatchingAvailable: Boolean = true,
+            tripMergeGapSeconds: Int = 120
         ) = UserPreferences(
             distanceUnit = DistanceUnit.entries.firstOrNull { it.apiValue == distance } ?: DistanceUnit.KM,
             speedUnit = SpeedUnit.entries.firstOrNull { it.apiValue == speed } ?: SpeedUnit.KMH,
@@ -368,7 +371,8 @@ data class UserPreferences(
             gravatarEnabled = gravatarEnabled,
             gravatarAvailable = gravatarAvailable,
             mapMatchingEnabled = mapMatchingEnabled,
-            mapMatchingAvailable = mapMatchingAvailable
+            mapMatchingAvailable = mapMatchingAvailable,
+            tripMergeGapSeconds = tripMergeGapSeconds
         )
     }
 }
@@ -388,7 +392,9 @@ data class UserSettingsDto(
     val mapMatchingEnabled: Boolean? = null,
     /** Vorabversion des Feldes (nur noch lesend als Rückfall). */
     val autoMapMatchingEnabled: Boolean? = null,
-    val mapMatchingAvailable: Boolean? = null
+    val mapMatchingAvailable: Boolean? = null,
+    /** Fehlt bei älteren Servern – dann bleibt der zuletzt bekannte Wert (Standard 120 s). */
+    val tripMergeGapSeconds: Int? = null
 )
 
 /** GET /health – Systemstatus und Version des Servers. */

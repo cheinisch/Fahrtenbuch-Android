@@ -413,7 +413,9 @@ fun SettingsScreen(
             onGravatarChange = viewModel::setGravatarEnabled,
             mapMatchingEnabled = appState.preferences.mapMatchingEnabled,
             mapMatchingAvailable = appState.preferences.mapMatchingAvailable,
-            onMapMatchingChange = viewModel::setMapMatchingEnabled
+            onMapMatchingChange = viewModel::setMapMatchingEnabled,
+            tripMergeGapSeconds = appState.preferences.tripMergeGapSeconds,
+            onTripMergeGapChange = viewModel::setTripMergeGapSeconds
         )
         SettingsDialog.SERVER -> ServerSettingsDialog(
             serverUrl = appState.serverUrl,

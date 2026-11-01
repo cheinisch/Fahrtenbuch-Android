@@ -431,6 +431,9 @@
     <string name="map_matching_title">Brug kortmatchning</string>
     <string name="map_matching_text">Tilpasser uploadede ture til vejnettet og viser dem langs vejen. Fra: kun GPS-rute. Allerede anvendte afstande bevares.</string>
     <string name="map_matching_unavailable">Kortmatchning er ikke opsat på denne server.</string>
+    <string name="trip_merge_gap_label">Sammenlæg optagelser op til en pause på (sekunder)</string>
+    <string name="trip_merge_gap_text">Optager to enheder den samme tur, slår serveren dem sammen, hvis pausen mellem dem højst er så lang. 0 = kun overlappende optagelser. Standard: 120.</string>
+    <string name="trip_merge_gap_invalid">Angiv et helt tal fra 0 til 900.</string>
     <string name="sign_in_google">Log ind med Google</string>
     <string name="sign_in_microsoft">Log ind med Microsoft</string>
     <string name="sign_in_with">Log ind med %1$s</string>
