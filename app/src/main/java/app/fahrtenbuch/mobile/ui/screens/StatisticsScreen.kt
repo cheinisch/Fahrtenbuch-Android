@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,6 +34,7 @@ import app.fahrtenbuch.mobile.ui.screens.statistics.ExportDialog
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -55,6 +57,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -238,7 +241,9 @@ fun StatisticsScreen(viewModel: AppViewModel) {
                 accessibilityLabels = (1..12).map { monthName(it, TextStyle.FULL_STANDALONE) },
                 prefs = prefs,
                 onBarClick = { index -> month = index + 1 },
-                limitKm = contractLimitPerMonth
+                limitKm = contractLimitPerMonth,
+                limitEnabled = state.showContractLimit,
+                onLimitEnabledChange = viewModel::setShowContractLimit
             )
         } else {
             val days = YearMonth.of(year, month!!).lengthOfMonth()
@@ -439,11 +444,15 @@ private fun BarChartCard(
     prefs: UserPreferences,
     onBarClick: ((Int) -> Unit)?,
     /** Monatsgrenze aus dem Leasing-/Finanzierungsvertrag, in km. */
-    limitKm: Double? = null
+    limitKm: Double? = null,
+    limitEnabled: Boolean = true,
+    onLimitEnabledChange: ((Boolean) -> Unit)? = null
 ) {
+    val hasLimit = limitKm != null && limitKm > 0
+    val limitActive = hasLimit && limitEnabled
     val max = values.maxOrNull()?.takeIf { it > 0 }
-    // Die Grenze zählt für die Skalierung mit, sonst läge sie über dem Diagramm.
-    val scaleMax = listOfNotNull(max, limitKm?.takeIf { it > 0 }).maxOrNull()
+    // Die eingeblendete Grenze zählt für die Skalierung mit, sonst läge sie über dem Diagramm.
+    val scaleMax = listOfNotNull(max, limitKm?.takeIf { limitActive }).maxOrNull()
     val barColor = MaterialTheme.colorScheme.primary
     val highlightColor = categoryColors(TripType.UNCLASSIFIED).content
     val limitColor = categoryColors(TripType.UNCLASSIFIED).content
@@ -494,7 +503,7 @@ private fun BarChartCard(
                 }
             }
         }
-        if (limitKm != null && limitKm > 0 && scaleMax != null) {
+        if (limitActive && limitKm != null && scaleMax != null) {
             val limitDescription = stringResource(
                 R.string.statistics_contract_limit,
                 formatDistanceWithUnit(limitKm, prefs)
@@ -527,9 +536,28 @@ private fun BarChartCard(
                 )
             }
         }
-        if (limitKm != null && limitKm > 0) {
-            Spacer(Modifier.height(4.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (hasLimit && limitKm != null) {
+            val label = stringResource(R.string.statistics_contract_limit, formatDistanceWithUnit(limitKm, prefs))
+            Row(
+                modifier = Modifier
+                    .then(
+                        if (onLimitEnabledChange != null) {
+                            Modifier.toggleable(
+                                value = limitEnabled,
+                                role = Role.Checkbox,
+                                onValueChange = onLimitEnabledChange
+                            )
+                        } else Modifier
+                    )
+                    .padding(end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Checkbox(
+                    checked = limitEnabled,
+                    onCheckedChange = null,
+                    enabled = onLimitEnabledChange != null
+                )
                 Canvas(Modifier.size(width = 16.dp, height = 2.dp)) {
                     drawLine(
                         color = limitColor,
@@ -540,7 +568,7 @@ private fun BarChartCard(
                     )
                 }
                 Text(
-                    stringResource(R.string.statistics_contract_limit, formatDistanceWithUnit(limitKm, prefs)),
+                    label,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -54,6 +54,8 @@ data class AppUiState(
     val serverUrl: String = "",
     val loggedIn: Boolean = false,
     val vehiclesLoadedFromServer: Boolean = false,
+    /** Gestrichelte Vertragsgrenze im Statistik-Diagramm anzeigen. */
+    val showContractLimit: Boolean = true,
     val user: app.fahrtenbuch.mobile.data.model.User? = null,
     val preferences: app.fahrtenbuch.mobile.data.model.UserPreferences = app.fahrtenbuch.mobile.data.model.UserPreferences()
 )
@@ -71,6 +73,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             serverConfigured = store.serverConfigured,
             serverUrl = store.baseUrl,
             loggedIn = store.refreshToken != null,
+            showContractLimit = store.showContractLimit,
             preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(
                 store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone,
                 gravatarEnabled = store.gravatarEnabled,
@@ -829,6 +832,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
         }
+    }
+
+    /** Gestrichelte Vertragsgrenze im Diagramm ein- oder ausblenden (nur auf diesem Gerät). */
+    fun setShowContractLimit(enabled: Boolean) {
+        store.showContractLimit = enabled
+        _state.value = _state.value.copy(showContractLimit = enabled)
     }
 
     /** Vorauswahl: Standardfahrzeug vom Server bzw. lokal, sonst das erste – nie ein abgemeldetes. */
