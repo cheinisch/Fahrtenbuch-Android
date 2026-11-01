@@ -303,10 +303,11 @@ interface FahrtenbuchApi {
         @Body request: OdometerReadingRequest
     ): okhttp3.ResponseBody
 
+    /** 204 ohne Body, daher Response statt Typ. */
     @DELETE("vehicles/{vehicleId}")
     suspend fun deleteVehicle(
         @Path("vehicleId") id: Uuid
-    ): ResponseBody
+    ): retrofit2.Response<Unit>
 
     // ---------------------------------------------------------------------
     // Fahrten

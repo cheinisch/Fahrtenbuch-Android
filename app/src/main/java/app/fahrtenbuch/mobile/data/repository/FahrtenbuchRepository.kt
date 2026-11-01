@@ -487,7 +487,9 @@ class FahrtenbuchRepository(
             dao.setVehicleArchived(vehicleId, Instant.now().toString(), Instant.now().toString())
             return
         }
-        api.deleteVehicle(vehicleId)
+        // Antwort ohne Body: Fehler kommen hier nicht als Ausnahme, also selbst prüfen.
+        val response = api.deleteVehicle(vehicleId)
+        if (!response.isSuccessful) throw retrofit2.HttpException(response)
         dao.deleteVehicleRow(vehicleId)
     }
 
@@ -566,7 +568,8 @@ class FahrtenbuchRepository(
             }
             if (deleted && existing == null) {
                 // Erst nach dem Umhängen löschen, damit die Fahrten hochgeladen werden können.
-                runCatching { api.deleteVehicle(remote.id) }.onSuccess { serverVehicles.remove(remote) }
+                runCatching { api.deleteVehicle(remote.id) }
+                    .onSuccess { response -> if (response.isSuccessful) serverVehicles.remove(remote) }
             } else if (local.deregisteredAt != null && existing == null) {
                 runCatching { api.deregisterVehicle(remote.id) }
                     .onSuccess { updated -> serverVehicles[serverVehicles.indexOf(remote)] = updated }
