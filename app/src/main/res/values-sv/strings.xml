@@ -524,4 +524,5 @@
     <string name="vehicles_included_km_hint">Körsträcka som ingår i avtalet.</string>
     <string name="vehicles_included_km_needs_period">En körsträckegräns kräver en avtalsperiod.</string>
     <string name="vehicles_contract_period_needs_km">En avtalsperiod kräver en körsträckegräns.</string>
+    <string name="statistics_contract_limit">Månadsgräns: %1$s</string>
 </resources>

@@ -524,4 +524,5 @@
     <string name="vehicles_included_km_hint">Kilometrage die in het contract is inbegrepen.</string>
     <string name="vehicles_included_km_needs_period">Een kilometerlimiet heeft een contractperiode nodig.</string>
     <string name="vehicles_contract_period_needs_km">Een contractperiode heeft een kilometerlimiet nodig.</string>
+    <string name="statistics_contract_limit">Maandlimiet: %1$s</string>
 </resources>

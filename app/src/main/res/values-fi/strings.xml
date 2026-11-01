@@ -524,4 +524,5 @@
     <string name="vehicles_included_km_hint">Sopimukseen sisältyvä ajosuorite.</string>
     <string name="vehicles_included_km_needs_period">Kilometriraja vaatii sopimuskauden.</string>
     <string name="vehicles_contract_period_needs_km">Sopimuskausi vaatii kilometrirajan.</string>
+    <string name="statistics_contract_limit">Kuukausiraja: %1$s</string>
 </resources>

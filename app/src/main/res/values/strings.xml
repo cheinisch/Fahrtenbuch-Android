@@ -524,4 +524,5 @@
     <string name="vehicles_included_km_hint">Mileage allowance included in the contract.</string>
     <string name="vehicles_included_km_needs_period">A mileage limit needs a contract period.</string>
     <string name="vehicles_contract_period_needs_km">A contract period needs a mileage limit.</string>
+    <string name="statistics_contract_limit">Monthly limit: %1$s</string>
 </resources>

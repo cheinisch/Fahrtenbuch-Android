@@ -531,4 +531,5 @@
     <string name="vehicles_included_km_hint">Quilometragem incluída no contrato.</string>
     <string name="vehicles_included_km_needs_period">Um limite de quilometragem precisa de um período de contrato.</string>
     <string name="vehicles_contract_period_needs_km">Um período de contrato precisa de um limite de quilometragem.</string>
+    <string name="statistics_contract_limit">Limite mensal: %1$s</string>
 </resources>

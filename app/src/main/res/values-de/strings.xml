@@ -524,4 +524,5 @@
     <string name="vehicles_included_km_hint">Im Vertrag enthaltene Fahrleistung.</string>
     <string name="vehicles_included_km_needs_period">Für ein Kilometerlimit wird ein Vertragszeitraum benötigt.</string>
     <string name="vehicles_contract_period_needs_km">Zu einem Vertragszeitraum gehört ein Kilometerlimit.</string>
+    <string name="statistics_contract_limit">Monatsgrenze: %1$s</string>
 </resources>

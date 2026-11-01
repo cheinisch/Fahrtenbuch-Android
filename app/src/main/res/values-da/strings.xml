@@ -524,4 +524,5 @@
     <string name="vehicles_included_km_hint">Kørselsmængde der er inkluderet i aftalen.</string>
     <string name="vehicles_included_km_needs_period">En kilometergrænse kræver en aftaleperiode.</string>
     <string name="vehicles_contract_period_needs_km">En aftaleperiode kræver en kilometergrænse.</string>
+    <string name="statistics_contract_limit">Månedsgrænse: %1$s</string>
 </resources>

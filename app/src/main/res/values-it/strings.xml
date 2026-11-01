@@ -531,4 +531,5 @@
     <string name="vehicles_included_km_hint">Chilometraggio incluso nel contratto.</string>
     <string name="vehicles_included_km_needs_period">Un limite di chilometraggio richiede un periodo contrattuale.</string>
     <string name="vehicles_contract_period_needs_km">Un periodo contrattuale richiede un limite di chilometraggio.</string>
+    <string name="statistics_contract_limit">Limite mensile: %1$s</string>
 </resources>

@@ -7,15 +7,10 @@ import androidx.compose.foundation.layout.height
 import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.sync.OdometerReminderScheduler
-import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
-import app.fahrtenbuch.mobile.ui.common.distanceUnitLabel
-import app.fahrtenbuch.mobile.ui.common.formatCalendarDate
-import app.fahrtenbuch.mobile.ui.common.wholeDistanceInPreferredUnit
 import app.fahrtenbuch.mobile.ui.screens.vehicles.OdometerReminderDialog
 import app.fahrtenbuch.mobile.ui.screens.vehicles.VehicleEditDialog
 import app.fahrtenbuch.mobile.ui.screens.vehicles.VehicleRemoveDialog
-import app.fahrtenbuch.mobile.ui.screens.vehicles.acquisitionLabel
-import java.time.LocalDate
+import app.fahrtenbuch.mobile.ui.screens.vehicles.vehicleContractSummary
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -236,29 +231,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                             }
                         }
                     }
-                    // Finanzierung sehen nur Besitzer, Mitbenutzer bekommen sie vom Server gar nicht erst.
-                    if (vehicle.isOwner && vehicle.acquisitionType.hasContract) {
-                        val prefs = LocalUserPreferences.current
-                        val start = parseContractDate(vehicle.leaseStartDate)
-                        val end = parseContractDate(vehicle.leaseEndDate)
-                        val summary = listOfNotNull(
-                            stringResource(acquisitionLabel(vehicle.acquisitionType)),
-                            if (start != null && end != null) {
-                                stringResource(
-                                    R.string.vehicles_contract_period_value,
-                                    formatCalendarDate(start, prefs),
-                                    formatCalendarDate(end, prefs)
-                                )
-                            } else null,
-                            vehicle.leaseIncludedKm?.let {
-                                String.format(
-                                    java.util.Locale.getDefault(),
-                                    "%,d %s",
-                                    wholeDistanceInPreferredUnit(it, prefs),
-                                    distanceUnitLabel(prefs)
-                                )
-                            }
-                        ).joinToString(" · ")
+                    vehicleContractSummary(vehicle)?.let { summary ->
                         Text(
                             summary,
                             style = MaterialTheme.typography.bodySmall,
@@ -440,9 +413,6 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         )
     }
 }
-
-private fun parseContractDate(value: String?): LocalDate? =
-    value?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it.take(10)) }.getOrNull() }
 
 /** Eine Spalte auf dem Telefon, auf Tablets ein Raster. */
 private fun LazyListScope.vehicleRows(

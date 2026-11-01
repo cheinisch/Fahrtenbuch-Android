@@ -1,6 +1,7 @@
 package app.fahrtenbuch.mobile.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -72,6 +75,9 @@ import app.fahrtenbuch.mobile.ui.common.specialCategoryColors
 import app.fahrtenbuch.mobile.ui.common.specialCategoryIcon
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.UserPreferences
+import app.fahrtenbuch.mobile.data.model.Vehicle
+import app.fahrtenbuch.mobile.ui.screens.vehicles.parseContractDate
+import app.fahrtenbuch.mobile.ui.screens.vehicles.vehicleContractSummary
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.common.LocalUserPreferences
 import app.fahrtenbuch.mobile.ui.common.categoryColors
@@ -86,6 +92,7 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 /**
@@ -124,7 +131,10 @@ fun StatisticsScreen(viewModel: AppViewModel) {
     }
     val periodTrips = month?.let { m -> yearTrips.filter { tripLocalDate(it, prefs)?.monthValue == m } } ?: yearTrips
 
-    val vehicleName = state.vehicles.firstOrNull { it.id == vehicleId }?.name
+    val selectedVehicle = state.vehicles.firstOrNull { it.id == vehicleId }
+    val vehicleName = selectedVehicle?.name
+    // Monatsgrenze des Leasing-/Finanzierungsvertrags, wie im Web auf einen Durchschnittsmonat umgelegt.
+    val contractLimitPerMonth = remember(selectedVehicle) { monthlyContractLimitKm(selectedVehicle) }
     val subtitle = listOfNotNull(
         year.toString(),
         month?.let { monthName(it, TextStyle.FULL_STANDALONE) },
@@ -206,6 +216,17 @@ fun StatisticsScreen(viewModel: AppViewModel) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), content = scopeFilters)
         }
 
+        // Vertragsangaben des gewählten Fahrzeugs, damit die Grenze im Diagramm einzuordnen ist.
+        selectedVehicle?.let { vehicle ->
+            vehicleContractSummary(vehicle)?.let { summary ->
+                Text(
+                    summary,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         val chart: @Composable () -> Unit = {
         if (month == null) {
             BarChartCard(
@@ -216,7 +237,8 @@ fun StatisticsScreen(viewModel: AppViewModel) {
                 highlightIndex = if (year == today.year) today.monthValue - 1 else null,
                 accessibilityLabels = (1..12).map { monthName(it, TextStyle.FULL_STANDALONE) },
                 prefs = prefs,
-                onBarClick = { index -> month = index + 1 }
+                onBarClick = { index -> month = index + 1 },
+                limitKm = contractLimitPerMonth
             )
         } else {
             val days = YearMonth.of(year, month!!).lengthOfMonth()
@@ -415,11 +437,16 @@ private fun BarChartCard(
     highlightIndex: Int?,
     accessibilityLabels: List<String>,
     prefs: UserPreferences,
-    onBarClick: ((Int) -> Unit)?
+    onBarClick: ((Int) -> Unit)?,
+    /** Monatsgrenze aus dem Leasing-/Finanzierungsvertrag, in km. */
+    limitKm: Double? = null
 ) {
     val max = values.maxOrNull()?.takeIf { it > 0 }
+    // Die Grenze zählt für die Skalierung mit, sonst läge sie über dem Diagramm.
+    val scaleMax = listOfNotNull(max, limitKm?.takeIf { it > 0 }).maxOrNull()
     val barColor = MaterialTheme.colorScheme.primary
     val highlightColor = categoryColors(TripType.UNCLASSIFIED).content
+    val limitColor = categoryColors(TripType.UNCLASSIFIED).content
     StatCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -432,13 +459,15 @@ private fun BarChartCard(
             }
         }
         Spacer(Modifier.height(8.dp))
+        // Balken, darüber als Overlay die gestrichelte Vertragsgrenze
+        Box(Modifier.fillMaxWidth().height(140.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(140.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(if (values.size > 12) 2.dp else 6.dp),
             verticalAlignment = Alignment.Bottom
         ) {
             values.forEachIndexed { index, value ->
-                val fraction = if (max == null || value <= 0) 0f else (value / max).toFloat().coerceIn(0.03f, 1f)
+                val fraction = if (scaleMax == null || value <= 0) 0f else (value / scaleMax).toFloat().coerceIn(0.03f, 1f)
                 val description = "${accessibilityLabels[index]}: ${formatDistanceWithUnit(value, prefs)}"
                 Box(
                     modifier = Modifier
@@ -465,6 +494,27 @@ private fun BarChartCard(
                 }
             }
         }
+        if (limitKm != null && limitKm > 0 && scaleMax != null) {
+            val limitDescription = stringResource(
+                R.string.statistics_contract_limit,
+                formatDistanceWithUnit(limitKm, prefs)
+            )
+            Canvas(
+                Modifier
+                    .fillMaxSize()
+                    .semantics { contentDescription = limitDescription }
+            ) {
+                val y = size.height * (1f - (limitKm / scaleMax).toFloat().coerceIn(0f, 1f))
+                drawLine(
+                    color = limitColor,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = 2.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 6.dp.toPx()))
+                )
+            }
+        }
+        } // Ende Diagrammfläche
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(if (values.size > 12) 2.dp else 6.dp)) {
             labels.forEach { label ->
                 Text(
@@ -477,7 +527,40 @@ private fun BarChartCard(
                 )
             }
         }
+        if (limitKm != null && limitKm > 0) {
+            Spacer(Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Canvas(Modifier.size(width = 16.dp, height = 2.dp)) {
+                    drawLine(
+                        color = limitColor,
+                        start = Offset(0f, size.height / 2f),
+                        end = Offset(size.width, size.height / 2f),
+                        strokeWidth = size.height,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 3.dp.toPx()))
+                    )
+                }
+                Text(
+                    stringResource(R.string.statistics_contract_limit, formatDistanceWithUnit(limitKm, prefs)),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
+}
+
+/**
+ * Monatsgrenze aus dem Vertrag: das Kilometerlimit gleichmäßig auf die Vertragsdauer
+ * verteilt und auf einen durchschnittlich langen Monat gerechnet (wie in der Web-App).
+ */
+private fun monthlyContractLimitKm(vehicle: Vehicle?): Double? {
+    if (vehicle == null || !vehicle.isOwner || !vehicle.acquisitionType.hasContract) return null
+    val limit = vehicle.leaseIncludedKm?.takeIf { it > 0 } ?: return null
+    val start = parseContractDate(vehicle.leaseStartDate) ?: return null
+    val end = parseContractDate(vehicle.leaseEndDate) ?: return null
+    val days = ChronoUnit.DAYS.between(start, end).toDouble()
+    if (days <= 0) return null
+    return limit * (365.2425 / 12) / days
 }
 
 @Composable

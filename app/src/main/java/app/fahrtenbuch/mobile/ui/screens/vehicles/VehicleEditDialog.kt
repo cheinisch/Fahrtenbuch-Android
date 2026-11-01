@@ -206,11 +206,4 @@ fun VehicleEditDialog(
     }
 }
 
-internal fun acquisitionLabel(type: AcquisitionType): Int = when (type) {
-    AcquisitionType.OWNED -> R.string.vehicles_acquisition_owned
-    AcquisitionType.LEASING -> R.string.vehicles_acquisition_leasing
-    AcquisitionType.FINANCING -> R.string.vehicles_acquisition_financing
-}
-
-private fun parseDate(value: String?): LocalDate? =
-    value?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it.take(10)) }.getOrNull() }
+private fun parseDate(value: String?): LocalDate? = parseContractDate(value)

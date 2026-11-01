@@ -524,4 +524,5 @@
     <string name="vehicles_included_km_hint">Kjørelengde som inngår i avtalen.</string>
     <string name="vehicles_included_km_needs_period">En kjørelengdegrense krever en avtaleperiode.</string>
     <string name="vehicles_contract_period_needs_km">En avtaleperiode krever en kjørelengdegrense.</string>
+    <string name="statistics_contract_limit">Månedsgrense: %1$s</string>
 </resources>

@@ -538,4 +538,5 @@
     <string name="vehicles_included_km_hint">Przebieg zawarty w umowie.</string>
     <string name="vehicles_included_km_needs_period">Limit kilometrów wymaga okresu umowy.</string>
     <string name="vehicles_contract_period_needs_km">Okres umowy wymaga limitu kilometrów.</string>
+    <string name="statistics_contract_limit">Limit miesięczny: %1$s</string>
 </resources>

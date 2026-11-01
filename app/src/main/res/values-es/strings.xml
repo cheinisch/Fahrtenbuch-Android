@@ -531,4 +531,5 @@
     <string name="vehicles_included_km_hint">Kilometraje incluido en el contrato.</string>
     <string name="vehicles_included_km_needs_period">Un límite de kilometraje necesita un periodo de contrato.</string>
     <string name="vehicles_contract_period_needs_km">Un periodo de contrato necesita un límite de kilometraje.</string>
+    <string name="statistics_contract_limit">Límite mensual: %1$s</string>
 </resources>
