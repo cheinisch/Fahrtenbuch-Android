@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Straighten
@@ -34,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -98,6 +100,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val sessionStore = remember { SessionStore(context) }
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
+    var tripEndNotification by remember { mutableStateOf(sessionStore.tripEndNotificationEnabled) }
     var dialog by rememberSaveable { mutableStateOf(SettingsDialog.NONE) }
     val isServerMode = appState.appMode == AppMode.SERVER
     val (permissionStatus, refreshPermissions) = rememberPermissionStatus()
@@ -259,6 +262,21 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            SettingsDivider()
+            SettingsRow(
+                icon = Icons.Default.Notifications,
+                title = stringResource(R.string.settings_trip_end_notification_title),
+                subtitle = stringResource(R.string.settings_trip_end_notification_text),
+                trailing = {
+                    Switch(
+                        checked = tripEndNotification,
+                        onCheckedChange = { enabled ->
+                            tripEndNotification = enabled
+                            sessionStore.tripEndNotificationEnabled = enabled
+                        }
+                    )
+                }
+            )
         }
 
         SettingsSectionLabel(stringResource(R.string.permissions_settings_title))

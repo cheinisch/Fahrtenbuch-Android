@@ -225,6 +225,8 @@
     <string name="trip_end_channel_name">Trip ended</string>
     <string name="trip_end_notification_title">Trip ended</string>
     <string name="trip_end_notification_text">How should this trip be classified?</string>
+    <string name="settings_trip_end_notification_title">Classify after trip</string>
+    <string name="settings_trip_end_notification_text">Notification with Private, Commute and Business buttons when a trip ends.</string>
     <string name="error_server_scheme">The server address must start with https:// or http://.</string>
     <string name="error_qr_server">The QR code does not contain a valid server address.</string>
     <string name="error_pair_failed">Device sign-in failed.</string>

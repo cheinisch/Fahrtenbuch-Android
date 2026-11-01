@@ -225,6 +225,8 @@
     <string name="trip_end_channel_name">Ajon päättyminen</string>
     <string name="trip_end_notification_title">Ajo päättyi</string>
     <string name="trip_end_notification_text">Miten ajo luokitellaan?</string>
+    <string name="settings_trip_end_notification_title">Luokittele ajon jälkeen</string>
+    <string name="settings_trip_end_notification_text">Ilmoitus painikkeilla Yksityinen, Työmatka ja Työajo ajon päättyessä.</string>
     <string name="error_server_scheme">Palvelimen osoitteen on alettava https:// tai http://.</string>
     <string name="error_qr_server">QR-koodi ei sisällä kelvollista palvelimen osoitetta.</string>
     <string name="error_pair_failed">Laitteen kirjautuminen epäonnistui.</string>

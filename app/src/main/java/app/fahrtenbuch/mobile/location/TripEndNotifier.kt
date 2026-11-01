@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import app.fahrtenbuch.mobile.MainActivity
 import app.fahrtenbuch.mobile.R
+import app.fahrtenbuch.mobile.data.api.SessionStore
 import app.fahrtenbuch.mobile.data.model.TripType
 
 /**
@@ -19,6 +20,7 @@ object TripEndNotifier {
     private const val CHANNEL_ID = "trip_end"
 
     fun show(context: Context, localTripId: String) {
+        if (!SessionStore(context).tripEndNotificationEnabled) return
         val manager = NotificationManagerCompat.from(context)
         // Deckt auch die fehlende POST_NOTIFICATIONS-Berechtigung ab: dann bleibt es still
         if (!manager.areNotificationsEnabled()) return

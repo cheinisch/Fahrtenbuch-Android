@@ -229,6 +229,8 @@
     <string name="trip_end_channel_name">Fin del viaje</string>
     <string name="trip_end_notification_title">Viaje terminado</string>
     <string name="trip_end_notification_text">¿Cómo quieres clasificar este viaje?</string>
+    <string name="settings_trip_end_notification_title">Clasificar al terminar el viaje</string>
+    <string name="settings_trip_end_notification_text">Notificación con los botones Privado, Trayecto al trabajo y Profesional al terminar el viaje.</string>
     <string name="error_server_scheme">La dirección del servidor debe empezar por https:// o http://.</string>
     <string name="error_qr_server">El código QR no contiene una dirección de servidor válida.</string>
     <string name="error_pair_failed">Error al iniciar sesión en el dispositivo.</string>

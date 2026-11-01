@@ -225,6 +225,8 @@
     <string name="trip_end_channel_name">Resan slut</string>
     <string name="trip_end_notification_title">Resan avslutad</string>
     <string name="trip_end_notification_text">Hur ska resan klassificeras?</string>
+    <string name="settings_trip_end_notification_title">Klassificera efter resan</string>
+    <string name="settings_trip_end_notification_text">Avisering med knapparna Privat, Pendling och Tjänst när en resa slutar.</string>
     <string name="error_server_scheme">Serveradressen måste börja med https:// eller http://.</string>
     <string name="error_qr_server">QR-koden innehåller ingen giltig serveradress.</string>
     <string name="error_pair_failed">Inloggningen av enheten misslyckades.</string>

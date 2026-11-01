@@ -229,6 +229,8 @@
     <string name="trip_end_channel_name">Fin de trajet</string>
     <string name="trip_end_notification_title">Trajet terminé</string>
     <string name="trip_end_notification_text">Comment classer ce trajet ?</string>
+    <string name="settings_trip_end_notification_title">Classer après le trajet</string>
+    <string name="settings_trip_end_notification_text">Notification avec les boutons Privé, Domicile-travail et Professionnel à la fin du trajet.</string>
     <string name="error_server_scheme">L\'adresse du serveur doit commencer par https:// ou http://.</string>
     <string name="error_qr_server">Le QR code ne contient pas d\'adresse de serveur valide.</string>
     <string name="error_pair_failed">La connexion de l\'appareil a échoué.</string>

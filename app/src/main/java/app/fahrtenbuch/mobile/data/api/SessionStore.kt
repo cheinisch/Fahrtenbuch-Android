@@ -176,6 +176,11 @@ class SessionStore(context: Context) {
         get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
         set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }
 
+    /** Benachrichtigung mit Privat/Arbeitsweg/Dienstlich-Buttons am Fahrtende (Standard an). */
+    var tripEndNotificationEnabled: Boolean
+        get() = prefs.getBoolean("trip_end_notification_enabled", true)
+        set(value) { prefs.edit().putBoolean("trip_end_notification_enabled", value).apply() }
+
     var activeVehicleId: String?
         get() = device.getString("active_vehicle_id", null)
         set(value) { device.edit().putString("active_vehicle_id", value).apply() }

@@ -225,6 +225,8 @@
     <string name="trip_end_channel_name">Turen er slut</string>
     <string name="trip_end_notification_title">Turen er afsluttet</string>
     <string name="trip_end_notification_text">Hvordan skal turen klassificeres?</string>
+    <string name="settings_trip_end_notification_title">Klassificer efter turen</string>
+    <string name="settings_trip_end_notification_text">Notifikation med knapperne Privat, Arbejdsvej og Erhverv, når en tur slutter.</string>
     <string name="error_server_scheme">Serveradressen skal starte med https:// eller http://.</string>
     <string name="error_qr_server">QR-koden indeholder ikke en gyldig serveradresse.</string>
     <string name="error_pair_failed">Login af enheden mislykkedes.</string>

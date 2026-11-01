@@ -225,6 +225,8 @@
     <string name="trip_end_channel_name">Fahrtende</string>
     <string name="trip_end_notification_title">Fahrt beendet</string>
     <string name="trip_end_notification_text">Wie soll die Fahrt eingeordnet werden?</string>
+    <string name="settings_trip_end_notification_title">Fahrt nach dem Ende einordnen</string>
+    <string name="settings_trip_end_notification_text">Benachrichtigung mit den Buttons Privat, Arbeitsweg und Dienstlich am Fahrtende.</string>
     <string name="error_server_scheme">Die Serveradresse muss mit https:// oder http:// beginnen.</string>
     <string name="error_qr_server">Der QR-Code enthält keine gültige Serveradresse.</string>
     <string name="error_pair_failed">Die Geräteanmeldung ist fehlgeschlagen.</string>
