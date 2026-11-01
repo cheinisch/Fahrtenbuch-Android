@@ -60,6 +60,11 @@
             android:name=".location.TripClassifyReceiver"
             android:exported="false" />
 
+        <!-- Antwort/Wegwischen der Kilometerstand-Erinnerung -->
+        <receiver
+            android:name=".location.OdometerReminderReceiver"
+            android:exported="false" />
+
         <service
             android:name=".location.TripTrackingService"
             android:exported="false"

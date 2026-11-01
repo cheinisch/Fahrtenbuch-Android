@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
+import app.fahrtenbuch.mobile.sync.OdometerReminderScheduler
+import app.fahrtenbuch.mobile.ui.screens.vehicles.OdometerReminderDialog
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Add
@@ -47,6 +50,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     var editVehicle by remember { mutableStateOf<Vehicle?>(null) }
+    var reminderVehicle by remember { mutableStateOf<Vehicle?>(null) }
     var pairedDevices by remember { mutableStateOf<List<PairedBluetoothDevice>>(emptyList()) }
     var bluetoothError by remember { mutableStateOf<String?>(null) }
     var showVehicleWizard by rememberSaveable { mutableStateOf(false) }
@@ -146,6 +150,14 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                             Text(stringResource(R.string.vehicles_make_default))
                         }
                     }
+                    // Erinnerung kommt vom Server, daher nur im Server-Modus
+                    if (state.appMode == app.fahrtenbuch.mobile.data.api.AppMode.SERVER) {
+                        TextButton(onClick = { reminderVehicle = vehicle }, enabled = !state.loading) {
+                            Icon(Icons.Default.Notifications, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.vehicles_odometer_reminder))
+                        }
+                    }
                 }
             }
     }
@@ -232,6 +244,20 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                     }
                 }
             }
+        )
+    }
+
+    reminderVehicle?.let { vehicle ->
+        OdometerReminderDialog(
+            vehicleName = vehicle.name,
+            load = { viewModel.odometerReminderSettings(vehicle.id) },
+            save = { viewModel.saveOdometerReminderSettings(vehicle.id, it) },
+            onSaved = {
+                // Sicherstellen, dass die Abfrage läuft, auch wenn sie bisher nie geplant war
+                OdometerReminderScheduler.sync(context)
+                reminderVehicle = null
+            },
+            onDismiss = { reminderVehicle = null }
         )
     }
 

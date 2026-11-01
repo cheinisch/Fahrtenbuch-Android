@@ -176,6 +176,16 @@ class SessionStore(context: Context) {
         get() = prefs.getInt("tracking_interval_seconds", 5).coerceIn(5, 60)
         set(value) { prefs.edit().putInt("tracking_interval_seconds", value.coerceIn(5, 60)).apply() }
 
+    /** Hauptschalter für alle Benachrichtigungen der App (Standard an). */
+    var notificationsEnabled: Boolean
+        get() = prefs.getBoolean("notifications_enabled", true)
+        set(value) { prefs.edit().putBoolean("notifications_enabled", value).apply() }
+
+    /** IDs der Kilometerstand-Erinnerungen, für die schon eine Benachrichtigung gezeigt wurde. */
+    var shownOdometerReminders: Set<String>
+        get() = prefs.getStringSet("shown_odometer_reminders", emptySet()) ?: emptySet()
+        set(value) { prefs.edit().putStringSet("shown_odometer_reminders", value).apply() }
+
     /** Benachrichtigung mit Privat/Arbeitsweg/Dienstlich-Buttons am Fahrtende (Standard an). */
     var tripEndNotificationEnabled: Boolean
         get() = prefs.getBoolean("trip_end_notification_enabled", true)

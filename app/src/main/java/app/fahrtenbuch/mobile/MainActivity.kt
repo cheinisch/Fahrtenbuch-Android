@@ -1,5 +1,6 @@
 package app.fahrtenbuch.mobile
 
+import app.fahrtenbuch.mobile.sync.OdometerReminderScheduler
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import android.content.pm.ActivityInfo
 import android.os.Bundle
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
         SyncScheduler.schedulePeriodic(this)
+        OdometerReminderScheduler.sync(this)
         // MapLibre einmalig initialisieren, bevor die erste Karte angezeigt wird.
         MapLibre.getInstance(applicationContext)
         enableEdgeToEdge()

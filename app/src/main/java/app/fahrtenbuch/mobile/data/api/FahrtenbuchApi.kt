@@ -9,6 +9,9 @@ import app.fahrtenbuch.mobile.data.model.ForgotPasswordRequest
 import app.fahrtenbuch.mobile.data.model.LoginRequest
 import app.fahrtenbuch.mobile.data.model.LoginResponse
 import app.fahrtenbuch.mobile.data.model.LogoutRequest
+import app.fahrtenbuch.mobile.data.model.OdometerReadingRequest
+import app.fahrtenbuch.mobile.data.model.OdometerReminder
+import app.fahrtenbuch.mobile.data.model.OdometerReminderSettings
 import app.fahrtenbuch.mobile.data.model.PairLoginRequest
 import app.fahrtenbuch.mobile.data.model.PairOptionsRequest
 import app.fahrtenbuch.mobile.data.model.PairOptionsResponse
@@ -241,6 +244,34 @@ interface FahrtenbuchApi {
         @Path("vehicleId") id: Uuid,
         @Body request: BluetoothMacRequest
     ): Vehicle
+
+    // ---------------------------------------------------------------------
+    // Kilometerstand-Erinnerung
+    // ---------------------------------------------------------------------
+
+    @GET("odometer/reminders")
+    suspend fun odometerReminders(): List<OdometerReminder>
+
+    /** 204 ohne Body, daher Response statt Typ. */
+    @POST("odometer/reminders/{id}/ack")
+    suspend fun ackOdometerReminder(@Path("id") id: Uuid): retrofit2.Response<Unit>
+
+    @GET("odometer/reminder-settings/{vehicleId}")
+    suspend fun odometerReminderSettings(@Path("vehicleId") vehicleId: Uuid): OdometerReminderSettings
+
+    @PUT("odometer/reminder-settings/{vehicleId}")
+    suspend fun saveOdometerReminderSettings(
+        @Path("vehicleId") vehicleId: Uuid,
+        @Body settings: OdometerReminderSettings
+    ): OdometerReminderSettings
+
+    /** Kilometerstand für einen Tag des Monats (month = YYYY-MM) eintragen. */
+    @PUT("odometer/{vehicleId}/{month}")
+    suspend fun saveOdometerReading(
+        @Path("vehicleId") vehicleId: Uuid,
+        @Path("month") month: String,
+        @Body request: OdometerReadingRequest
+    ): okhttp3.ResponseBody
 
     @DELETE("vehicles/{vehicleId}")
     suspend fun deleteVehicle(

@@ -211,6 +211,12 @@ class FahrtenbuchRepository(
         return ExportResult(body.bytes(), fileName, request.format.mimeType, generatedOnDevice = false)
     }
 
+    suspend fun odometerReminderSettings(vehicleId: Uuid): OdometerReminderSettings =
+        api.odometerReminderSettings(vehicleId)
+
+    suspend fun saveOdometerReminderSettings(vehicleId: Uuid, settings: OdometerReminderSettings): OdometerReminderSettings =
+        api.saveOdometerReminderSettings(vehicleId, settings)
+
     /** Serverstatus und -version (nur Server-Modus); null, wenn nicht erreichbar. */
     suspend fun serverHealth(): HealthResponse? =
         if (store.isServerMode) runCatching { api.health() }.getOrNull() else null

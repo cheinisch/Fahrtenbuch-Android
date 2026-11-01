@@ -1,5 +1,9 @@
 package app.fahrtenbuch.mobile.ui.screens
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -66,6 +70,7 @@ import app.fahrtenbuch.mobile.data.model.DistanceUnit
 import app.fahrtenbuch.mobile.data.model.SpeedUnit
 import app.fahrtenbuch.mobile.data.model.TimeFormatPreference
 import app.fahrtenbuch.mobile.data.model.User
+import app.fahrtenbuch.mobile.sync.OdometerReminderScheduler
 import app.fahrtenbuch.mobile.data.model.UserPreferences
 import app.fahrtenbuch.mobile.ui.AppViewModel
 import app.fahrtenbuch.mobile.ui.permissions.rememberPermissionStatus
@@ -101,6 +106,8 @@ fun SettingsScreen(
     val sessionStore = remember { SessionStore(context) }
     var trackingInterval by remember { mutableStateOf(sessionStore.trackingIntervalSeconds) }
     var tripEndNotification by remember { mutableStateOf(sessionStore.tripEndNotificationEnabled) }
+    var notificationsEnabled by remember { mutableStateOf(sessionStore.notificationsEnabled) }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     var dialog by rememberSaveable { mutableStateOf(SettingsDialog.NONE) }
     val isServerMode = appState.appMode == AppMode.SERVER
     val (permissionStatus, refreshPermissions) = rememberPermissionStatus()
@@ -262,14 +269,38 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            SettingsDivider()
+        }
+
+        SettingsSectionLabel(stringResource(R.string.settings_notifications_section))
+        SettingsCard {
             SettingsRow(
                 icon = Icons.Default.Notifications,
+                title = stringResource(R.string.settings_notifications_title),
+                subtitle = stringResource(R.string.settings_notifications_text),
+                trailing = {
+                    Switch(
+                        checked = notificationsEnabled,
+                        onCheckedChange = { enabled ->
+                            notificationsEnabled = enabled
+                            sessionStore.notificationsEnabled = enabled
+                            OdometerReminderScheduler.sync(context)
+                            // Ab Android 13 braucht es dafür die Berechtigung der Benachrichtigungen
+                            if (enabled && Build.VERSION.SDK_INT >= 33) {
+                                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        }
+                    )
+                }
+            )
+            SettingsDivider()
+            SettingsRow(
+                icon = Icons.Default.DirectionsCar,
                 title = stringResource(R.string.settings_trip_end_notification_title),
                 subtitle = stringResource(R.string.settings_trip_end_notification_text),
                 trailing = {
                     Switch(
                         checked = tripEndNotification,
+                        enabled = notificationsEnabled,
                         onCheckedChange = { enabled ->
                             tripEndNotification = enabled
                             sessionStore.tripEndNotificationEnabled = enabled

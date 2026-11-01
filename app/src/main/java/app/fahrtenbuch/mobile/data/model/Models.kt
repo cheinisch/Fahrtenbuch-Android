@@ -110,6 +110,31 @@ data class CreateVehicleRequest(val name: String, val licensePlate: String? = nu
 data class UpdateVehicleRequest(val name: String? = null, val licensePlate: String? = null)
 data class BluetoothMacRequest(val bluetoothMac: String?)
 
+/** Erinnerung an den Kilometerstand je Fahrzeug (Server: /odometer/reminder-settings/{vehicleId}). */
+data class OdometerReminderSettings(
+    val enabled: Boolean = false,
+    /** weekly | monthly | month_end – als String, damit neue Serverwerte nicht crashen */
+    val frequency: String = "monthly",
+    /** 1 = Montag … 7 = Sonntag, nur bei weekly */
+    val weekday: Int = 1,
+    /** 1–28, nur bei monthly */
+    val dayOfMonth: Int = 1,
+    /** Ab dieser Stunde (Ortszeit des Kontos) ist die Erinnerung fällig */
+    val hour: Int = 18
+)
+
+/** Offene Erinnerung vom Server (GET /odometer/reminders). */
+data class OdometerReminder(
+    val id: Uuid,
+    val vehicleId: Uuid,
+    val vehicleName: String,
+    val licensePlate: String? = null,
+    val dueDate: String,
+    val lastOdometerKm: Double? = null
+)
+
+data class OdometerReadingRequest(val odometerKm: Double, val readingDate: String? = null)
+
 /** Zweite Klassifizierungsebene des Servers (trips.special_category). */
 enum class SpecialCategory(val apiValue: String) {
     MEDICAL("medical"),

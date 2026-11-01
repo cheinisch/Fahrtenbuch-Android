@@ -416,6 +416,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Erinnerung an den Kilometerstand eines Fahrzeugs (nur Server-Modus). */
+    suspend fun odometerReminderSettings(vehicleId: String): Result<app.fahrtenbuch.mobile.data.model.OdometerReminderSettings> =
+        runCatching { repository.odometerReminderSettings(vehicleId) }
+
+    suspend fun saveOdometerReminderSettings(
+        vehicleId: String,
+        settings: app.fahrtenbuch.mobile.data.model.OdometerReminderSettings
+    ): Result<app.fahrtenbuch.mobile.data.model.OdometerReminderSettings> =
+        runCatching { repository.saveOdometerReminderSettings(vehicleId, settings) }
+
     /** Für „Über die App“: Version und Status des Servers. */
     suspend fun serverHealth(): app.fahrtenbuch.mobile.data.model.HealthResponse? = repository.serverHealth()
 
