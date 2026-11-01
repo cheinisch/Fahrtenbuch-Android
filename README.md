@@ -110,6 +110,12 @@ Strings live in `app/src/main/res/values/strings.xml` (English, default) and the
 
 Issues and pull requests are welcome. Please keep the existing structure (one file per dialog, strings in both languages) and describe how you tested your change.
 
+## Support
+
+Fahrtenbuch is free and open source. If it helps you and you'd like to give something back, you can support the project on Ko-fi – it goes toward hosting, domains and new features.
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/cheinisch)
+
 ## License
 
 Fahrtenbuch for Android is free software, licensed under the [GNU Affero General Public License v3.0](LICENSE).
