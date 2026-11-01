@@ -238,7 +238,7 @@
     <string name="odometer_reminder_weekday">Dag van de week</string>
     <string name="odometer_reminder_day">Dag van de maand</string>
     <string name="odometer_reminder_hour">Vanaf (tijd)</string>
-    <string name="odometer_reminder_hint">De server bepaalt wanneer een herinnering aan de beurt is. De app controleert ongeveer elke 15 minuten en toont een melding. Meldingen moeten in de instellingen zijn ingeschakeld.</string>
+    <string name="odometer_reminder_hint">De server bepaalt wanneer een herinnering aan de beurt is. De app controleert ongeveer elk uur en toont een melding. Meldingen moeten in de instellingen zijn ingeschakeld.</string>
     <string name="odometer_reminder_load_error">Instellingen konden niet worden geladen: %1$s</string>
     <string name="odometer_reminder_save_error">Opslaan mislukt: %1$s</string>
     <string name="odometer_notification_channel">Kilometerstandherinneringen</string>

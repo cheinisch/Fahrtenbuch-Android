@@ -238,7 +238,7 @@
     <string name="odometer_reminder_weekday">Veckodag</string>
     <string name="odometer_reminder_day">Dag i månaden</string>
     <string name="odometer_reminder_hour">Från klockan</string>
-    <string name="odometer_reminder_hint">Servern avgör när en påminnelse ska skickas. Appen kontrollerar ungefär var 15:e minut och visar en avisering. Aviseringar måste vara aktiverade i inställningarna.</string>
+    <string name="odometer_reminder_hint">Servern avgör när en påminnelse ska skickas. Appen kontrollerar ungefär varje timme och visar en avisering. Aviseringar måste vara aktiverade i inställningarna.</string>
     <string name="odometer_reminder_load_error">Det gick inte att läsa in inställningarna: %1$s</string>
     <string name="odometer_reminder_save_error">Det gick inte att spara: %1$s</string>
     <string name="odometer_notification_channel">Påminnelser om mätarställning</string>

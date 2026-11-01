@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Holt offene Kilometerstand-Erinnerungen vom Server und zeigt je Erinnerung einmal eine
  * Benachrichtigung. Ein echter Push (FCM) ist dafür nicht nötig: der Server legt die
- * Erinnerung an, die App fragt sie ab – etwa alle 15 Minuten.
+ * Erinnerung an, die App fragt sie ab – stündlich, um den Akku zu schonen.
  */
 class OdometerReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
@@ -41,6 +41,8 @@ class OdometerReminderWorker(context: Context, params: WorkerParameters) : Corou
 
 object OdometerReminderScheduler {
     private const val WORK_NAME = "fahrtenbuch-odometer-reminders"
+    // Selten genug für den Akku; der Server legt Erinnerungen ohnehin nur zu festen Zeiten an
+    private const val INTERVAL_HOURS = 1L
 
     /** Plant die Abfrage im Server-Modus mit eingeschalteten Benachrichtigungen, sonst nicht. */
     fun sync(context: Context) {
@@ -50,9 +52,10 @@ object OdometerReminderScheduler {
             manager.cancelUniqueWork(WORK_NAME)
             return
         }
-        val request = PeriodicWorkRequestBuilder<OdometerReminderWorker>(15, TimeUnit.MINUTES)
+        val request = PeriodicWorkRequestBuilder<OdometerReminderWorker>(INTERVAL_HOURS, TimeUnit.HOURS)
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .build()
-        manager.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+        // UPDATE statt KEEP, damit schon geplante 15-Minuten-Läufe auf das neue Intervall wechseln
+        manager.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request)
     }
 }

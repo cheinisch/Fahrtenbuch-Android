@@ -242,7 +242,7 @@
     <string name="odometer_reminder_weekday">Dia da semana</string>
     <string name="odometer_reminder_day">Dia do mês</string>
     <string name="odometer_reminder_hour">A partir das (hora)</string>
-    <string name="odometer_reminder_hint">O servidor decide quando um lembrete é devido. A app verifica aproximadamente a cada 15 minutos e mostra uma notificação. As notificações têm de estar ativadas nas definições.</string>
+    <string name="odometer_reminder_hint">O servidor decide quando um lembrete é devido. A app verifica aproximadamente a cada hora e mostra uma notificação. As notificações têm de estar ativadas nas definições.</string>
     <string name="odometer_reminder_load_error">Não foi possível carregar as definições: %1$s</string>
     <string name="odometer_reminder_save_error">Não foi possível guardar: %1$s</string>
     <string name="odometer_notification_channel">Lembretes do conta-quilómetros</string>

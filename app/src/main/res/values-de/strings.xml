@@ -238,7 +238,7 @@
     <string name="odometer_reminder_weekday">Wochentag</string>
     <string name="odometer_reminder_day">Tag im Monat</string>
     <string name="odometer_reminder_hour">Ab (Uhrzeit)</string>
-    <string name="odometer_reminder_hint">Der Server entscheidet, wann eine Erinnerung fällig ist. Die App prüft etwa alle 15 Minuten und zeigt eine Benachrichtigung. Dafür müssen Benachrichtigungen in den Einstellungen eingeschaltet sein.</string>
+    <string name="odometer_reminder_hint">Der Server entscheidet, wann eine Erinnerung fällig ist. Die App prüft etwa einmal pro Stunde und zeigt eine Benachrichtigung. Dafür müssen Benachrichtigungen in den Einstellungen eingeschaltet sein.</string>
     <string name="odometer_reminder_load_error">Einstellungen konnten nicht geladen werden: %1$s</string>
     <string name="odometer_reminder_save_error">Speichern fehlgeschlagen: %1$s</string>
     <string name="odometer_notification_channel">Kilometerstand-Erinnerungen</string>

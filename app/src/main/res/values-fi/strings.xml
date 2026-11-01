@@ -238,7 +238,7 @@
     <string name="odometer_reminder_weekday">Viikonpäivä</string>
     <string name="odometer_reminder_day">Kuukauden päivä</string>
     <string name="odometer_reminder_hour">Alkaen (kellonaika)</string>
-    <string name="odometer_reminder_hint">Palvelin päättää, milloin muistutus erääntyy. Sovellus tarkistaa noin 15 minuutin välein ja näyttää ilmoituksen. Ilmoitukset on oltava päällä asetuksissa.</string>
+    <string name="odometer_reminder_hint">Palvelin päättää, milloin muistutus erääntyy. Sovellus tarkistaa noin tunnin välein ja näyttää ilmoituksen. Ilmoitukset on oltava päällä asetuksissa.</string>
     <string name="odometer_reminder_load_error">Asetuksia ei voitu ladata: %1$s</string>
     <string name="odometer_reminder_save_error">Tallennus epäonnistui: %1$s</string>
     <string name="odometer_notification_channel">Matkamittarin muistutukset</string>

@@ -238,7 +238,7 @@
     <string name="odometer_reminder_weekday">Ugedag</string>
     <string name="odometer_reminder_day">Dag i måneden</string>
     <string name="odometer_reminder_hour">Fra kl.</string>
-    <string name="odometer_reminder_hint">Serveren afgør, hvornår en påmindelse skal sendes. Appen tjekker cirka hvert 15. minut og viser en notifikation. Notifikationer skal være slået til i indstillingerne.</string>
+    <string name="odometer_reminder_hint">Serveren afgør, hvornår en påmindelse skal sendes. Appen tjekker cirka hver time og viser en notifikation. Notifikationer skal være slået til i indstillingerne.</string>
     <string name="odometer_reminder_load_error">Indstillingerne kunne ikke indlæses: %1$s</string>
     <string name="odometer_reminder_save_error">Kunne ikke gemme: %1$s</string>
     <string name="odometer_notification_channel">Påmindelser om kilometerstand</string>

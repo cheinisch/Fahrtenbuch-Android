@@ -242,7 +242,7 @@
     <string name="odometer_reminder_weekday">Giorno della settimana</string>
     <string name="odometer_reminder_day">Giorno del mese</string>
     <string name="odometer_reminder_hour">Dalle (ora)</string>
-    <string name="odometer_reminder_hint">Il server decide quando un promemoria è dovuto. L\'app controlla circa ogni 15 minuti e mostra una notifica. Le notifiche devono essere attivate nelle impostazioni.</string>
+    <string name="odometer_reminder_hint">Il server decide quando un promemoria è dovuto. L\'app controlla circa ogni ora e mostra una notifica. Le notifiche devono essere attivate nelle impostazioni.</string>
     <string name="odometer_reminder_load_error">Impossibile caricare le impostazioni: %1$s</string>
     <string name="odometer_reminder_save_error">Salvataggio non riuscito: %1$s</string>
     <string name="odometer_notification_channel">Promemoria chilometraggio</string>

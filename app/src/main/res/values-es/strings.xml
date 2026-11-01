@@ -242,7 +242,7 @@
     <string name="odometer_reminder_weekday">Día de la semana</string>
     <string name="odometer_reminder_day">Día del mes</string>
     <string name="odometer_reminder_hour">A partir de (hora)</string>
-    <string name="odometer_reminder_hint">El servidor decide cuándo toca un recordatorio. La app comprueba cada 15 minutos aproximadamente y muestra una notificación. Las notificaciones deben estar activadas en los ajustes.</string>
+    <string name="odometer_reminder_hint">El servidor decide cuándo toca un recordatorio. La app comprueba aproximadamente cada hora y muestra una notificación. Las notificaciones deben estar activadas en los ajustes.</string>
     <string name="odometer_reminder_load_error">No se pudieron cargar los ajustes: %1$s</string>
     <string name="odometer_reminder_save_error">No se pudo guardar: %1$s</string>
     <string name="odometer_notification_channel">Recordatorios del kilometraje</string>

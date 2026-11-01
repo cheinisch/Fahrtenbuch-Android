@@ -246,7 +246,7 @@
     <string name="odometer_reminder_weekday">Dzień tygodnia</string>
     <string name="odometer_reminder_day">Dzień miesiąca</string>
     <string name="odometer_reminder_hour">Od godziny</string>
-    <string name="odometer_reminder_hint">Serwer decyduje, kiedy przypomnienie jest należne. Aplikacja sprawdza mniej więcej co 15 minut i wyświetla powiadomienie. Powiadomienia muszą być włączone w ustawieniach.</string>
+    <string name="odometer_reminder_hint">Serwer decyduje, kiedy przypomnienie jest należne. Aplikacja sprawdza mniej więcej co godzinę i wyświetla powiadomienie. Powiadomienia muszą być włączone w ustawieniach.</string>
     <string name="odometer_reminder_load_error">Nie udało się wczytać ustawień: %1$s</string>
     <string name="odometer_reminder_save_error">Nie udało się zapisać: %1$s</string>
     <string name="odometer_notification_channel">Przypomnienia o liczniku</string>

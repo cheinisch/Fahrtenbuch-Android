@@ -238,7 +238,7 @@
     <string name="odometer_reminder_weekday">Weekday</string>
     <string name="odometer_reminder_day">Day of the month</string>
     <string name="odometer_reminder_hour">From (time of day)</string>
-    <string name="odometer_reminder_hint">The server decides when a reminder is due. The app checks about every 15 minutes and shows a notification. Notifications must be switched on in Settings.</string>
+    <string name="odometer_reminder_hint">The server decides when a reminder is due. The app checks about every hour and shows a notification. Notifications must be switched on in Settings.</string>
     <string name="odometer_reminder_load_error">Could not load the settings: %1$s</string>
     <string name="odometer_reminder_save_error">Could not save: %1$s</string>
     <string name="odometer_notification_channel">Odometer reminders</string>
