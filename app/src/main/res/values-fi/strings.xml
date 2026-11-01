@@ -492,4 +492,37 @@
     <string name="sync_error_other_recording">Palvelimella tallennetaan vielä toista ajoa (esim. aloitettu verkon hallintapaneelissa). Lopeta se siellä, niin tämä ajo synkronoidaan.</string>
     <string name="sync_error_vehicle_missing">Ajoneuvoa ei ole palvelimella.</string>
     <string name="sync_error_generic">Synkronointi epäonnistui.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Muokkaa</string>
+    <string name="vehicles_edit_title">Muokkaa ajoneuvoa</string>
+    <string name="vehicles_more_actions">Lisää toimintoja kohteelle %1$s</string>
+    <string name="vehicles_inactive">Ei käytössä</string>
+    <string name="vehicles_reactivate">Ota uudelleen käyttöön</string>
+    <string name="vehicles_remove">Poista ajoneuvo…</string>
+    <string name="vehicles_remove_title">Poista ajoneuvo</string>
+    <string name="vehicles_remove_question">Mitä ajoneuvolle ”%1$s” tehdään?</string>
+    <string name="vehicles_remove_deactivate">Poista käytöstä</string>
+    <string name="vehicles_remove_deactivate_hint">Ajoneuvo poistetaan käytöstä ja se voidaan ottaa myöhemmin uudelleen käyttöön.</string>
+    <string name="vehicles_remove_delete">Poista</string>
+    <string name="vehicles_remove_delete_hint">Ajoneuvo poistetaan luettelosta.</string>
+    <string name="vehicles_remove_trips_hint">Kaikki matkat säilytetään.</string>
+    <string name="vehicles_remove_trips_hint_delete">Kaikki matkat säilytetään. Bluetooth-määritys poistetaan.</string>
+    <string name="error_vehicle_update">Ajoneuvon tallennus epäonnistui: %1$s</string>
+    <string name="error_vehicle_deactivate">Ajoneuvon poistaminen käytöstä epäonnistui: %1$s</string>
+    <string name="error_vehicle_activate">Ajoneuvon käyttöönotto epäonnistui: %1$s</string>
+    <string name="error_vehicle_delete">Ajoneuvon poistaminen epäonnistui: %1$s</string>
+    <string name="error_vehicle_delete_recording">Ajoneuvoa ei voi poistaa tallennuksen ollessa käynnissä.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Hankintatapa</string>
+    <string name="vehicles_acquisition_owned">Omistus</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Rahoitus</string>
+    <string name="vehicles_contract_period_choose">Valitse sopimuskausi</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Sopimuksen päättymisen on oltava alkamisen jälkeen.</string>
+    <string name="vehicles_included_km">Sisältyvät %1$s</string>
+    <string name="vehicles_included_km_hint">Sopimukseen sisältyvä ajosuorite.</string>
+    <string name="vehicles_included_km_needs_period">Kilometriraja vaatii sopimuskauden.</string>
+    <string name="vehicles_contract_period_needs_km">Sopimuskausi vaatii kilometrirajan.</string>
+    <string name="statistics_contract_limit">Kuukausiraja: %1$s</string>
 </resources>

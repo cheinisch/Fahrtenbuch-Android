@@ -110,6 +110,9 @@ data class CreateVehicleRequest(val name: String, val licensePlate: String? = nu
 data class UpdateVehicleRequest(val name: String? = null, val licensePlate: String? = null)
 data class BluetoothMacRequest(val bluetoothMac: String?)
 
+/** Abmelden muss der Server ausdrücklich bestätigt bekommen. */
+data class DeregisterVehicleRequest(val confirmed: Boolean = true)
+
 /** Erinnerung an den Kilometerstand je Fahrzeug (Server: /odometer/reminder-settings/{vehicleId}). */
 data class OdometerReminderSettings(
     val enabled: Boolean = false,
@@ -156,6 +159,31 @@ enum class TripType(val apiValue: String, val label: String) {
     @Json(name = "unclassified") UNCLASSIFIED("unclassified", "Nicht zugeordnet")
 }
 
+/** Finanzierungsart eines Fahrzeugs (Server: acquisition_type). */
+enum class AcquisitionType(val apiValue: String) {
+    @Json(name = "owned") OWNED("owned"),
+    @Json(name = "leasing") LEASING("leasing"),
+    @Json(name = "financing") FINANCING("financing");
+
+    /** Nur Leasing und Finanzierung haben einen Vertrag mit Laufzeit und Kilometerlimit. */
+    val hasContract: Boolean get() = this != OWNED
+
+    companion object {
+        fun from(value: String?): AcquisitionType =
+            entries.firstOrNull { it.apiValue == value } ?: OWNED
+    }
+}
+
+/** Die im Bearbeiten-Dialog änderbaren Fahrzeugdaten. */
+data class VehicleDetails(
+    val name: String,
+    val licensePlate: String? = null,
+    val acquisitionType: AcquisitionType = AcquisitionType.OWNED,
+    val leaseStartDate: String? = null,
+    val leaseEndDate: String? = null,
+    val leaseIncludedKm: Double? = null
+)
+
 data class Vehicle(
     val id: Uuid,
     val name: String,
@@ -164,7 +192,19 @@ data class Vehicle(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     /** Standardfahrzeug des Benutzers (Server: is_default, setzen per PUT /vehicles/{id}/default) */
-    val isDefault: Boolean = false
+    val isDefault: Boolean = false,
+    /** Abgemeldetes ("deaktiviertes") Fahrzeug: Fahrten bleiben, es wird aber nicht mehr genutzt. */
+    val isDeregistered: Boolean = false,
+    val deregisteredAt: String? = null,
+    /** Freigegebene Fahrzeuge anderer Nutzer dürfen nicht bearbeitet oder entfernt werden. */
+    val isOwner: Boolean = true,
+    /** Eigentum, Leasing oder Finanzierung. Freigegebene Fahrzeuge liefern das nicht mit. */
+    val acquisitionType: AcquisitionType = AcquisitionType.OWNED,
+    /** Vertragsbeginn und -ende als Kalendertag (YYYY-MM-DD), nur bei Leasing/Finanzierung. */
+    val leaseStartDate: String? = null,
+    val leaseEndDate: String? = null,
+    /** Im Vertrag enthaltene Kilometer (immer in km gespeichert). */
+    val leaseIncludedKm: Double? = null
 )
 
 data class Trip(

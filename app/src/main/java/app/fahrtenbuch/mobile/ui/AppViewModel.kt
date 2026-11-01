@@ -17,7 +17,9 @@ import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.data.model.Uuid
 import app.fahrtenbuch.mobile.data.model.Vehicle
+import app.fahrtenbuch.mobile.data.model.VehicleDetails
 import app.fahrtenbuch.mobile.data.repository.FahrtenbuchRepository
+import app.fahrtenbuch.mobile.data.repository.VehicleRecordingException
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,6 +54,8 @@ data class AppUiState(
     val serverUrl: String = "",
     val loggedIn: Boolean = false,
     val vehiclesLoadedFromServer: Boolean = false,
+    /** Gestrichelte Vertragsgrenze im Statistik-Diagramm anzeigen. */
+    val showContractLimit: Boolean = true,
     val user: app.fahrtenbuch.mobile.data.model.User? = null,
     val preferences: app.fahrtenbuch.mobile.data.model.UserPreferences = app.fahrtenbuch.mobile.data.model.UserPreferences()
 )
@@ -69,6 +73,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             serverConfigured = store.serverConfigured,
             serverUrl = store.baseUrl,
             loggedIn = store.refreshToken != null,
+            showContractLimit = store.showContractLimit,
             preferences = app.fahrtenbuch.mobile.data.model.UserPreferences.fromApi(
                 store.distanceUnit, store.speedUnit, store.dateFormat, store.timeFormat, store.timeZone,
                 gravatarEnabled = store.gravatarEnabled,
@@ -829,9 +834,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Vorauswahl: Standardfahrzeug vom Server bzw. lokal, sonst das erste. */
-    private fun defaultVehicleId(vehicles: List<Vehicle>): String? =
-        (vehicles.firstOrNull { it.isDefault } ?: vehicles.firstOrNull())?.id
+    /** Gestrichelte Vertragsgrenze im Diagramm ein- oder ausblenden (nur auf diesem Gerät). */
+    fun setShowContractLimit(enabled: Boolean) {
+        store.showContractLimit = enabled
+        _state.value = _state.value.copy(showContractLimit = enabled)
+    }
+
+    /** Vorauswahl: Standardfahrzeug vom Server bzw. lokal, sonst das erste – nie ein abgemeldetes. */
+    private fun defaultVehicleId(vehicles: List<Vehicle>): String? {
+        val active = vehicles.filterNot { it.isDeregistered }
+        return (active.firstOrNull { it.isDefault } ?: active.firstOrNull())?.id
+    }
 
     fun setDefaultVehicle(vehicleId: String) {
         viewModelScope.launch {
@@ -869,6 +882,80 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value = _state.value.copy(
                         loading = false,
                         error = it.message ?: str(R.string.error_vehicle_create)
+                    )
+                }
+        }
+    }
+
+    fun updateVehicle(vehicleId: String, details: VehicleDetails, onSaved: () -> Unit = {}) {
+        if (details.name.isBlank()) return
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.updateVehicle(vehicleId, details) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = _state.value.vehicles.map { if (it.id == updated.id) updated else it },
+                        error = null
+                    )
+                    onSaved()
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = str(R.string.error_vehicle_update, ApiFactory.readableError(error))
+                    )
+                }
+        }
+    }
+
+    /** Fahrzeug abmelden (deaktivieren) oder wieder anmelden. */
+    fun setVehicleRegistered(vehicleId: String, registered: Boolean, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.setVehicleRegistered(vehicleId, registered) }
+                .onSuccess { updated ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = _state.value.vehicles.map { if (it.id == updated.id) updated else it },
+                        error = null
+                    )
+                    onDone()
+                }
+                .onFailure { error ->
+                    val message = if (registered) R.string.error_vehicle_activate else R.string.error_vehicle_deactivate
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = str(message, ApiFactory.readableError(error))
+                    )
+                }
+        }
+    }
+
+    fun deleteVehicle(vehicleId: String, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(loading = true, error = null)
+            runCatching { repository.deleteVehicle(vehicleId) }
+                .onSuccess {
+                    val vehicles = _state.value.vehicles.filterNot { it.id == vehicleId }
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        vehicles = vehicles,
+                        selectedVehicleId = _state.value.selectedVehicleId
+                            ?.takeIf { it != vehicleId }
+                            ?: defaultVehicleId(vehicles),
+                        error = null
+                    )
+                    onDone()
+                }
+                .onFailure { error ->
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = if (error is VehicleRecordingException) {
+                            str(R.string.error_vehicle_delete_recording)
+                        } else {
+                            str(R.string.error_vehicle_delete, ApiFactory.readableError(error))
+                        }
                     )
                 }
         }

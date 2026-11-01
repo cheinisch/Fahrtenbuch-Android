@@ -492,4 +492,37 @@
     <string name="sync_error_other_recording">Another trip is still being recorded on the server (e.g. started in the web dashboard). End it there, then this trip will be synced.</string>
     <string name="sync_error_vehicle_missing">The vehicle does not exist on the server.</string>
     <string name="sync_error_generic">Synchronization failed.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Edit</string>
+    <string name="vehicles_edit_title">Edit vehicle</string>
+    <string name="vehicles_more_actions">More actions for %1$s</string>
+    <string name="vehicles_inactive">Inactive</string>
+    <string name="vehicles_reactivate">Re-register</string>
+    <string name="vehicles_remove">Remove vehicle…</string>
+    <string name="vehicles_remove_title">Remove vehicle</string>
+    <string name="vehicles_remove_question">What should happen to “%1$s”?</string>
+    <string name="vehicles_remove_deactivate">Deactivate</string>
+    <string name="vehicles_remove_deactivate_hint">The vehicle is deregistered and can be re-registered later.</string>
+    <string name="vehicles_remove_delete">Delete</string>
+    <string name="vehicles_remove_delete_hint">The vehicle is removed from the list.</string>
+    <string name="vehicles_remove_trips_hint">All trips are kept.</string>
+    <string name="vehicles_remove_trips_hint_delete">All trips are kept. The Bluetooth assignment is removed.</string>
+    <string name="error_vehicle_update">Vehicle could not be saved: %1$s</string>
+    <string name="error_vehicle_deactivate">Vehicle could not be deactivated: %1$s</string>
+    <string name="error_vehicle_activate">Vehicle could not be re-registered: %1$s</string>
+    <string name="error_vehicle_delete">Vehicle could not be deleted: %1$s</string>
+    <string name="error_vehicle_delete_recording">The vehicle cannot be deleted while a recording is running.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Acquisition type</string>
+    <string name="vehicles_acquisition_owned">Owned</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Financing</string>
+    <string name="vehicles_contract_period_choose">Choose contract period</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">The contract end must be after the start.</string>
+    <string name="vehicles_included_km">Included %1$s</string>
+    <string name="vehicles_included_km_hint">Mileage allowance included in the contract.</string>
+    <string name="vehicles_included_km_needs_period">A mileage limit needs a contract period.</string>
+    <string name="vehicles_contract_period_needs_km">A contract period needs a mileage limit.</string>
+    <string name="statistics_contract_limit">Monthly limit: %1$s</string>
 </resources>

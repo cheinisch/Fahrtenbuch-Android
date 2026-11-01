@@ -116,7 +116,8 @@ fun DashboardScreen(
     // Standardfahrzeug zuerst, danach die zuletzt genutzten – wichtig bei vielen Fahrzeugen.
     val vehicles = remember(state.vehicles, completed) {
         val usageOrder = completed.map { it.vehicleId }.distinct()
-        state.vehicles.sortedWith(
+        // Abgemeldete Fahrzeuge stehen nicht mehr zur Auswahl.
+        state.vehicles.filterNot { it.isDeregistered }.sortedWith(
             compareByDescending<app.fahrtenbuch.mobile.data.model.Vehicle> { it.isDefault }
                 .thenBy { vehicle -> usageOrder.indexOf(vehicle.id).takeIf { it >= 0 } ?: Int.MAX_VALUE }
         )

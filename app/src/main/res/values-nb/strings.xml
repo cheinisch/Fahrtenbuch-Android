@@ -492,4 +492,37 @@
     <string name="sync_error_other_recording">En annen tur registreres fortsatt på serveren (f.eks. startet i nettdashbordet). Avslutt den der, så synkroniseres denne turen.</string>
     <string name="sync_error_vehicle_missing">Kjøretøyet finnes ikke på serveren.</string>
     <string name="sync_error_generic">Synkroniseringen mislyktes.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Rediger</string>
+    <string name="vehicles_edit_title">Rediger kjøretøy</string>
+    <string name="vehicles_more_actions">Flere handlinger for %1$s</string>
+    <string name="vehicles_inactive">Inaktiv</string>
+    <string name="vehicles_reactivate">Aktiver på nytt</string>
+    <string name="vehicles_remove">Fjern kjøretøy…</string>
+    <string name="vehicles_remove_title">Fjern kjøretøy</string>
+    <string name="vehicles_remove_question">Hva skal skje med «%1$s»?</string>
+    <string name="vehicles_remove_deactivate">Deaktiver</string>
+    <string name="vehicles_remove_deactivate_hint">Kjøretøyet avregistreres og kan aktiveres igjen senere.</string>
+    <string name="vehicles_remove_delete">Slett</string>
+    <string name="vehicles_remove_delete_hint">Kjøretøyet fjernes fra listen.</string>
+    <string name="vehicles_remove_trips_hint">Alle turer beholdes.</string>
+    <string name="vehicles_remove_trips_hint_delete">Alle turer beholdes. Bluetooth-tilknytningen fjernes.</string>
+    <string name="error_vehicle_update">Kjøretøyet kunne ikke lagres: %1$s</string>
+    <string name="error_vehicle_deactivate">Kjøretøyet kunne ikke deaktiveres: %1$s</string>
+    <string name="error_vehicle_activate">Kjøretøyet kunne ikke aktiveres på nytt: %1$s</string>
+    <string name="error_vehicle_delete">Kjøretøyet kunne ikke slettes: %1$s</string>
+    <string name="error_vehicle_delete_recording">Kjøretøyet kan ikke slettes mens en registrering pågår.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Anskaffelsesform</string>
+    <string name="vehicles_acquisition_owned">Eid</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Finansiering</string>
+    <string name="vehicles_contract_period_choose">Velg avtaleperiode</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Avtalens slutt må være etter starten.</string>
+    <string name="vehicles_included_km">Inkluderte %1$s</string>
+    <string name="vehicles_included_km_hint">Kjørelengde som inngår i avtalen.</string>
+    <string name="vehicles_included_km_needs_period">En kjørelengdegrense krever en avtaleperiode.</string>
+    <string name="vehicles_contract_period_needs_km">En avtaleperiode krever en kjørelengdegrense.</string>
+    <string name="statistics_contract_limit">Månedsgrense: %1$s</string>
 </resources>

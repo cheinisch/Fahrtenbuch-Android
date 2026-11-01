@@ -492,4 +492,37 @@
     <string name="sync_error_other_recording">En annan resa registreras fortfarande på servern (t.ex. startad i webbpanelen). Avsluta den där, så synkroniseras den här resan.</string>
     <string name="sync_error_vehicle_missing">Fordonet finns inte på servern.</string>
     <string name="sync_error_generic">Synkroniseringen misslyckades.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Redigera</string>
+    <string name="vehicles_edit_title">Redigera fordon</string>
+    <string name="vehicles_more_actions">Fler åtgärder för %1$s</string>
+    <string name="vehicles_inactive">Inaktiv</string>
+    <string name="vehicles_reactivate">Återaktivera</string>
+    <string name="vehicles_remove">Ta bort fordon…</string>
+    <string name="vehicles_remove_title">Ta bort fordon</string>
+    <string name="vehicles_remove_question">Vad ska hända med ”%1$s”?</string>
+    <string name="vehicles_remove_deactivate">Inaktivera</string>
+    <string name="vehicles_remove_deactivate_hint">Fordonet avregistreras och kan aktiveras igen senare.</string>
+    <string name="vehicles_remove_delete">Ta bort</string>
+    <string name="vehicles_remove_delete_hint">Fordonet tas bort från listan.</string>
+    <string name="vehicles_remove_trips_hint">Alla resor behålls.</string>
+    <string name="vehicles_remove_trips_hint_delete">Alla resor behålls. Bluetooth-kopplingen tas bort.</string>
+    <string name="error_vehicle_update">Fordonet kunde inte sparas: %1$s</string>
+    <string name="error_vehicle_deactivate">Fordonet kunde inte inaktiveras: %1$s</string>
+    <string name="error_vehicle_activate">Fordonet kunde inte återaktiveras: %1$s</string>
+    <string name="error_vehicle_delete">Fordonet kunde inte tas bort: %1$s</string>
+    <string name="error_vehicle_delete_recording">Fordonet kan inte tas bort medan en inspelning pågår.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Anskaffningsform</string>
+    <string name="vehicles_acquisition_owned">Ägt</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Finansiering</string>
+    <string name="vehicles_contract_period_choose">Välj avtalsperiod</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Avtalets slut måste vara efter starten.</string>
+    <string name="vehicles_included_km">Inkluderade %1$s</string>
+    <string name="vehicles_included_km_hint">Körsträcka som ingår i avtalet.</string>
+    <string name="vehicles_included_km_needs_period">En körsträckegräns kräver en avtalsperiod.</string>
+    <string name="vehicles_contract_period_needs_km">En avtalsperiod kräver en körsträckegräns.</string>
+    <string name="statistics_contract_limit">Månadsgräns: %1$s</string>
 </resources>

@@ -492,4 +492,37 @@
     <string name="sync_error_other_recording">Auf dem Server läuft noch eine andere Aufzeichnung (z. B. im Web-Dashboard gestartet). Beende sie dort, dann wird diese Fahrt übertragen.</string>
     <string name="sync_error_vehicle_missing">Das Fahrzeug ist auf dem Server nicht vorhanden.</string>
     <string name="sync_error_generic">Synchronisierung fehlgeschlagen.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Bearbeiten</string>
+    <string name="vehicles_edit_title">Fahrzeug bearbeiten</string>
+    <string name="vehicles_more_actions">Weitere Aktionen für %1$s</string>
+    <string name="vehicles_inactive">Inaktiv</string>
+    <string name="vehicles_reactivate">Wieder anmelden</string>
+    <string name="vehicles_remove">Fahrzeug entfernen…</string>
+    <string name="vehicles_remove_title">Fahrzeug entfernen</string>
+    <string name="vehicles_remove_question">Was soll mit „%1$s“ passieren?</string>
+    <string name="vehicles_remove_deactivate">Deaktivieren</string>
+    <string name="vehicles_remove_deactivate_hint">Das Fahrzeug wird abgemeldet und kann später wieder angemeldet werden.</string>
+    <string name="vehicles_remove_delete">Löschen</string>
+    <string name="vehicles_remove_delete_hint">Das Fahrzeug wird aus der Liste entfernt.</string>
+    <string name="vehicles_remove_trips_hint">Alle Fahrten bleiben erhalten.</string>
+    <string name="vehicles_remove_trips_hint_delete">Alle Fahrten bleiben erhalten. Die Bluetooth-Zuordnung wird entfernt.</string>
+    <string name="error_vehicle_update">Fahrzeug konnte nicht gespeichert werden: %1$s</string>
+    <string name="error_vehicle_deactivate">Fahrzeug konnte nicht deaktiviert werden: %1$s</string>
+    <string name="error_vehicle_activate">Fahrzeug konnte nicht wieder angemeldet werden: %1$s</string>
+    <string name="error_vehicle_delete">Fahrzeug konnte nicht gelöscht werden: %1$s</string>
+    <string name="error_vehicle_delete_recording">Das Fahrzeug kann während einer laufenden Aufzeichnung nicht gelöscht werden.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Finanzierungsart</string>
+    <string name="vehicles_acquisition_owned">Eigentum</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Finanzierung</string>
+    <string name="vehicles_contract_period_choose">Vertragszeitraum wählen</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Das Vertragsende muss nach dem Beginn liegen.</string>
+    <string name="vehicles_included_km">Enthaltene %1$s</string>
+    <string name="vehicles_included_km_hint">Im Vertrag enthaltene Fahrleistung.</string>
+    <string name="vehicles_included_km_needs_period">Für ein Kilometerlimit wird ein Vertragszeitraum benötigt.</string>
+    <string name="vehicles_contract_period_needs_km">Zu einem Vertragszeitraum gehört ein Kilometerlimit.</string>
+    <string name="statistics_contract_limit">Monatsgrenze: %1$s</string>
 </resources>

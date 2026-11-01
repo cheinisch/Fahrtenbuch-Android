@@ -8,6 +8,9 @@ import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
 import app.fahrtenbuch.mobile.sync.OdometerReminderScheduler
 import app.fahrtenbuch.mobile.ui.screens.vehicles.OdometerReminderDialog
+import app.fahrtenbuch.mobile.ui.screens.vehicles.VehicleEditDialog
+import app.fahrtenbuch.mobile.ui.screens.vehicles.VehicleRemoveDialog
+import app.fahrtenbuch.mobile.ui.screens.vehicles.vehicleContractSummary
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -19,14 +22,19 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
@@ -49,8 +57,10 @@ data class PairedBluetoothDevice(val name: String, val address: String)
 fun VehiclesScreen(viewModel: AppViewModel) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
-    var editVehicle by remember { mutableStateOf<Vehicle?>(null) }
+    var bluetoothVehicle by remember { mutableStateOf<Vehicle?>(null) }
     var reminderVehicle by remember { mutableStateOf<Vehicle?>(null) }
+    var editVehicle by remember { mutableStateOf<Vehicle?>(null) }
+    var removeVehicle by remember { mutableStateOf<Vehicle?>(null) }
     var pairedDevices by remember { mutableStateOf<List<PairedBluetoothDevice>>(emptyList()) }
     var bluetoothError by remember { mutableStateOf<String?>(null) }
     var showVehicleWizard by rememberSaveable { mutableStateOf(false) }
@@ -92,14 +102,38 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         windowLayout.wide -> 2
         else -> 1
     }
+    val openBluetoothDialog: (Vehicle) -> Unit = { vehicle ->
+        bluetoothVehicle = vehicle
+        bluetoothError = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+        ) {
+            bluetoothPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            readBluetoothDevices()
+        }
+    }
+
     val vehicleCard: @Composable (Vehicle, Modifier) -> Unit = { vehicle, cardModifier ->
+            val inactive = vehicle.isDeregistered
             Card(cardModifier) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Icon(Icons.Default.DirectionsCar, contentDescription = null)
-                        Column {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.DirectionsCar,
+                            contentDescription = null,
+                            tint = if (inactive) MaterialTheme.colorScheme.onSurfaceVariant else LocalContentColor.current
+                        )
+                        Column(Modifier.weight(1f)) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(vehicle.name, fontWeight = FontWeight.Bold)
+                                Text(
+                                    vehicle.name,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (inactive) MaterialTheme.colorScheme.onSurfaceVariant else LocalContentColor.current
+                                )
                                 if (vehicle.isDefault) {
                                     Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primaryContainer) {
                                         Row(
@@ -117,45 +151,122 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                                         }
                                     }
                                 }
+                                if (inactive) {
+                                    Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surfaceVariant) {
+                                        Text(
+                                            stringResource(R.string.vehicles_inactive),
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
                             Text(vehicle.licensePlate ?: stringResource(R.string.vehicles_no_plate), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                    }
-                    Text(
-                        vehicle.bluetoothMac?.let { stringResource(R.string.vehicles_bt_assigned, it) } ?: stringResource(R.string.vehicles_bt_none),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    OutlinedButton(
-                        onClick = {
-                            editVehicle = vehicle
-                            bluetoothError = null
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                                ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
-                            ) {
-                                bluetoothPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
-                            } else {
-                                readBluetoothDevices()
+                        // Freigegebene Fahrzeuge gehören jemand anderem und werden hier nicht verändert.
+                        if (vehicle.isOwner) {
+                            var menuOpen by remember { mutableStateOf(false) }
+                            Box {
+                                IconButton(onClick = { menuOpen = true }, enabled = !state.loading) {
+                                    Icon(
+                                        Icons.Default.MoreVert,
+                                        contentDescription = stringResource(R.string.vehicles_more_actions, vehicle.name)
+                                    )
+                                }
+                                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                                    if (!vehicle.isDefault && !inactive) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.vehicles_make_default)) },
+                                            leadingIcon = { Icon(Icons.Outlined.StarBorder, contentDescription = null) },
+                                            onClick = {
+                                                menuOpen = false
+                                                viewModel.setDefaultVehicle(vehicle.id)
+                                            }
+                                        )
+                                    }
+                                    // Erinnerung kommt vom Server, daher nur im Server-Modus
+                                    if (state.appMode == app.fahrtenbuch.mobile.data.api.AppMode.SERVER && !inactive) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.vehicles_odometer_reminder)) },
+                                            leadingIcon = { Icon(Icons.Default.Notifications, contentDescription = null) },
+                                            onClick = {
+                                                menuOpen = false
+                                                reminderVehicle = vehicle
+                                            }
+                                        )
+                                    }
+                                    if (inactive) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.vehicles_reactivate)) },
+                                            leadingIcon = { Icon(Icons.Default.Restore, contentDescription = null) },
+                                            onClick = {
+                                                menuOpen = false
+                                                viewModel.setVehicleRegistered(vehicle.id, registered = true)
+                                            }
+                                        )
+                                    }
+                                    HorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                stringResource(R.string.vehicles_remove),
+                                                color = MaterialTheme.colorScheme.error
+                                            )
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        },
+                                        onClick = {
+                                            menuOpen = false
+                                            removeVehicle = vehicle
+                                        }
+                                    )
+                                }
                             }
-                        },
-                        enabled = !state.loading
-                    ) {
-                        Icon(Icons.Default.Bluetooth, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(if (vehicle.bluetoothMac == null) R.string.vehicles_bt_assign else R.string.vehicles_bt_change))
-                    }
-                    if (!vehicle.isDefault) {
-                        TextButton(onClick = { viewModel.setDefaultVehicle(vehicle.id) }, enabled = !state.loading) {
-                            Icon(Icons.Outlined.StarBorder, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.vehicles_make_default))
                         }
                     }
-                    // Erinnerung kommt vom Server, daher nur im Server-Modus
-                    if (state.appMode == app.fahrtenbuch.mobile.data.api.AppMode.SERVER) {
-                        TextButton(onClick = { reminderVehicle = vehicle }, enabled = !state.loading) {
-                            Icon(Icons.Default.Notifications, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.vehicles_odometer_reminder))
+                    vehicleContractSummary(vehicle)?.let { summary ->
+                        Text(
+                            summary,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (vehicle.isOwner && !inactive) {
+                        Text(
+                            vehicle.bluetoothMac?.let { stringResource(R.string.vehicles_bt_assigned, it) } ?: stringResource(R.string.vehicles_bt_none),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (vehicle.isOwner) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (inactive) {
+                                OutlinedButton(
+                                    onClick = { viewModel.setVehicleRegistered(vehicle.id, registered = true) },
+                                    enabled = !state.loading
+                                ) {
+                                    Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.vehicles_reactivate))
+                                }
+                            } else {
+                                OutlinedButton(onClick = { openBluetoothDialog(vehicle) }, enabled = !state.loading) {
+                                    Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(if (vehicle.bluetoothMac == null) R.string.vehicles_bt_assign else R.string.vehicles_bt_change))
+                                }
+                            }
+                            TextButton(onClick = { editVehicle = vehicle }, enabled = !state.loading) {
+                                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.vehicles_edit))
+                            }
                         }
                     }
                 }
@@ -211,17 +322,20 @@ fun VehiclesScreen(viewModel: AppViewModel) {
             }
         }
 
-        if (columns == 1) {
-            items(state.vehicles, key = { it.id }) { vehicle ->
-                vehicleCard(vehicle, Modifier.fillMaxWidth())
+        // Abgemeldete Fahrzeuge stehen gesammelt am Ende, damit die Liste nicht zerfasert.
+        val (activeVehicles, inactiveVehicles) = state.vehicles.partition { !it.isDeregistered }
+        vehicleRows(activeVehicles, columns, vehicleCard)
+
+        if (inactiveVehicles.isNotEmpty()) {
+            item {
+                Text(
+                    stringResource(R.string.vehicles_inactive),
+                    modifier = Modifier.padding(top = 4.dp),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-        } else {
-            items(state.vehicles.chunked(columns), key = { row -> row.first().id }) { row ->
-                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    row.forEach { vehicle -> vehicleCard(vehicle, Modifier.weight(1f).fillMaxHeight()) }
-                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
-                }
-            }
+            vehicleRows(inactiveVehicles, columns, vehicleCard)
         }
     }
 
@@ -233,15 +347,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
             onCreate = { name, licensePlate ->
                 viewModel.createVehicle(name, licensePlate) { created ->
                     showVehicleWizard = false
-                    editVehicle = created
-                    bluetoothError = null
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        bluetoothPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
-                    } else {
-                        readBluetoothDevices()
-                    }
+                    openBluetoothDialog(created)
                 }
             }
         )
@@ -261,13 +367,13 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         )
     }
 
-    editVehicle?.let { vehicle ->
+    bluetoothVehicle?.let { vehicle ->
         BluetoothAssignmentDialog(
             vehicle = vehicle,
             devices = pairedDevices,
             error = bluetoothError,
             loading = state.loading,
-            onDismiss = { if (!state.loading) editVehicle = null },
+            onDismiss = { if (!state.loading) bluetoothVehicle = null },
             onRefresh = {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                     ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
@@ -275,9 +381,56 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                 else readBluetoothDevices()
             },
             onSave = { mac ->
-                viewModel.setVehicleBluetooth(vehicle.id, mac) { editVehicle = null }
+                viewModel.setVehicleBluetooth(vehicle.id, mac) { bluetoothVehicle = null }
             }
         )
+    }
+
+    editVehicle?.let { vehicle ->
+        VehicleEditDialog(
+            vehicle = vehicle,
+            loading = state.loading,
+            onDismiss = { editVehicle = null },
+            onSave = { details ->
+                viewModel.updateVehicle(vehicle.id, details) { editVehicle = null }
+            }
+        )
+    }
+
+    removeVehicle?.let { vehicle ->
+        VehicleRemoveDialog(
+            vehicleName = vehicle.name,
+            loading = state.loading,
+            alreadyInactive = vehicle.isDeregistered,
+            onDismiss = { removeVehicle = null },
+            onConfirm = { deactivateOnly ->
+                if (deactivateOnly) {
+                    viewModel.setVehicleRegistered(vehicle.id, registered = false) { removeVehicle = null }
+                } else {
+                    viewModel.deleteVehicle(vehicle.id) { removeVehicle = null }
+                }
+            }
+        )
+    }
+}
+
+/** Eine Spalte auf dem Telefon, auf Tablets ein Raster. */
+private fun LazyListScope.vehicleRows(
+    vehicles: List<Vehicle>,
+    columns: Int,
+    card: @Composable (Vehicle, Modifier) -> Unit
+) {
+    if (columns == 1) {
+        items(vehicles, key = { it.id }) { vehicle ->
+            card(vehicle, Modifier.fillMaxWidth())
+        }
+    } else {
+        items(vehicles.chunked(columns), key = { row -> row.first().id }) { row ->
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                row.forEach { vehicle -> card(vehicle, Modifier.weight(1f).fillMaxHeight()) }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
     }
 }
 

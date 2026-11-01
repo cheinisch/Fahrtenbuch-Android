@@ -492,4 +492,37 @@
     <string name="sync_error_other_recording">Op de server wordt nog een andere rit geregistreerd (bijv. gestart in het webdashboard). Beëindig die daar, dan wordt deze rit gesynchroniseerd.</string>
     <string name="sync_error_vehicle_missing">Het voertuig bestaat niet op de server.</string>
     <string name="sync_error_generic">Synchronisatie mislukt.</string>
+    <!-- Fahrzeug bearbeiten, deaktivieren und löschen -->
+    <string name="vehicles_edit">Bewerken</string>
+    <string name="vehicles_edit_title">Voertuig bewerken</string>
+    <string name="vehicles_more_actions">Meer acties voor %1$s</string>
+    <string name="vehicles_inactive">Inactief</string>
+    <string name="vehicles_reactivate">Opnieuw aanmelden</string>
+    <string name="vehicles_remove">Voertuig verwijderen…</string>
+    <string name="vehicles_remove_title">Voertuig verwijderen</string>
+    <string name="vehicles_remove_question">Wat moet er met “%1$s” gebeuren?</string>
+    <string name="vehicles_remove_deactivate">Deactiveren</string>
+    <string name="vehicles_remove_deactivate_hint">Het voertuig wordt afgemeld en kan later opnieuw worden aangemeld.</string>
+    <string name="vehicles_remove_delete">Verwijderen</string>
+    <string name="vehicles_remove_delete_hint">Het voertuig wordt uit de lijst verwijderd.</string>
+    <string name="vehicles_remove_trips_hint">Alle ritten blijven behouden.</string>
+    <string name="vehicles_remove_trips_hint_delete">Alle ritten blijven behouden. De Bluetooth-koppeling wordt verwijderd.</string>
+    <string name="error_vehicle_update">Voertuig kon niet worden opgeslagen: %1$s</string>
+    <string name="error_vehicle_deactivate">Voertuig kon niet worden gedeactiveerd: %1$s</string>
+    <string name="error_vehicle_activate">Voertuig kon niet opnieuw worden aangemeld: %1$s</string>
+    <string name="error_vehicle_delete">Voertuig kon niet worden verwijderd: %1$s</string>
+    <string name="error_vehicle_delete_recording">Het voertuig kan tijdens een lopende opname niet worden verwijderd.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Verwervingstype</string>
+    <string name="vehicles_acquisition_owned">Eigendom</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Financiering</string>
+    <string name="vehicles_contract_period_choose">Contractperiode kiezen</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Het einde van het contract moet na het begin liggen.</string>
+    <string name="vehicles_included_km">Inbegrepen %1$s</string>
+    <string name="vehicles_included_km_hint">Kilometrage die in het contract is inbegrepen.</string>
+    <string name="vehicles_included_km_needs_period">Een kilometerlimiet heeft een contractperiode nodig.</string>
+    <string name="vehicles_contract_period_needs_km">Een contractperiode heeft een kilometerlimiet nodig.</string>
+    <string name="statistics_contract_limit">Maandlimiet: %1$s</string>
 </resources>
