@@ -512,4 +512,16 @@
     <string name="error_vehicle_activate">Køretøjet kunne ikke aktiveres igen: %1$s</string>
     <string name="error_vehicle_delete">Køretøjet kunne ikke slettes: %1$s</string>
     <string name="error_vehicle_delete_recording">Køretøjet kan ikke slettes, mens en optagelse er i gang.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Anskaffelsesform</string>
+    <string name="vehicles_acquisition_owned">Ejet</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Finansiering</string>
+    <string name="vehicles_contract_period_choose">Vælg aftaleperiode</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Aftalens slutning skal være efter starten.</string>
+    <string name="vehicles_included_km">Inkluderede %1$s</string>
+    <string name="vehicles_included_km_hint">Kørselsmængde der er inkluderet i aftalen.</string>
+    <string name="vehicles_included_km_needs_period">En kilometergrænse kræver en aftaleperiode.</string>
+    <string name="vehicles_contract_period_needs_km">En aftaleperiode kræver en kilometergrænse.</string>
 </resources>

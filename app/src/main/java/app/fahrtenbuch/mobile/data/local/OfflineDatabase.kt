@@ -24,7 +24,12 @@ data class VehicleEntity(
      * Gelöscht. Im lokalen Modus wird nur archiviert statt die Zeile zu entfernen,
      * weil Fahrten und noch nicht übertragene Aufzeichnungen darauf verweisen.
      */
-    val archivedAt: String? = null
+    val archivedAt: String? = null,
+    /** owned, leasing oder financing; null gilt als owned (Bestand vor Version 12). */
+    val acquisitionType: String? = null,
+    val leaseStartDate: String? = null,
+    val leaseEndDate: String? = null,
+    val leaseIncludedKm: Double? = null
 )
 
 @Entity(tableName = "trips", indices = [Index("vehicleId"), Index("startedAt")])
@@ -138,8 +143,21 @@ interface OfflineDao {
     /** Kein Auto-Start für gelöschte oder abgemeldete Fahrzeuge. */
     @Query("SELECT * FROM vehicles WHERE bluetoothMac=:mac COLLATE NOCASE AND archivedAt IS NULL AND deregisteredAt IS NULL LIMIT 1")
     suspend fun vehicleByBluetooth(mac: String): VehicleEntity?
-    @Query("UPDATE vehicles SET name=:name, licensePlate=:licensePlate, updatedAt=:updatedAt WHERE id=:id")
-    suspend fun updateVehicleDetails(id: String, name: String, licensePlate: String?, updatedAt: String)
+    @Query(
+        "UPDATE vehicles SET name=:name, licensePlate=:licensePlate, acquisitionType=:acquisitionType, " +
+            "leaseStartDate=:leaseStartDate, leaseEndDate=:leaseEndDate, leaseIncludedKm=:leaseIncludedKm, " +
+            "updatedAt=:updatedAt WHERE id=:id"
+    )
+    suspend fun updateVehicleDetails(
+        id: String,
+        name: String,
+        licensePlate: String?,
+        acquisitionType: String,
+        leaseStartDate: String?,
+        leaseEndDate: String?,
+        leaseIncludedKm: Double?,
+        updatedAt: String
+    )
     /** Name der Fahrten mitziehen, damit gespeicherte Fahrten nicht den alten Namen zeigen. */
     @Query("UPDATE trips SET vehicleName=:name WHERE vehicleId=:id")
     suspend fun renameVehicleInTrips(id: String, name: String)
@@ -262,7 +280,7 @@ interface OfflineDao {
         TrackPointEntity::class,
         MatchedRouteEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 abstract class OfflineDatabase : RoomDatabase() {
@@ -277,9 +295,18 @@ abstract class OfflineDatabase : RoomDatabase() {
                 OfflineDatabase::class.java,
                 "fahrtenbuch-offline.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
                 .build()
                 .also { instance = it }
+        }
+
+        private val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN acquisitionType TEXT")
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN leaseStartDate TEXT")
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN leaseEndDate TEXT")
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN leaseIncludedKm REAL")
+            }
         }
 
         private val MIGRATION_10_11 = object : Migration(10, 11) {

@@ -50,6 +50,14 @@ internal fun formatDistance(distanceKm: Double?, prefs: UserPreferences): String
 internal fun distanceUnitLabel(prefs: UserPreferences): String =
     if (prefs.distanceUnit == DistanceUnit.MI) "mi" else "km"
 
+/** Ganze Strecke in der gewählten Einheit, etwa ein Kilometerlimit (ohne Nachkommastellen). */
+internal fun wholeDistanceInPreferredUnit(distanceKm: Double, prefs: UserPreferences): Long =
+    Math.round(if (prefs.distanceUnit == DistanceUnit.MI) distanceKm / KM_PER_MILE else distanceKm)
+
+/** Umkehrung: eingegebene Strecke der gewählten Einheit als ganze Kilometer zum Speichern. */
+internal fun wholeDistanceToKm(value: Double, prefs: UserPreferences): Double =
+    Math.round(if (prefs.distanceUnit == DistanceUnit.MI) value * KM_PER_MILE else value).toDouble()
+
 /** Strecke mit Einheit, z. B. „110,8 km“ oder „68,9 mi“. */
 internal fun formatDistanceWithUnit(distanceKm: Double?, prefs: UserPreferences): String =
     "${formatDistance(distanceKm, prefs)} ${distanceUnitLabel(prefs)}"
@@ -160,6 +168,10 @@ internal fun shortRoute(startAddress: String?, endAddress: String?, startFallbac
     }
     return "${label(startAddress, startFallback)} → ${label(endAddress, endFallback)}"
 }
+
+/** Kalendertag ohne Uhrzeit im gewählten Datumsformat, z. B. „31.03.2027“ oder „03/31/2027“. */
+internal fun formatCalendarDate(date: LocalDate, prefs: UserPreferences): String =
+    DateTimeFormatter.ofPattern(datePattern(prefs), Locale.getDefault()).format(date)
 
 /** Datum nach Vorlage der aktuellen Sprache, z. B. Skeleton „EEEEdMMMM“ → „Dienstag, 13. Oktober“. */
 internal fun formatLocalDate(date: LocalDate, skeleton: String): String {

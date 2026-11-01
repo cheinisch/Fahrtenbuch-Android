@@ -519,4 +519,16 @@
     <string name="error_vehicle_activate">Impossibile riattivare il veicolo: %1$s</string>
     <string name="error_vehicle_delete">Impossibile eliminare il veicolo: %1$s</string>
     <string name="error_vehicle_delete_recording">Il veicolo non può essere eliminato durante una registrazione in corso.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Tipo di acquisizione</string>
+    <string name="vehicles_acquisition_owned">Proprietà</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Finanziamento</string>
+    <string name="vehicles_contract_period_choose">Scegli il periodo contrattuale</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">La fine del contratto deve essere successiva all\'inizio.</string>
+    <string name="vehicles_included_km">%1$s inclusi</string>
+    <string name="vehicles_included_km_hint">Chilometraggio incluso nel contratto.</string>
+    <string name="vehicles_included_km_needs_period">Un limite di chilometraggio richiede un periodo contrattuale.</string>
+    <string name="vehicles_contract_period_needs_km">Un periodo contrattuale richiede un limite di chilometraggio.</string>
 </resources>

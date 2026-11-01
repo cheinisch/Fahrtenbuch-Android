@@ -512,4 +512,16 @@
     <string name="error_vehicle_activate">Vehicle could not be re-registered: %1$s</string>
     <string name="error_vehicle_delete">Vehicle could not be deleted: %1$s</string>
     <string name="error_vehicle_delete_recording">The vehicle cannot be deleted while a recording is running.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Acquisition type</string>
+    <string name="vehicles_acquisition_owned">Owned</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Financing</string>
+    <string name="vehicles_contract_period_choose">Choose contract period</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">The contract end must be after the start.</string>
+    <string name="vehicles_included_km">Included %1$s</string>
+    <string name="vehicles_included_km_hint">Mileage allowance included in the contract.</string>
+    <string name="vehicles_included_km_needs_period">A mileage limit needs a contract period.</string>
+    <string name="vehicles_contract_period_needs_km">A contract period needs a mileage limit.</string>
 </resources>

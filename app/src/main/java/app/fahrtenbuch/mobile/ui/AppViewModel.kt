@@ -17,6 +17,7 @@ import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.data.model.TrackPoint
 import app.fahrtenbuch.mobile.data.model.Uuid
 import app.fahrtenbuch.mobile.data.model.Vehicle
+import app.fahrtenbuch.mobile.data.model.VehicleDetails
 import app.fahrtenbuch.mobile.data.repository.FahrtenbuchRepository
 import app.fahrtenbuch.mobile.data.repository.VehicleRecordingException
 import app.fahrtenbuch.mobile.sync.SyncScheduler
@@ -877,11 +878,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateVehicle(vehicleId: String, name: String, licensePlate: String?, onSaved: () -> Unit = {}) {
-        if (name.isBlank()) return
+    fun updateVehicle(vehicleId: String, details: VehicleDetails, onSaved: () -> Unit = {}) {
+        if (details.name.isBlank()) return
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
-            runCatching { repository.updateVehicle(vehicleId, name, licensePlate) }
+            runCatching { repository.updateVehicle(vehicleId, details) }
                 .onSuccess { updated ->
                     _state.value = _state.value.copy(
                         loading = false,

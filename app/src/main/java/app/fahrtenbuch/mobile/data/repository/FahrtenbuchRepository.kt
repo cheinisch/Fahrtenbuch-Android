@@ -412,21 +412,47 @@ class FahrtenbuchRepository(
      * Fahrzeug, daher wird der aktuelle Stand geholt, angepasst und komplett zurückgeschickt –
      * sonst gingen Hersteller, Modell, Kilometerstand, Notizen und Leasingdaten verloren.
      */
-    suspend fun updateVehicle(vehicleId: Uuid, name: String, licensePlate: String?): Vehicle {
-        val cleanName = name.trim()
-        val cleanPlate = licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() }
+    suspend fun updateVehicle(vehicleId: Uuid, details: VehicleDetails): Vehicle {
+        val cleanName = details.name.trim()
+        val cleanPlate = details.licensePlate?.trim()?.uppercase()?.takeIf { it.isNotBlank() }
+        // Ohne Vertrag (Eigentum) gibt es keine Laufzeit und kein Kilometerlimit.
+        val contract = details.acquisitionType.hasContract
+        val startDate = details.leaseStartDate?.takeIf { contract }
+        val endDate = details.leaseEndDate?.takeIf { contract }
+        val includedKm = details.leaseIncludedKm?.takeIf { contract && startDate != null && endDate != null }
         val now = Instant.now().toString()
 
         if (store.isLocalMode) {
             val current = dao.vehicle(vehicleId) ?: error("Lokales Fahrzeug nicht gefunden")
-            dao.updateVehicleDetails(vehicleId, cleanName, cleanPlate, now)
+            dao.updateVehicleDetails(
+                id = vehicleId,
+                name = cleanName,
+                licensePlate = cleanPlate,
+                acquisitionType = details.acquisitionType.apiValue,
+                leaseStartDate = startDate,
+                leaseEndDate = endDate,
+                leaseIncludedKm = includedKm,
+                updatedAt = now
+            )
             dao.renameVehicleInTrips(vehicleId, cleanName)
-            return current.copy(name = cleanName, licensePlate = cleanPlate, updatedAt = now).toModel()
+            return current.copy(
+                name = cleanName,
+                licensePlate = cleanPlate,
+                acquisitionType = details.acquisitionType.apiValue,
+                leaseStartDate = startDate,
+                leaseEndDate = endDate,
+                leaseIncludedKm = includedKm,
+                updatedAt = now
+            ).toModel()
         }
 
         val body = api.getVehicleRaw(vehicleId)
         body["name"] = cleanName
         body["licensePlate"] = cleanPlate
+        body["acquisitionType"] = details.acquisitionType.apiValue
+        body["leaseStartDate"] = startDate
+        body["leaseEndDate"] = endDate
+        body["leaseIncludedKm"] = includedKm
         val updated = api.updateVehicleRaw(vehicleId, body)
         dao.putVehicle(updated.toEntity())
         runCatching { dao.renameVehicleInTrips(vehicleId, updated.name) }
@@ -758,7 +784,11 @@ private fun Vehicle.toEntity() = VehicleEntity(
     createdAt = createdAt,
     updatedAt = updatedAt,
     isDefault = isDefault,
-    deregisteredAt = deregisteredAt ?: updatedAt?.takeIf { isDeregistered }
+    deregisteredAt = deregisteredAt ?: updatedAt?.takeIf { isDeregistered },
+    acquisitionType = acquisitionType.apiValue,
+    leaseStartDate = leaseStartDate,
+    leaseEndDate = leaseEndDate,
+    leaseIncludedKm = leaseIncludedKm
 )
 
 private fun VehicleEntity.toModel() = Vehicle(
@@ -770,7 +800,11 @@ private fun VehicleEntity.toModel() = Vehicle(
     updatedAt = updatedAt,
     isDefault = isDefault,
     isDeregistered = deregisteredAt != null,
-    deregisteredAt = deregisteredAt
+    deregisteredAt = deregisteredAt,
+    acquisitionType = AcquisitionType.from(acquisitionType),
+    leaseStartDate = leaseStartDate,
+    leaseEndDate = leaseEndDate,
+    leaseIncludedKm = leaseIncludedKm
 )
 
 private fun Trip.toEntity() = TripEntity(

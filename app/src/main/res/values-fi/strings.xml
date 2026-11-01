@@ -512,4 +512,16 @@
     <string name="error_vehicle_activate">Ajoneuvon käyttöönotto epäonnistui: %1$s</string>
     <string name="error_vehicle_delete">Ajoneuvon poistaminen epäonnistui: %1$s</string>
     <string name="error_vehicle_delete_recording">Ajoneuvoa ei voi poistaa tallennuksen ollessa käynnissä.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Hankintatapa</string>
+    <string name="vehicles_acquisition_owned">Omistus</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Rahoitus</string>
+    <string name="vehicles_contract_period_choose">Valitse sopimuskausi</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Sopimuksen päättymisen on oltava alkamisen jälkeen.</string>
+    <string name="vehicles_included_km">Sisältyvät %1$s</string>
+    <string name="vehicles_included_km_hint">Sopimukseen sisältyvä ajosuorite.</string>
+    <string name="vehicles_included_km_needs_period">Kilometriraja vaatii sopimuskauden.</string>
+    <string name="vehicles_contract_period_needs_km">Sopimuskausi vaatii kilometrirajan.</string>
 </resources>

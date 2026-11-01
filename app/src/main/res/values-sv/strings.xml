@@ -512,4 +512,16 @@
     <string name="error_vehicle_activate">Fordonet kunde inte återaktiveras: %1$s</string>
     <string name="error_vehicle_delete">Fordonet kunde inte tas bort: %1$s</string>
     <string name="error_vehicle_delete_recording">Fordonet kan inte tas bort medan en inspelning pågår.</string>
+    <!-- Finanzierungsart, Vertragszeitraum und Kilometerlimit -->
+    <string name="vehicles_acquisition">Anskaffningsform</string>
+    <string name="vehicles_acquisition_owned">Ägt</string>
+    <string name="vehicles_acquisition_leasing">Leasing</string>
+    <string name="vehicles_acquisition_financing">Finansiering</string>
+    <string name="vehicles_contract_period_choose">Välj avtalsperiod</string>
+    <string name="vehicles_contract_period_value">%1$s – %2$s</string>
+    <string name="vehicles_contract_period_invalid">Avtalets slut måste vara efter starten.</string>
+    <string name="vehicles_included_km">Inkluderade %1$s</string>
+    <string name="vehicles_included_km_hint">Körsträcka som ingår i avtalet.</string>
+    <string name="vehicles_included_km_needs_period">En körsträckegräns kräver en avtalsperiod.</string>
+    <string name="vehicles_contract_period_needs_km">En avtalsperiod kräver en körsträckegräns.</string>
 </resources>
