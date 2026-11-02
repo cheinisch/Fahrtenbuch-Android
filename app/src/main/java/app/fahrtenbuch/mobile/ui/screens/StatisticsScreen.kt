@@ -130,6 +130,11 @@ fun StatisticsScreen(viewModel: AppViewModel) {
     // Kategorie-Filter: "" = alle, "type:<api>" = Fahrttyp, "special:<api>" = Sonderkategorie
     var categoryKey by rememberSaveable { mutableStateOf("") }
     var vehicleId by rememberSaveable { mutableStateOf("") }
+    // Mit nur einem Fahrzeug ist es die Vorauswahl; die Auswahl „Alle Fahrzeuge“ bleibt erhalten,
+    // solange sich die Fahrzeugliste nicht ändert.
+    LaunchedEffect(state.vehicles.map { it.id }) {
+        if (vehicleId.isBlank() && state.vehicles.size == 1) vehicleId = state.vehicles.first().id
+    }
     var showExport by rememberSaveable { mutableStateOf(false) }
     val category = TripType.entries.firstOrNull { "type:${it.apiValue}" == categoryKey }
     val specialFilter = SpecialCategory.entries.firstOrNull { "special:${it.apiValue}" == categoryKey }
