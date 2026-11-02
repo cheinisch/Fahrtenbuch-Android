@@ -12,6 +12,7 @@ import app.fahrtenbuch.mobile.data.model.LoginResponse
 import app.fahrtenbuch.mobile.data.model.LogoutRequest
 import app.fahrtenbuch.mobile.data.model.OdometerReadingRequest
 import app.fahrtenbuch.mobile.data.model.OdometerReminder
+import app.fahrtenbuch.mobile.data.model.MonthlyOdometerRow
 import app.fahrtenbuch.mobile.data.model.OdometerReminderSettings
 import app.fahrtenbuch.mobile.data.model.PairLoginRequest
 import app.fahrtenbuch.mobile.data.model.PairOptionsRequest
