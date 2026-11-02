@@ -525,4 +525,7 @@
     <string name="vehicles_included_km_needs_period">En kilometergrænse kræver en aftaleperiode.</string>
     <string name="vehicles_contract_period_needs_km">En aftaleperiode kræver en kilometergrænse.</string>
     <string name="statistics_contract_limit">Månedsgrænse: %1$s</string>
+    <string name="statistics_not_tracked">Ikke registreret</string>
+    <string name="statistics_other_drivers">Andre chauffører</string>
+    <string name="statistics_by_odometer">Baseret på kilometerstand</string>
 </resources>

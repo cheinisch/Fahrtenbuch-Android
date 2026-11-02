@@ -56,6 +56,8 @@ data class AppUiState(
     val vehiclesLoadedFromServer: Boolean = false,
     /** Gestrichelte Vertragsgrenze im Statistik-Diagramm anzeigen. */
     val showContractLimit: Boolean = true,
+    /** Monatswerte mit Tacho-Strecke (nur Server-Modus, sonst leer). */
+    val monthlyOdometer: List<app.fahrtenbuch.mobile.data.model.MonthlyOdometerStat> = emptyList(),
     val user: app.fahrtenbuch.mobile.data.model.User? = null,
     val preferences: app.fahrtenbuch.mobile.data.model.UserPreferences = app.fahrtenbuch.mobile.data.model.UserPreferences()
 )
@@ -884,6 +886,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         error = it.message ?: str(R.string.error_vehicle_create)
                     )
                 }
+        }
+    }
+
+    /** Lädt die Monatswerte mit Kilometerablesungen; bei Fehlern (z. B. offline) bleibt das Diagramm ohne sie. */
+    fun loadMonthlyOdometer() {
+        if (_state.value.appMode != AppMode.SERVER) {
+            if (_state.value.monthlyOdometer.isNotEmpty()) _state.value = _state.value.copy(monthlyOdometer = emptyList())
+            return
+        }
+        viewModelScope.launch {
+            runCatching { repository.monthlyOdometerStats() }
+                .onSuccess { _state.value = _state.value.copy(monthlyOdometer = it) }
         }
     }
 

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,7 +33,6 @@ import app.fahrtenbuch.mobile.ui.screens.statistics.ExportDialog
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -43,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,7 +56,6 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -71,7 +69,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.RowScope
 import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
 import app.fahrtenbuch.mobile.R
+import app.fahrtenbuch.mobile.data.model.MonthlyOdometerStat
 import app.fahrtenbuch.mobile.data.model.SpecialCategory
+import app.fahrtenbuch.mobile.ui.screens.statistics.ContractLimitToggle
+import app.fahrtenbuch.mobile.ui.screens.statistics.StackedMonth
+import app.fahrtenbuch.mobile.ui.screens.statistics.StackedMonthChartCard
 import app.fahrtenbuch.mobile.data.model.Trip
 import app.fahrtenbuch.mobile.ui.common.localizedSpecialCategory
 import app.fahrtenbuch.mobile.ui.common.specialCategoryColors
@@ -133,6 +135,12 @@ fun StatisticsScreen(viewModel: AppViewModel) {
             (specialFilter == null || trip.specialCategory == specialFilter.apiValue)
     }
     val periodTrips = month?.let { m -> yearTrips.filter { tripLocalDate(it, prefs)?.monthValue == m } } ?: yearTrips
+
+    // Kilometerablesungen gibt es nur auf dem Server; Monatswerte beim Öffnen frisch holen.
+    LaunchedEffect(state.appMode) { viewModel.loadMonthlyOdometer() }
+    val stackedMonths = remember(state.monthlyOdometer, year, vehicleId, categoryKey) {
+        stackedOdometerMonths(state.monthlyOdometer, year, vehicleId.ifBlank { null }, categoryKey.isEmpty())
+    }
 
     val selectedVehicle = state.vehicles.firstOrNull { it.id == vehicleId }
     val vehicleName = selectedVehicle?.name
@@ -231,7 +239,18 @@ fun StatisticsScreen(viewModel: AppViewModel) {
         }
 
         val chart: @Composable () -> Unit = {
-        if (month == null) {
+        if (month == null && stackedMonths != null) {
+            StackedMonthChartCard(
+                title = stringResource(R.string.statistics_per_month),
+                months = stackedMonths,
+                highlightIndex = if (year == today.year) today.monthValue - 1 else null,
+                prefs = prefs,
+                onBarClick = { index -> month = index + 1 },
+                limitKm = contractLimitPerMonth,
+                limitEnabled = state.showContractLimit,
+                onLimitEnabledChange = viewModel::setShowContractLimit
+            )
+        } else if (month == null) {
             BarChartCard(
                 title = stringResource(R.string.statistics_per_month),
                 values = (1..12).map { m -> yearTrips.filter { tripLocalDate(it, prefs)?.monthValue == m }.sumOf { it.distanceKm ?: 0.0 } },
@@ -537,43 +556,41 @@ private fun BarChartCard(
             }
         }
         if (hasLimit && limitKm != null) {
-            val label = stringResource(R.string.statistics_contract_limit, formatDistanceWithUnit(limitKm, prefs))
-            Row(
-                modifier = Modifier
-                    .then(
-                        if (onLimitEnabledChange != null) {
-                            Modifier.toggleable(
-                                value = limitEnabled,
-                                role = Role.Checkbox,
-                                onValueChange = onLimitEnabledChange
-                            )
-                        } else Modifier
-                    )
-                    .padding(end = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Checkbox(
-                    checked = limitEnabled,
-                    onCheckedChange = null,
-                    enabled = onLimitEnabledChange != null
-                )
-                Canvas(Modifier.size(width = 16.dp, height = 2.dp)) {
-                    drawLine(
-                        color = limitColor,
-                        start = Offset(0f, size.height / 2f),
-                        end = Offset(size.width, size.height / 2f),
-                        strokeWidth = size.height,
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 3.dp.toPx()))
-                    )
-                }
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ContractLimitToggle(limitKm, limitEnabled, onLimitEnabledChange, limitColor, prefs)
         }
+    }
+}
+
+/**
+ * Monate des Jahres aus den Server-Monatswerten, mit Tacho-Strecke und erfassten Fahrten je Kategorie.
+ * Null, wenn das Diagramm nicht passt: Kategoriefilter aktiv oder noch keine Ablesung vorhanden
+ * (dann genügt das einfache Balkendiagramm aus den Fahrten).
+ */
+private fun stackedOdometerMonths(
+    rows: List<MonthlyOdometerStat>,
+    year: Int,
+    vehicleId: String?,
+    noCategoryFilter: Boolean
+): List<StackedMonth>? {
+    if (!noCategoryFilter) return null
+    val yearRows = rows.filter { it.month.startsWith("$year-") && (vehicleId == null || it.vehicleId == vehicleId) }
+    if (yearRows.none { it.actualKm != null }) return null
+    return (1..12).map { m ->
+        val monthRows = yearRows.filter { it.month == "%04d-%02d".format(year, m) }
+        StackedMonth(
+            label = monthName(m, TextStyle.NARROW_STANDALONE),
+            description = monthName(m, TextStyle.FULL_STANDALONE),
+            businessKm = monthRows.sumOf { it.businessKm },
+            privateKm = monthRows.sumOf { it.privateKm },
+            commuteKm = monthRows.sumOf { it.commuteKm },
+            unclassifiedKm = monthRows.sumOf { it.unclassifiedKm },
+            otherDriversKm = monthRows.sumOf { it.otherDriversKm },
+            // Nur Monate mit zwei Ablesungen haben eine Tacho-Strecke (actualKm); der Rest ist nicht erfasst.
+            untrackedKm = monthRows.sumOf { row ->
+                val tracked = row.businessKm + row.privateKm + row.commuteKm + row.unclassifiedKm + row.otherDriversKm
+                row.actualKm?.let { maxOf(0.0, it - tracked) } ?: 0.0
+            }
+        )
     }
 }
 
@@ -592,7 +609,7 @@ private fun monthlyContractLimitKm(vehicle: Vehicle?): Double? {
 }
 
 @Composable
-private fun StatCard(content: @Composable ColumnScope.() -> Unit) {
+internal fun StatCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),

@@ -525,4 +525,7 @@
     <string name="vehicles_included_km_needs_period">Een kilometerlimiet heeft een contractperiode nodig.</string>
     <string name="vehicles_contract_period_needs_km">Een contractperiode heeft een kilometerlimiet nodig.</string>
     <string name="statistics_contract_limit">Maandlimiet: %1$s</string>
+    <string name="statistics_not_tracked">Niet geregistreerd</string>
+    <string name="statistics_other_drivers">Andere bestuurders</string>
+    <string name="statistics_by_odometer">Op basis van kilometerstanden</string>
 </resources>

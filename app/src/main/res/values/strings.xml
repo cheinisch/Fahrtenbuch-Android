@@ -525,4 +525,7 @@
     <string name="vehicles_included_km_needs_period">A mileage limit needs a contract period.</string>
     <string name="vehicles_contract_period_needs_km">A contract period needs a mileage limit.</string>
     <string name="statistics_contract_limit">Monthly limit: %1$s</string>
+    <string name="statistics_not_tracked">Not tracked</string>
+    <string name="statistics_other_drivers">Other drivers</string>
+    <string name="statistics_by_odometer">Based on odometer readings</string>
 </resources>

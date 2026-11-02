@@ -11,6 +11,7 @@ import app.fahrtenbuch.mobile.data.model.LoginRequest
 import app.fahrtenbuch.mobile.data.model.LoginResponse
 import app.fahrtenbuch.mobile.data.model.LogoutRequest
 import app.fahrtenbuch.mobile.data.model.OdometerReadingRequest
+import app.fahrtenbuch.mobile.data.model.MonthlyOdometerStat
 import app.fahrtenbuch.mobile.data.model.OdometerReminder
 import app.fahrtenbuch.mobile.data.model.OdometerReminderSettings
 import app.fahrtenbuch.mobile.data.model.PairLoginRequest
@@ -294,6 +295,10 @@ interface FahrtenbuchApi {
         @Path("vehicleId") vehicleId: Uuid,
         @Body settings: OdometerReminderSettings
     ): OdometerReminderSettings
+
+    /** Monatswerte je Fahrzeug: Tacho-Strecke und erfasste Fahrten nach Kategorie. */
+    @GET("statistics/monthly-odometer")
+    suspend fun monthlyOdometer(@Query("months") months: Int): List<MonthlyOdometerStat>
 
     /** Kilometerstand für einen Tag des Monats (month = YYYY-MM) eintragen. */
     @PUT("odometer/{vehicleId}/{month}")

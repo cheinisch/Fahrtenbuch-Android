@@ -138,6 +138,26 @@ data class OdometerReminder(
 
 data class OdometerReadingRequest(val odometerKm: Double, val readingDate: String? = null)
 
+/**
+ * Eine Zeile aus GET /statistics/monthly-odometer: Monat und Fahrzeug mit Tacho-Strecke
+ * (actualKm, null ohne zwei Ablesungen bzw. bei geteilten Fahrzeugen) und den erfassten Fahrten.
+ */
+data class MonthlyOdometerStat(
+    val vehicleId: Uuid,
+    val vehicleName: String = "",
+    /** owner | shared – Mitnutzer sehen keine Ablesungen */
+    val access: String = "owner",
+    /** YYYY-MM */
+    val month: String,
+    val actualKm: Double? = null,
+    val trackedKm: Double = 0.0,
+    val businessKm: Double = 0.0,
+    val privateKm: Double = 0.0,
+    val commuteKm: Double = 0.0,
+    val unclassifiedKm: Double = 0.0,
+    val otherDriversKm: Double = 0.0
+)
+
 /** Zweite Klassifizierungsebene des Servers (trips.special_category). */
 enum class SpecialCategory(val apiValue: String) {
     MEDICAL("medical"),

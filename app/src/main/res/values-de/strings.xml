@@ -525,4 +525,7 @@
     <string name="vehicles_included_km_needs_period">Für ein Kilometerlimit wird ein Vertragszeitraum benötigt.</string>
     <string name="vehicles_contract_period_needs_km">Zu einem Vertragszeitraum gehört ein Kilometerlimit.</string>
     <string name="statistics_contract_limit">Monatsgrenze: %1$s</string>
+    <string name="statistics_not_tracked">Nicht erfasst</string>
+    <string name="statistics_other_drivers">Andere Fahrer</string>
+    <string name="statistics_by_odometer">Anhand der Kilometerstände</string>
 </resources>

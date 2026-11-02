@@ -532,4 +532,7 @@
     <string name="vehicles_included_km_needs_period">Une limite de kilométrage nécessite une période de contrat.</string>
     <string name="vehicles_contract_period_needs_km">Une période de contrat nécessite une limite de kilométrage.</string>
     <string name="statistics_contract_limit">Limite mensuelle : %1$s</string>
+    <string name="statistics_not_tracked">Non enregistré</string>
+    <string name="statistics_other_drivers">Autres conducteurs</string>
+    <string name="statistics_by_odometer">D\'après le compteur kilométrique</string>
 </resources>

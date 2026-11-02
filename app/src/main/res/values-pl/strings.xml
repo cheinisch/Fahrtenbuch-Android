@@ -539,4 +539,7 @@
     <string name="vehicles_included_km_needs_period">Limit kilometrów wymaga okresu umowy.</string>
     <string name="vehicles_contract_period_needs_km">Okres umowy wymaga limitu kilometrów.</string>
     <string name="statistics_contract_limit">Limit miesięczny: %1$s</string>
+    <string name="statistics_not_tracked">Nierejestrowane</string>
+    <string name="statistics_other_drivers">Inni kierowcy</string>
+    <string name="statistics_by_odometer">Na podstawie stanu licznika</string>
 </resources>

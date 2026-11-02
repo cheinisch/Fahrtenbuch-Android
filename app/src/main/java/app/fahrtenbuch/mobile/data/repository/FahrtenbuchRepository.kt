@@ -214,6 +214,10 @@ class FahrtenbuchRepository(
         return ExportResult(body.bytes(), fileName, request.format.mimeType, generatedOnDevice = false)
     }
 
+    /** Monatswerte mit Tacho-Strecke; nur der Server kennt Ablesungen, lokal gibt es keine. */
+    suspend fun monthlyOdometerStats(months: Int = 24): List<MonthlyOdometerStat> =
+        if (store.isServerMode) api.monthlyOdometer(months) else emptyList()
+
     suspend fun odometerReminderSettings(vehicleId: Uuid): OdometerReminderSettings =
         api.odometerReminderSettings(vehicleId)
 
