@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -232,9 +234,15 @@ fun StatisticsScreen(viewModel: AppViewModel) {
 
         val chart: @Composable () -> Unit = {
         if (month == null) {
+            // Je Monat die Kilometer nach Kategorie: ergibt die farbigen Balkenabschnitte.
+            val monthlyStacks = (1..12).map { m ->
+                val monthTrips = yearTrips.filter { tripLocalDate(it, prefs)?.monthValue == m }
+                TripType.entries.associateWith { type -> monthTrips.filter { it.tripType == type }.sumOf { it.distanceKm ?: 0.0 } }
+            }
             BarChartCard(
                 title = stringResource(R.string.statistics_per_month),
-                values = (1..12).map { m -> yearTrips.filter { tripLocalDate(it, prefs)?.monthValue == m }.sumOf { it.distanceKm ?: 0.0 } },
+                values = monthlyStacks.map { it.values.sum() },
+                stacks = monthlyStacks,
                 labels = (1..12).map { monthName(it, TextStyle.NARROW_STANDALONE) },
                 // Aktueller Monat hervorgehoben; Tippen auf einen Balken filtert auf diesen Monat
                 highlightIndex = if (year == today.year) today.monthValue - 1 else null,
@@ -445,6 +453,8 @@ private fun BarChartCard(
     onBarClick: ((Int) -> Unit)?,
     /** Monatsgrenze aus dem Leasing-/Finanzierungsvertrag, in km. */
     limitKm: Double? = null,
+    /** Je Balken die Kilometer pro Kategorie; mehrfarbige Balken und Legende statt Einzelfarbe. */
+    stacks: List<Map<TripType, Double>>? = null,
     limitEnabled: Boolean = true,
     onLimitEnabledChange: ((Boolean) -> Unit)? = null
 ) {
@@ -478,6 +488,11 @@ private fun BarChartCard(
             values.forEachIndexed { index, value ->
                 val fraction = if (scaleMax == null || value <= 0) 0f else (value / scaleMax).toFloat().coerceIn(0.03f, 1f)
                 val description = "${accessibilityLabels[index]}: ${formatDistanceWithUnit(value, prefs)}"
+                val barShape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                val barModifier = Modifier
+                    .fillMaxWidth()
+                    // Leere Monate/Tage als dünne Grundlinie
+                    .then(if (fraction == 0f) Modifier.height(2.dp) else Modifier.fillMaxHeight(fraction))
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -486,20 +501,34 @@ private fun BarChartCard(
                         .semantics { contentDescription = description },
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            // Leere Monate/Tage als dünne Grundlinie
-                            .then(if (fraction == 0f) Modifier.height(2.dp) else Modifier.fillMaxHeight(fraction))
-                            .background(
+                    val monthStack = stacks?.getOrNull(index)
+                    if (monthStack != null && fraction > 0f) {
+                        // Gestapelt: unten Dienstlich, oben Nicht zugeordnet (Reihenfolge wie in der Kategorie-Karte)
+                        Column(barModifier.clip(barShape)) {
+                            TripType.entries.reversed().forEach { type ->
+                                val km = monthStack[type] ?: 0.0
+                                if (km > 0) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .weight(km.toFloat())
+                                            .background(categoryColors(type).content)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Box(
+                            barModifier.background(
                                 when {
                                     fraction == 0f -> MaterialTheme.colorScheme.surfaceVariant
                                     index == highlightIndex -> highlightColor
                                     else -> barColor
                                 },
-                                RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                                barShape
                             )
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -534,6 +563,25 @@ private fun BarChartCard(
                     textAlign = TextAlign.Center,
                     maxLines = 1
                 )
+            }
+        }
+        if (stacks != null) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TripType.entries.forEach { type ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(Modifier.size(8.dp).background(categoryColors(type).content, CircleShape))
+                        Text(
+                            localizedTripType(type),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
             }
         }
         if (hasLimit && limitKm != null) {
