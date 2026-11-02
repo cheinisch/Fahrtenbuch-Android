@@ -273,9 +273,15 @@ fun StatisticsScreen(viewModel: AppViewModel) {
             )
         } else {
             val days = YearMonth.of(year, month!!).lengthOfMonth()
+            // Je Tag die Kilometer nach Kategorie. Nicht erklärt gibt es nur monatsweise (Ablesungen), daher hier keine Schraffur.
+            val dailyStacks = (1..days).map { d ->
+                val dayTrips = periodTrips.filter { tripLocalDate(it, prefs)?.dayOfMonth == d }
+                TripType.entries.associateWith { type -> dayTrips.filter { it.tripType == type }.sumOf { it.distanceKm ?: 0.0 } }
+            }
             BarChartCard(
                 title = stringResource(R.string.statistics_per_day),
-                values = (1..days).map { d -> periodTrips.filter { tripLocalDate(it, prefs)?.dayOfMonth == d }.sumOf { it.distanceKm ?: 0.0 } },
+                values = dailyStacks.map { it.values.sum() },
+                stacks = dailyStacks,
                 labels = (1..days).map { d -> if (d == 1 || d % 5 == 0) d.toString() else "" },
                 highlightIndex = if (year == today.year && month == today.monthValue) today.dayOfMonth - 1 else null,
                 accessibilityLabels = (1..days).map { it.toString() },
