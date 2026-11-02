@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -592,14 +593,18 @@ private fun BarChartCard(
         } // Ende Diagrammfläche
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(if (values.size > 12) 2.dp else 6.dp)) {
             labels.forEach { label ->
-                Text(
-                    label,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
+                // Die Beschriftung darf breiter sein als ihre Spalte (z. B. „10“ bei 31 Tagen), sonst wird sie abgeschnitten.
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(
+                        label,
+                        modifier = Modifier.wrapContentWidth(unbounded = true),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
             }
         }
         if (stacks != null) {
