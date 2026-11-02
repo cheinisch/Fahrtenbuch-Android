@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -459,6 +461,7 @@ private fun SpecialCategoryCard(trips: List<Trip>, prefs: UserPreferences) {
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun BarChartCard(
     title: String,
     values: List<Double>,
@@ -594,12 +597,14 @@ private fun BarChartCard(
             }
         }
         if (stacks != null) {
-            Row(
+            // Umbruch statt Abschneiden auf schmalen Bildschirmen
+            FlowRow(
                 Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                TripType.entries.forEach { type ->
+                // Nur Kategorien, die im Diagramm vorkommen (z. B. ohne Dienstfahrten keine Dienstlich-Legende)
+                TripType.entries.filter { type -> stacks.any { (it[type] ?: 0.0) > 0 } }.forEach { type ->
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Box(Modifier.size(8.dp).background(categoryColors(type).content, CircleShape))
                         Text(
