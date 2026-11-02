@@ -373,6 +373,7 @@
     <string name="statistics_avg_per_trip">Media per viaggio</string>
     <string name="statistics_by_category">Per categoria</string>
     <string name="statistics_per_month">Distanza al mese</string>
+    <string name="statistics_unexplained">Non spiegato</string>
     <string name="statistics_per_day">Distanza al giorno</string>
     <string name="statistics_max">max. %1$s</string>
     <string name="statistics_empty">Nessun viaggio in questo periodo.</string>

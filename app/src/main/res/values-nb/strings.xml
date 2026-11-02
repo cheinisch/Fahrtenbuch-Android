@@ -368,6 +368,7 @@
     <string name="statistics_avg_per_trip">Snitt per tur</string>
     <string name="statistics_by_category">Etter kategori</string>
     <string name="statistics_per_month">Distanse per måned</string>
+    <string name="statistics_unexplained">Ikke forklart</string>
     <string name="statistics_per_day">Distanse per dag</string>
     <string name="statistics_max">maks. %1$s</string>
     <string name="statistics_empty">Ingen turer i denne perioden.</string>

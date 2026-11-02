@@ -477,6 +477,13 @@ interface FahrtenbuchApi {
     @GET("statistics/months")
     suspend fun monthStatistics(): List<Map<String, Any?>>
 
+    @GET("statistics/monthly-odometer")
+    suspend fun monthlyOdometer(
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null,
+        @Query("all") all: Boolean? = null,
+    ): List<MonthlyOdometerRow>
+
     // ---------------------------------------------------------------------
     // Einstellungen
     // ---------------------------------------------------------------------

@@ -368,6 +368,7 @@
     <string name="statistics_avg_per_trip">Ø pro Fahrt</string>
     <string name="statistics_by_category">Nach Kategorie</string>
     <string name="statistics_per_month">Distanz pro Monat</string>
+    <string name="statistics_unexplained">Nicht erklärt</string>
     <string name="statistics_per_day">Distanz pro Tag</string>
     <string name="statistics_max">max. %1$s</string>
     <string name="statistics_empty">Keine Fahrten in diesem Zeitraum.</string>

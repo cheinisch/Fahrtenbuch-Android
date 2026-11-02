@@ -368,6 +368,7 @@
     <string name="statistics_avg_per_trip">Gem. per rit</string>
     <string name="statistics_by_category">Per categorie</string>
     <string name="statistics_per_month">Afstand per maand</string>
+    <string name="statistics_unexplained">Niet verklaard</string>
     <string name="statistics_per_day">Afstand per dag</string>
     <string name="statistics_max">max. %1$s</string>
     <string name="statistics_empty">Geen ritten in deze periode.</string>

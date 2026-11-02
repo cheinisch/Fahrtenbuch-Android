@@ -368,6 +368,7 @@
     <string name="statistics_avg_per_trip">Snitt per resa</string>
     <string name="statistics_by_category">Per kategori</string>
     <string name="statistics_per_month">Sträcka per månad</string>
+    <string name="statistics_unexplained">Ej förklarat</string>
     <string name="statistics_per_day">Sträcka per dag</string>
     <string name="statistics_max">max. %1$s</string>
     <string name="statistics_empty">Inga resor under perioden.</string>

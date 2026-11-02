@@ -20,7 +20,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.runtime.LaunchedEffect
+import app.fahrtenbuch.mobile.data.model.MonthlyOdometerRow
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -55,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
@@ -133,6 +138,11 @@ fun StatisticsScreen(viewModel: AppViewModel) {
             (vehicleId.isBlank() || trip.vehicleId == vehicleId) &&
             (category == null || trip.tripType == category) &&
             (specialFilter == null || trip.specialCategory == specialFilter.apiValue)
+    }
+    // Kilometer laut Ablesung je Monat (Server): die schraffierte „nicht erklärt“-Strecke im Diagramm.
+    var odometerRows by remember { mutableStateOf(emptyList<MonthlyOdometerRow>()) }
+    LaunchedEffect(year, vehicleId, state.appMode) {
+        odometerRows = if (state.appMode == AppMode.SERVER) viewModel.monthlyOdometer("$year-01-01", "$year-12-01", false) else emptyList()
     }
     val periodTrips = month?.let { m -> yearTrips.filter { tripLocalDate(it, prefs)?.monthValue == m } } ?: yearTrips
 
@@ -239,10 +249,16 @@ fun StatisticsScreen(viewModel: AppViewModel) {
                 val monthTrips = yearTrips.filter { tripLocalDate(it, prefs)?.monthValue == m }
                 TripType.entries.associateWith { type -> monthTrips.filter { it.tripType == type }.sumOf { it.distanceKm ?: 0.0 } }
             }
+            val unexplainedByMonth = (1..12).map { m ->
+                val key = "%d-%02d".format(year, m)
+                odometerRows.filter { it.month == key && (vehicleId.isBlank() || it.vehicleId == vehicleId) }
+                    .sumOf { it.unknownKm ?: 0.0 }
+            }
             BarChartCard(
                 title = stringResource(R.string.statistics_per_month),
-                values = monthlyStacks.map { it.values.sum() },
+                values = monthlyStacks.mapIndexed { i, stack -> stack.values.sum() + unexplainedByMonth[i] },
                 stacks = monthlyStacks,
+                unexplained = unexplainedByMonth,
                 labels = (1..12).map { monthName(it, TextStyle.NARROW_STANDALONE) },
                 // Aktueller Monat hervorgehoben; Tippen auf einen Balken filtert auf diesen Monat
                 highlightIndex = if (year == today.year) today.monthValue - 1 else null,
@@ -455,6 +471,8 @@ private fun BarChartCard(
     limitKm: Double? = null,
     /** Je Balken die Kilometer pro Kategorie; mehrfarbige Balken und Legende statt Einzelfarbe. */
     stacks: List<Map<TripType, Double>>? = null,
+    /** Je Balken die Kilometer laut Ablesung ohne Fahrt (schraffiert oben). */
+    unexplained: List<Double>? = null,
     limitEnabled: Boolean = true,
     onLimitEnabledChange: ((Boolean) -> Unit)? = null
 ) {
@@ -466,6 +484,7 @@ private fun BarChartCard(
     val barColor = MaterialTheme.colorScheme.primary
     val highlightColor = categoryColors(TripType.UNCLASSIFIED).content
     val limitColor = categoryColors(TripType.UNCLASSIFIED).content
+    val hatchColor = MaterialTheme.colorScheme.onSurfaceVariant
     StatCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -504,7 +523,16 @@ private fun BarChartCard(
                     val monthStack = stacks?.getOrNull(index)
                     if (monthStack != null && fraction > 0f) {
                         // Gestapelt: unten Dienstlich, oben Nicht zugeordnet (Reihenfolge wie in der Kategorie-Karte)
+                        val unexplainedKm = unexplained?.getOrNull(index) ?: 0.0
                         Column(barModifier.clip(barShape)) {
+                            if (unexplainedKm > 0) {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(unexplainedKm.toFloat())
+                                        .drawBehind { drawHatch(hatchColor) }
+                                )
+                            }
                             TripType.entries.reversed().forEach { type ->
                                 val km = monthStack[type] ?: 0.0
                                 if (km > 0) {
@@ -576,6 +604,17 @@ private fun BarChartCard(
                         Box(Modifier.size(8.dp).background(categoryColors(type).content, CircleShape))
                         Text(
                             localizedTripType(type),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+                if (unexplained?.any { it > 0 } == true) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(Modifier.size(8.dp).drawBehind { drawHatch(hatchColor) })
+                        Text(
+                            stringResource(R.string.statistics_unexplained),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
@@ -708,3 +747,14 @@ private fun categoryIcon(type: TripType): ImageVector = when (type) {
 private fun monthName(month: Int, style: TextStyle): String =
     Month.of(month).getDisplayName(style, Locale.getDefault())
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+/** Schraffur für „nicht erklärt“: diagonale Linien, wie im Web. */
+private fun DrawScope.drawHatch(color: Color) {
+    val step = 6.dp.toPx()
+    val stroke = 1.5.dp.toPx()
+    var x = -size.height
+    while (x < size.width) {
+        drawLine(color, Offset(x, size.height), Offset(x + size.height, 0f), strokeWidth = stroke)
+        x += step
+    }
+}

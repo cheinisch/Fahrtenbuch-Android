@@ -373,6 +373,7 @@
     <string name="statistics_avg_per_trip">Moy. par trajet</string>
     <string name="statistics_by_category">Par catégorie</string>
     <string name="statistics_per_month">Distance par mois</string>
+    <string name="statistics_unexplained">Non expliqué</string>
     <string name="statistics_per_day">Distance par jour</string>
     <string name="statistics_max">max. %1$s</string>
     <string name="statistics_empty">Aucun trajet sur cette période.</string>

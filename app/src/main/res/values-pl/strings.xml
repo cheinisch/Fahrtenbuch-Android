@@ -378,6 +378,7 @@
     <string name="statistics_avg_per_trip">Śr. na przejazd</string>
     <string name="statistics_by_category">Według kategorii</string>
     <string name="statistics_per_month">Dystans w miesiącu</string>
+    <string name="statistics_unexplained">Niewyjaśnione</string>
     <string name="statistics_per_day">Dystans dziennie</string>
     <string name="statistics_max">maks. %1$s</string>
     <string name="statistics_empty">Brak przejazdów w tym okresie.</string>

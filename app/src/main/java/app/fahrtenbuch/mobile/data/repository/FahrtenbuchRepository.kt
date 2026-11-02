@@ -217,6 +217,9 @@ class FahrtenbuchRepository(
     suspend fun odometerReminderSettings(vehicleId: Uuid): OdometerReminderSettings =
         api.odometerReminderSettings(vehicleId)
 
+    suspend fun monthlyOdometer(from: String?, to: String?, all: Boolean): List<MonthlyOdometerRow> =
+        api.monthlyOdometer(from = from, to = to, all = if (all) true else null)
+
     suspend fun saveOdometerReminderSettings(vehicleId: Uuid, settings: OdometerReminderSettings): OdometerReminderSettings =
         api.saveOdometerReminderSettings(vehicleId, settings)
 

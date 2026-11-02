@@ -368,6 +368,7 @@
     <string name="statistics_avg_per_trip">Keskim. per ajo</string>
     <string name="statistics_by_category">Luokittain</string>
     <string name="statistics_per_month">Matka kuukaudessa</string>
+    <string name="statistics_unexplained">Selittämätön</string>
     <string name="statistics_per_day">Matka päivässä</string>
     <string name="statistics_max">enint. %1$s</string>
     <string name="statistics_empty">Ei ajoja tällä jaksolla.</string>

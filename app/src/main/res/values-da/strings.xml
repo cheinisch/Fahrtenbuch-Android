@@ -368,6 +368,7 @@
     <string name="statistics_avg_per_trip">Gns. pr. tur</string>
     <string name="statistics_by_category">Efter kategori</string>
     <string name="statistics_per_month">Afstand pr. måned</string>
+    <string name="statistics_unexplained">Ikke forklaret</string>
     <string name="statistics_per_day">Afstand pr. dag</string>
     <string name="statistics_max">maks. %1$s</string>
     <string name="statistics_empty">Ingen ture i denne periode.</string>

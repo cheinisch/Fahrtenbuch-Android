@@ -406,6 +406,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * Export für die Statistik: im Server-Modus über die API (Steuer-PDF bzw. CSV), sonst – oder
      * wenn der Server nicht erreichbar ist – auf dem Gerät aus den vorhandenen Fahrten erzeugt.
      */
+    /** Monatswerte mit Kilometern aus Ablesungen; im lokalen Modus gibt es keine. */
+    suspend fun monthlyOdometer(from: String?, to: String?, all: Boolean): List<app.fahrtenbuch.mobile.data.model.MonthlyOdometerRow> =
+        if (store.isServerMode) runCatching { repository.monthlyOdometer(from, to, all) }.getOrDefault(emptyList()) else emptyList()
+
     suspend fun export(request: app.fahrtenbuch.mobile.data.model.ExportRequest): app.fahrtenbuch.mobile.data.model.ExportResult {
         if (store.isServerMode) {
             runCatching { repository.serverExport(request) }.onSuccess { return it }

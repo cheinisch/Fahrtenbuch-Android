@@ -470,3 +470,14 @@ data class ExportResult(
     /** true, wenn die Datei auf dem Gerät erzeugt wurde (lokaler Modus oder Server nicht erreichbar). */
     val generatedOnDevice: Boolean
 )
+
+/** Monatswert je Fahrzeug aus /statistics/monthly-odometer (nur Server). unknownKm = laut Ablesung gefahren, aber keiner Fahrt zugeordnet. */
+data class MonthlyOdometerRow(
+    val vehicleId: String,
+    val vehicleName: String? = null,
+    /** YYYY-MM */
+    val month: String,
+    val actualKm: Double? = null,
+    val trackedKm: Double = 0.0,
+    val unknownKm: Double? = null,
+)

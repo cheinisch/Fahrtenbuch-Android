@@ -368,6 +368,7 @@
     <string name="statistics_avg_per_trip">Avg. per trip</string>
     <string name="statistics_by_category">By category</string>
     <string name="statistics_per_month">Distance per month</string>
+    <string name="statistics_unexplained">Not explained</string>
     <string name="statistics_per_day">Distance per day</string>
     <string name="statistics_max">max. %1$s</string>
     <string name="statistics_empty">No trips in this period.</string>
