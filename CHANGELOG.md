@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Map matching works offline: the app stores each trip's matching status and the road route of matched trips locally (database version 10, `matched_routes` table, routes kept as compact polylines). The background sync now also fetches the map matching settings, the trips' matching status and up to 30 missing or outdated road routes per run; routes of trips that are no longer matched are removed. Opening a trip uses the stored route first and only asks the server when it is missing or the server matched the trip again.
 - Sync log (Logcat tag `FahrtenbuchSync`): after each sync one line per server trip with start time and zone, start/end city, type, vehicle, distance, duration, status, the map matching result (service, GPS vs. road distance or the reason) and the state of the road route (loaded now, stored, pending, not loaded with reason), followed by a summary; the map matching settings and the matching status returned by `tracking/stop` are logged too.
 
+### Fixed
+
+- The Private / Commute / Business buttons of the trip-end notification now reliably classify the trip: the choice is sent to the server right away and stored in the local trip list, a choice made while the upload is still running is no longer lost, and if saving fails the notification reappears with a hint instead of failing silently.
+
 ## [0.5.3] - 2026-10-16
 
 Version code 31.
@@ -45,8 +49,6 @@ Version code 31.
 - When the server reports a different trip that is still recording, the sync log now names its vehicle and start time, so the conflicting trip can be found in the web dashboard.
 
 ### Fixed
-
-- The Private / Commute / Business buttons of the trip-end notification now reliably classify the trip: the choice is sent to the server right away and stored in the local trip list, a choice made while the upload is still running is no longer lost, and if saving fails the notification reappears with a hint instead of failing silently.
 
 - Sync error texts for a vehicle missing on the server and for a generic sync failure were hard-coded in German; they now follow the app language.
 
