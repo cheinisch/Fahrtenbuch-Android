@@ -271,6 +271,27 @@ fun SettingsScreen(
             }
         }
 
+        // Eigener Punkt für die Distanzeinheit: funktioniert auch lokal, weil
+        // updatePreferences im Repository lokal und im Server-Modus speichert.
+        SettingsCard(modifier = Modifier.padding(top = 10.dp)) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(stringResource(R.string.format_distance), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                SegmentedSelector(
+                    options = DistanceUnit.entries,
+                    selected = appState.preferences.distanceUnit,
+                    label = { stringResource(if (it == DistanceUnit.KM) R.string.format_km else R.string.format_mi) },
+                    onSelect = { unit ->
+                        if (unit != appState.preferences.distanceUnit) {
+                            viewModel.updatePreferences(appState.preferences.copy(distanceUnit = unit))
+                        }
+                    }
+                )
+            }
+        }
+
         SettingsSectionLabel(stringResource(R.string.settings_notifications_section))
         SettingsCard {
             SettingsRow(
