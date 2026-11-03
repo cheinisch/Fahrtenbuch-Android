@@ -225,6 +225,7 @@
     <string name="trip_end_channel_name">Resan slut</string>
     <string name="trip_end_notification_title">Resan avslutad</string>
     <string name="trip_end_notification_text">Hur ska resan klassificeras?</string>
+    <string name="trip_end_notification_failed">Det gick inte att spara. Tryck på en knapp igen.</string>
     <string name="settings_trip_end_notification_title">Klassificera efter resan</string>
     <string name="settings_trip_end_notification_text">Avisering med knapparna Privat, Pendling och Tjänst när en resa slutar.</string>
     <string name="settings_notifications_section">Aviseringar</string>

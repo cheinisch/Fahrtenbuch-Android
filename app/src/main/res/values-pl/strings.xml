@@ -233,6 +233,7 @@
     <string name="trip_end_channel_name">Koniec przejazdu</string>
     <string name="trip_end_notification_title">Przejazd zakończony</string>
     <string name="trip_end_notification_text">Jak sklasyfikować ten przejazd?</string>
+    <string name="trip_end_notification_failed">Nie udało się zapisać. Dotknij przycisku, aby spróbować ponownie.</string>
     <string name="settings_trip_end_notification_title">Klasyfikuj po przejeździe</string>
     <string name="settings_trip_end_notification_text">Powiadomienie z przyciskami Prywatny, Dojazd do pracy i Służbowy po zakończeniu przejazdu.</string>
     <string name="settings_notifications_section">Powiadomienia</string>

@@ -19,7 +19,7 @@ import app.fahrtenbuch.mobile.data.model.TripType
 object TripEndNotifier {
     private const val CHANNEL_ID = "trip_end"
 
-    fun show(context: Context, localTripId: String) {
+    fun show(context: Context, localTripId: String, failed: Boolean = false) {
         val store = SessionStore(context)
         if (!store.notificationsEnabled || !store.tripEndNotificationEnabled) return
         val manager = NotificationManagerCompat.from(context)
@@ -34,10 +34,10 @@ object TripEndNotifier {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(context.getString(R.string.trip_end_notification_title))
-            .setContentText(context.getString(R.string.trip_end_notification_text))
+            .setContentText(context.getString(if (failed) R.string.trip_end_notification_failed else R.string.trip_end_notification_text))
             .setCategory(NotificationCompat.CATEGORY_STATUS)
             .setAutoCancel(true)
-            .setOnlyAlertOnce(true)
+            .setOnlyAlertOnce(!failed)
             .setContentIntent(openApp)
 
         listOf(

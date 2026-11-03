@@ -225,6 +225,7 @@
     <string name="trip_end_channel_name">Ajon päättyminen</string>
     <string name="trip_end_notification_title">Ajo päättyi</string>
     <string name="trip_end_notification_text">Miten ajo luokitellaan?</string>
+    <string name="trip_end_notification_failed">Tallennus epäonnistui. Napauta painiketta uudelleen.</string>
     <string name="settings_trip_end_notification_title">Luokittele ajon jälkeen</string>
     <string name="settings_trip_end_notification_text">Ilmoitus painikkeilla Yksityinen, Työmatka ja Työajo ajon päättyessä.</string>
     <string name="settings_notifications_section">Ilmoitukset</string>

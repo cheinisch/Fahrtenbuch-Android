@@ -229,6 +229,7 @@
     <string name="trip_end_channel_name">Fin del viaje</string>
     <string name="trip_end_notification_title">Viaje terminado</string>
     <string name="trip_end_notification_text">¿Cómo quieres clasificar este viaje?</string>
+    <string name="trip_end_notification_failed">No se pudo guardar. Toca un botón para intentarlo de nuevo.</string>
     <string name="settings_trip_end_notification_title">Clasificar al terminar el viaje</string>
     <string name="settings_trip_end_notification_text">Notificación con los botones Privado, Trayecto al trabajo y Profesional al terminar el viaje.</string>
     <string name="settings_notifications_section">Notificaciones</string>
