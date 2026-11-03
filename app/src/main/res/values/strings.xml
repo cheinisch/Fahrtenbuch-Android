@@ -225,6 +225,7 @@
     <string name="trip_end_channel_name">Trip ended</string>
     <string name="trip_end_notification_title">Trip ended</string>
     <string name="trip_end_notification_text">How should this trip be classified?</string>
+    <string name="trip_end_notification_failed">Could not save. Tap a button to try again.</string>
     <string name="settings_trip_end_notification_title">Classify after trip</string>
     <string name="settings_trip_end_notification_text">Notification with Private, Commute and Business buttons when a trip ends.</string>
     <string name="settings_notifications_section">Notifications</string>

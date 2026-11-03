@@ -6,16 +6,13 @@ import android.content.Intent
 import android.util.Log
 import app.fahrtenbuch.mobile.data.api.ApiFactory
 import app.fahrtenbuch.mobile.data.api.SessionStore
-import app.fahrtenbuch.mobile.data.local.OfflineDatabase
+import app.fahrtenbuch.mobile.data.repository.FahrtenbuchRepository
 import app.fahrtenbuch.mobile.data.model.TripType
 import app.fahrtenbuch.mobile.sync.SyncScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
 
 /** Setzt die Fahrtart, wenn in der Fahrtende-Benachrichtigung ein Button getippt wird. */
 class TripClassifyReceiver : BroadcastReceiver() {
@@ -39,33 +36,23 @@ class TripClassifyReceiver : BroadcastReceiver() {
 
     private suspend fun classify(context: Context, localId: String, type: TripType) {
         val store = SessionStore(context)
-        val dao = OfflineDatabase.get(context).dao()
-        val local = dao.trip(localId)
-        if (local == null) {
+        Log.i(TAG, "Classify from notification: trip=$localId type=${type.apiValue}")
+        val saved = try {
+            val repository = FahrtenbuchRepository(context, ApiFactory.create(store), store)
+            repository.classifyFromNotification(localId, type)
+        } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) throw error
+            Log.e(TAG, "Classify from notification crashed: trip=$localId", error)
+            false
+        }
+        if (saved) {
+            if (store.isServerMode) SyncScheduler.pushIfOnline(context)
             TripEndNotifier.cancel(context, localId)
-            return
+        } else {
+            // Ein Tipp auf einen Button schließt die Benachrichtigung nicht zuverlässig und
+            // sonst bliebe der Fehler unsichtbar: neu zeigen, mit Hinweis zum erneuten Versuch
+            TripEndNotifier.show(context, localId, failed = true)
         }
-        dao.setLocalTripType(localId, type.apiValue)
-
-        if (store.isServerMode) {
-            val remoteId = local.remoteId
-            if (local.state == "SYNCED" && remoteId != null) {
-                // Schon hochgeladen: der Sync schickt nichts mehr, also direkt klassifizieren
-                // (über /classify, damit GPS-Daten und Adressen unangetastet bleiben)
-                val body = JSONObject().put("category", type.apiValue).toString()
-                    .toRequestBody("application/json".toMediaType())
-                val sent = runCatching { ApiFactory.create(store).classifyTripJson(remoteId, body) }
-                    .onFailure { Log.w(TAG, "Classify from notification failed: trip=$localId", it) }
-                    .isSuccess
-                if (!sent) {
-                    // Offline o. Ä.: Benachrichtigung bleibt, damit man es erneut versuchen kann
-                    return
-                }
-            }
-            // Noch nicht synchron: der Sync-Worker sendet die Fahrtart beim Stop mit
-            SyncScheduler.pushIfOnline(context)
-        }
-        TripEndNotifier.cancel(context, localId)
     }
 
     companion object {

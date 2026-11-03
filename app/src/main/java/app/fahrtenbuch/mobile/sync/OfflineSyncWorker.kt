@@ -181,6 +181,13 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
             Log.i(TAG, "POST tracking/stop: localId=${local.localId} remoteId=$remoteId endedAt=${local.endedAt}")
             val completed = api.stopTracking(StopTrackingRequest(remoteId, local.endedAt, local.endTimeZone ?: local.startTimeZone))
             dao.markTripSynced(local.localId)
+            // Wurde die Fahrtart (Benachrichtigung) während dieses Syncs geändert, hätte sie der
+            // nächste Lauf nicht mehr gesehen, weil die Fahrt jetzt als synchron gilt
+            dao.trip(local.localId)?.takeIf { it.type != local.type && it.type != "unclassified" }?.let { changed ->
+                val body = org.json.JSONObject().put("category", changed.type).toString()
+                    .toRequestBody("application/json".toMediaType())
+                api.classifyTripJson(remoteId, body)
+            }
             Log.i(
                 TAG,
                 "tracking/stop OK: localId=${local.localId} remoteId=$remoteId " +

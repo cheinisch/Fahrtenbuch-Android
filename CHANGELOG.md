@@ -46,6 +46,8 @@ Version code 31.
 
 ### Fixed
 
+- The Private / Commute / Business buttons of the trip-end notification now reliably classify the trip: the choice is sent to the server right away and stored in the local trip list, a choice made while the upload is still running is no longer lost, and if saving fails the notification reappears with a hint instead of failing silently.
+
 - Sync error texts for a vehicle missing on the server and for a generic sync failure were hard-coded in German; they now follow the app language.
 
 ## [0.5.2] - 2026-10-16

@@ -645,6 +645,32 @@ class FahrtenbuchRepository(
         return updated
     }
 
+    /**
+     * Fahrtart aus der Fahrtende-Benachrichtigung setzen. Gibt false zurück, wenn der Server
+     * nicht erreicht wurde und die Fahrtart deshalb nicht sicher übertragen wird.
+     */
+    suspend fun classifyFromNotification(localId: Uuid, type: TripType): Boolean {
+        val local = dao.trip(localId) ?: return false
+        dao.setLocalTripType(localId, type.apiValue)
+        if (store.isLocalMode) return true
+        val remoteId = local.remoteId
+        // Noch nie hochgeladen: der Sync schickt die Fahrtart beim Start/Stop mit
+        if (remoteId == null) return true
+        val body = JSONObject().put("category", type.apiValue).toString()
+            .toRequestBody("application/json".toMediaType())
+        return try {
+            // Auch während der Stop noch aussteht: der Server nimmt /classify für jede eigene Fahrt an
+            val updated = api.classifyTripJson(remoteId, body)
+            dao.putTripRecord(updated.toEntity())
+            true
+        } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) throw error
+            android.util.Log.w("FahrtenbuchTracking", "Classify from notification failed: trip=$localId", error)
+            // Läuft der Stop noch über den Sync, trägt dieser die Fahrtart nach; sonst bleibt es offen
+            local.state != "SYNCED"
+        }
+    }
+
     /** Fahrtzweck, Kontakt und Notiz ändern; leere Felder werden gelöscht. */
     suspend fun updateTripPurpose(trip: Trip, purpose: String?, contact: String?, note: String?): Trip {
         val p = purpose?.trim()?.takeIf { it.isNotEmpty() }
