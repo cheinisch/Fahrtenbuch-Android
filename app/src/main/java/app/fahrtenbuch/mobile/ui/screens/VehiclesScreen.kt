@@ -244,6 +244,21 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    if (!vehicle.isOwner) {
+                        // Geteilte Fahrzeuge: nur Bluetooth und Freigabe entfernen, alles andere gehört dem Besitzer.
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedButton(onClick = { openBluetoothDialog(vehicle) }, enabled = !state.loading) {
+                                Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(if (vehicle.bluetoothMac == null) R.string.vehicles_bt_assign else R.string.vehicles_bt_change))
+                            }
+                            TextButton(onClick = { removeVehicle = vehicle }, enabled = !state.loading) {
+                                Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.error)
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.vehicles_remove), color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    }
                     if (vehicle.isOwner) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             if (inactive) {
@@ -401,7 +416,8 @@ fun VehiclesScreen(viewModel: AppViewModel) {
         VehicleRemoveDialog(
             vehicleName = vehicle.name,
             loading = state.loading,
-            alreadyInactive = vehicle.isDeregistered,
+            // Geteilte Fahrzeuge können nur entfernt (Freigabe gelöscht), nicht abgemeldet werden.
+            alreadyInactive = vehicle.isDeregistered || !vehicle.isOwner,
             onDismiss = { removeVehicle = null },
             onConfirm = { deactivateOnly ->
                 if (deactivateOnly) {

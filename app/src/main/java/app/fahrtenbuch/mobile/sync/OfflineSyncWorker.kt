@@ -337,7 +337,8 @@ private fun Vehicle.toEntity() = VehicleEntity(
     bluetoothMac = bluetoothMac,
     createdAt = createdAt,
     updatedAt = updatedAt,
-    isDefault = isDefault
+    isDefault = isDefault,
+    isOwner = isOwner
 )
 
 private fun Trip.toEntity() = TripEntity(

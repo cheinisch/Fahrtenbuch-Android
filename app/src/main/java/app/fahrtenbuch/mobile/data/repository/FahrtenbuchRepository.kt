@@ -560,9 +560,12 @@ class FahrtenbuchRepository(
             val deleted = local.archivedAt != null
             if (deleted && dao.offlineTripCount(local.id) == 0) continue
 
+            // Nur eigene Fahrzeuge: ein gleichnamiges geteiltes Fahrzeug darf nicht übernommen werden.
             val existing = serverVehicles.firstOrNull { remote ->
-                (!local.licensePlate.isNullOrBlank() && remote.licensePlate.equals(local.licensePlate, ignoreCase = true)) ||
-                    remote.name.equals(local.name, ignoreCase = true)
+                remote.isOwner && (
+                    (!local.licensePlate.isNullOrBlank() && remote.licensePlate.equals(local.licensePlate, ignoreCase = true)) ||
+                        remote.name.equals(local.name, ignoreCase = true)
+                )
             }
             val remote = existing ?: api.createVehicle(CreateVehicleRequest(local.name, local.licensePlate)).also(serverVehicles::add)
             dao.remapOfflineTripsVehicle(local.id, remote.id)
@@ -820,7 +823,8 @@ private fun Vehicle.toEntity() = VehicleEntity(
     acquisitionType = acquisitionType.apiValue,
     leaseStartDate = leaseStartDate,
     leaseEndDate = leaseEndDate,
-    leaseIncludedKm = leaseIncludedKm
+    leaseIncludedKm = leaseIncludedKm,
+    isOwner = isOwner
 )
 
 private fun VehicleEntity.toModel() = Vehicle(
@@ -836,7 +840,8 @@ private fun VehicleEntity.toModel() = Vehicle(
     acquisitionType = AcquisitionType.from(acquisitionType),
     leaseStartDate = leaseStartDate,
     leaseEndDate = leaseEndDate,
-    leaseIncludedKm = leaseIncludedKm
+    leaseIncludedKm = leaseIncludedKm,
+    isOwner = isOwner
 )
 
 private fun Trip.toEntity() = TripEntity(
