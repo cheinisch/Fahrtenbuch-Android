@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-10
+
 ### Added
 
 - Statistics show the contract of the selected vehicle: the acquisition type, the contract period and the mileage limit as one line under the filters, and the monthly share of the limit as a dashed line across the month chart, the same calculation as the web dashboard (limit spread evenly over the contract, scaled to an average month). A checkbox below the chart turns the line off and on; the choice is kept on the device. The line is only drawn for your own vehicles with leasing or financing, and while it is shown the chart scale includes it so it stays visible.
 - The vehicle editor also covers the acquisition type (owned, leasing, financing) and, for leasing and financing, the contract period and the mileage limit included in the contract. The vehicle card shows them in one line, in the chosen distance unit and date format. The server takes contract data only as a whole, so the period and the limit are saved together; clearing the type back to "owned" clears both. Manufacturer, model, VIN, odometer, notes and the excess/shortfall settings stay untouched — they are still edited in the web app. Vehicles shared by other users never show the acquisition type.
-- Vehicles can be edited and removed in the app. Each vehicle card has a "Edit" button for name and license plate, and an overflow menu with "Set as default vehicle", "Odometer reminder" and "Remove vehicle". Removing asks what should happen: **Deactivate** deregisters the vehicle (server: `POST /vehicles/{id}/deregister`) so it can be re-registered later, **Delete** takes it off the list (`DELETE /vehicles/{id}`). All trips are kept either way, so there is nothing to reassign; deleting also drops the Bluetooth assignment. Deregistered vehicles are listed under "Inactive" with a "Re-register" button, are not offered when starting a trip and are never picked as the default vehicle. Works in server and in local mode; a vehicle with a running recording cannot be deleted. Vehicles shared by other users show no edit or remove actions.
+- Vehicles can be edited and removed in the app. Each vehicle card has a "Edit" button for name and license plate, and an overflow menu with "Set as default vehicle", "Odometer reminder" and "Remove vehicle". Removing asks what should happen: **Deactivate** deregisters the vehicle (server: `POST /vehicles/{id}/deregister`) so it can be re-registered later, **Delete** takes it off the list (`DELETE /vehicles/{id}`). All trips are kept either way, so there is nothing to reassign; deleting also drops the Bluetooth assignment. Deregistered vehicles are listed under "Inactive" with a "Re-register" button, are not offered when starting a trip and are never picked as the default vehicle. Works in server and in local mode; a vehicle with a running recording cannot be deleted. Vehicles shared by other users show only "Bluetooth" (assign the Bluetooth MAC) and "Remove", which removes your share only; the owner's vehicle and its trips stay untouched. Shared vehicles can not be deactivated.
 
 ### Changed
 
@@ -35,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The Private / Commute / Business buttons of the trip-end notification now reliably classify the trip: the choice is sent to the server right away and stored in the local trip list, a choice made while the upload is still running is no longer lost, and if saving fails the notification reappears with a hint instead of failing silently.
+- Shared vehicles: the Bluetooth MAC, deactivating and removing a vehicle shared with you failed with "Das Fahrzeug wurde nicht gefunden: HTTP 404". Shared vehicles keep their shared status after a reload of the local database (database version 13), and the server now accepts the Bluetooth MAC from users with a share and removes only the share on delete (server change, needs the updated backend).
 
 ## [0.5.3] - 2026-10-16
 
