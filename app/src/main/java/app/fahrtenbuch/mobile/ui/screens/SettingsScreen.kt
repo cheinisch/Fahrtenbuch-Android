@@ -38,15 +38,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -57,6 +52,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.mutableFloatStateOf
+import kotlin.math.roundToInt
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -277,32 +274,43 @@ fun SettingsScreen(
             }
         }
 
-        // Pause bis Fahrtende: gilt lokal (Bluetooth-Pausenerkennung) und mit Server
+        // Pause bis Fahrtende: gilt lokal (Bluetooth-Pausenerkennung) und mit Server, 0–120 Minuten
         run {
-            val storedMergeMinutes = appState.preferences.tripMergeGapSeconds / 60
-            var mergeGapText by remember(storedMergeMinutes) { mutableStateOf(storedMergeMinutes.toString()) }
-            val mergeGapMinutes = mergeGapText.toIntOrNull()
-            val mergeGapValid = mergeGapMinutes != null && mergeGapMinutes in 0..15
-            fun commitMergeGap() {
-                if (mergeGapMinutes != null && mergeGapValid && mergeGapMinutes != storedMergeMinutes) {
-                    viewModel.setTripMergeGapSeconds(mergeGapMinutes * 60)
-                }
-            }
+            val storedMinutes = appState.preferences.tripMergeGapSeconds / 60
+            var mergeMinutes by remember(storedMinutes) { mutableFloatStateOf(storedMinutes.toFloat()) }
             SettingsCard(modifier = Modifier.padding(top = 10.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = mergeGapText,
-                        onValueChange = { mergeGapText = it.filter(Char::isDigit).take(2) },
-                        label = { Text(stringResource(R.string.trip_merge_gap_minutes_label)) },
-                        supportingText = {
-                            Text(stringResource(if (mergeGapValid) R.string.trip_merge_gap_minutes_text else R.string.trip_merge_gap_minutes_invalid))
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(stringResource(R.string.trip_merge_gap_minutes_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            mergeMinutes.roundToInt().toString(),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Slider(
+                        value = mergeMinutes,
+                        onValueChange = { mergeMinutes = it },
+                        onValueChangeFinished = {
+                            val minutes = mergeMinutes.roundToInt()
+                            if (minutes != storedMinutes) viewModel.setTripMergeGapSeconds(minutes * 60)
                         },
-                        isError = !mergeGapValid,
-                        singleLine = true,
-                        enabled = !appState.loading,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { commitMergeGap() }),
-                        modifier = Modifier.fillMaxWidth().onFocusChanged { if (!it.isFocused) commitMergeGap() }
+                        valueRange = 0f..120f,
+                        steps = 119,
+                        enabled = !appState.loading
+                    )
+                    Text(
+                        stringResource(R.string.trip_merge_gap_minutes_text),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

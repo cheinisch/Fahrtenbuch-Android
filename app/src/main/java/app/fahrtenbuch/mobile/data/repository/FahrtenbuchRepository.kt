@@ -309,10 +309,10 @@ class FahrtenbuchRepository(
         return cachedPreferences()
     }
 
-    /** Zeitfenster (0–900 s) fürs Zusammenführen von Fahrten setzen (nur Server-Modus, mit dem Konto synchronisiert). */
+    /** Pause (0–7200 s) fürs Zusammenführen von Fahrten setzen (nur Server-Modus, mit dem Konto synchronisiert). */
     suspend fun setTripMergeGapSeconds(seconds: Int): UserPreferences {
         if (store.isServerMode) {
-            val body = JSONObject().put("tripMergeGapSeconds", seconds.coerceIn(0, 900)).toString()
+            val body = JSONObject().put("tripMergeGapSeconds", seconds.coerceIn(0, 7200)).toString()
                 .toRequestBody("application/json".toMediaType())
             cacheSettings(api.updateMySettingsJson(body))
         }
