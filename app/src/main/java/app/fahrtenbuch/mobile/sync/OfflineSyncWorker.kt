@@ -11,6 +11,7 @@ import app.fahrtenbuch.mobile.data.api.ApiFactory
 import app.fahrtenbuch.mobile.data.api.FahrtenbuchApi
 import app.fahrtenbuch.mobile.data.local.OfflineTripEntity
 import app.fahrtenbuch.mobile.data.api.SessionStore
+import app.fahrtenbuch.mobile.location.TripPauseManager
 import app.fahrtenbuch.mobile.data.local.OfflineDatabase
 import app.fahrtenbuch.mobile.data.local.VehicleEntity
 import app.fahrtenbuch.mobile.data.local.TripEntity
@@ -25,6 +26,8 @@ class OfflineSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
         const val TAG = "FahrtenbuchSync"
     }
     override suspend fun doWork(): Result {
+        // Abgelaufene Pausen zuerst beenden, damit sie auch ohne Netz und ohne Alarm vorankommen
+        TripPauseManager.finishIfExpired(applicationContext)
         val store = SessionStore(applicationContext)
         if (!store.serverConfigured || store.refreshToken == null) {
             Log.i(TAG, "Sync skipped: serverConfigured=${store.serverConfigured} authenticated=${store.refreshToken != null}")

@@ -213,6 +213,24 @@ class SessionStore(context: Context) {
         get() = device.getString("active_trip_id", null)
         set(value) { device.edit().putString("active_trip_id", value).apply() }
 
+    // Pausierte Fahrt: BT getrennt, Aufzeichnung gestoppt, Fahrt noch offen bis zur Wiederverbindung oder Ablauf der Pause
+    var pausedTripId: String?
+        get() = device.getString("paused_trip_id", null)
+        set(value) { device.edit().putString("paused_trip_id", value).apply() }
+
+    /** Zeitpunkt der BT-Trennung (ISO-8601 UTC); daraus endet die Fahrt, falls die Pause abläuft. */
+    var pausedAt: String?
+        get() = device.getString("paused_at", null)
+        set(value) { device.edit().putString("paused_at", value).apply() }
+
+    var pausedVehicleId: String?
+        get() = device.getString("paused_vehicle_id", null)
+        set(value) { device.edit().putString("paused_vehicle_id", value).apply() }
+
+    var pausedBluetoothMac: String?
+        get() = device.getString("paused_bluetooth_mac", null)
+        set(value) { device.edit().putString("paused_bluetooth_mac", value).apply() }
+
     fun clearTokens() = device.edit()
         .remove("access_token")
         .remove("refresh_token")

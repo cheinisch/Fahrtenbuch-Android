@@ -277,8 +277,8 @@ fun SettingsScreen(
             }
         }
 
-        // Zusammenführen ist eine Server-Funktion; lokal gibt es keinen Server, der Aufzeichnungen zusammenführt
-        if (isServerMode) {
+        // Pause bis Fahrtende: gilt lokal (Bluetooth-Pausenerkennung) und mit Server
+        run {
             val storedMergeMinutes = appState.preferences.tripMergeGapSeconds / 60
             var mergeGapText by remember(storedMergeMinutes) { mutableStateOf(storedMergeMinutes.toString()) }
             val mergeGapMinutes = mergeGapText.toIntOrNull()

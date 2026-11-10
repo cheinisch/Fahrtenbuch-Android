@@ -25,6 +25,18 @@ import java.util.UUID
  */
 class BluetoothVehicleReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        // Alarm der Pause: endet die Fahrt, wenn niemand wieder verbunden hat
+        if (intent.action == TripPauseManager.ACTION_PAUSE_TIMEOUT) {
+            val pendingTimeout = goAsync()
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                try {
+                    TripPauseManager.finishIfExpired(context)
+                } finally {
+                    pendingTimeout.finish()
+                }
+            }
+            return
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
         ) return
@@ -51,6 +63,11 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
     }
 
     private suspend fun onConnected(context: Context, mac: String) {
+        // Offene Pause: gleiches Fahrzeug innerhalb der Zeit setzt die Fahrt fort, sonst endet sie jetzt
+        if (TripPauseManager.resumeOrFinish(context, mac)) {
+            startTracking(context)
+            return
+        }
         val dao = OfflineDatabase.get(context).dao()
         val vehicle = dao.vehicleByBluetooth(mac) ?: return
         val store = SessionStore(context)
@@ -73,6 +90,10 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
         store.activeBluetoothMac = mac
         store.activeTripId = localId
 
+        startTracking(context)
+    }
+
+    private fun startTracking(context: Context) {
         val service = Intent(context, TripTrackingService::class.java)
             .setAction(TripTrackingService.ACTION_START)
         ContextCompat.startForegroundService(context, service)
@@ -85,6 +106,16 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
         val localId = store.activeTripId ?: return
         val dao = OfflineDatabase.get(context).dao()
         val trip = dao.trip(localId) ?: return
+
+        // Mit Pause: Aufzeichnung stoppen, Fahrt offen lassen, bis die Pause abläuft oder wieder verbunden wird
+        if (store.tripMergeGapSeconds > 0) {
+            TripPauseManager.pause(context, store, trip.localId, mac, Instant.now())
+            context.startService(
+                Intent(context, TripTrackingService::class.java)
+                    .setAction(TripTrackingService.ACTION_STOP)
+            )
+            return
+        }
 
         dao.markTripStopped(trip.localId, Instant.now().toString(), java.time.ZoneId.systemDefault().id)
         store.activeTripId = null
