@@ -173,9 +173,9 @@ class SessionStore(context: Context) {
         get() = prefs.getBoolean("show_contract_limit", true)
         set(value) { prefs.edit().putBoolean("show_contract_limit", value).apply() }
 
-    // Zeitfenster fürs Zusammenführen von Fahrten (Server-Profil, Standard 120 s)
+    // Zeitfenster fürs Zusammenführen von Fahrten (Server-Profil, Standard 0 = Pause aus)
     var tripMergeGapSeconds: Int
-        get() = prefs.getInt("trip_merge_gap_seconds", 120)
+        get() = prefs.getInt("trip_merge_gap_seconds", 0)
         set(value) { prefs.edit().putInt("trip_merge_gap_seconds", value).apply() }
 
     var mapMatchingAvailable: Boolean

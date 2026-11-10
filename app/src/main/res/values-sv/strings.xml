@@ -433,8 +433,8 @@
     <string name="map_matching_title">Använd kartmatchning</string>
     <string name="map_matching_text">Anpassar uppladdade resor till vägnätet och visar dem längs vägen. Av: endast GPS-rutt. Redan tillämpade sträckor behålls.</string>
     <string name="map_matching_unavailable">Kartmatchning är inte inställd på den här servern.</string>
-    <string name="trip_merge_gap_minutes_label">Slå ihop med paus upp till (minuter)</string>
-    <string name="trip_merge_gap_minutes_text">Om två enheter spelar in samma resa slår servern ihop dem när pausen mellan dem högst är så lång. 0 = bara överlappande inspelningar. Standard: 2.</string>
+    <string name="trip_merge_gap_minutes_label">Paus tills resan slutar (minuter)</string>
+    <string name="trip_merge_gap_minutes_text">Om ingen ny Bluetooth-anslutning till fordonet sker inom denna tid, slutar resan vid frånkopplingen; annars fortsätter den. Standard: 0 (av).</string>
     <string name="trip_merge_gap_minutes_invalid">Ange ett heltal från 0 till 15.</string>
     <string name="sign_in_google">Logga in med Google</string>
     <string name="sign_in_microsoft">Logga in med Microsoft</string>

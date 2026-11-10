@@ -439,8 +439,8 @@
     <string name="map_matching_title">Usar ajuste al mapa</string>
     <string name="map_matching_text">Ajusta los viajes subidos a la red de carreteras y los muestra a lo largo de la vía. Desactivado: solo ruta GPS. Las distancias ya aplicadas se mantienen.</string>
     <string name="map_matching_unavailable">El ajuste al mapa no está configurado en este servidor.</string>
-    <string name="trip_merge_gap_minutes_label">Unir con pausa de hasta (minutos)</string>
-    <string name="trip_merge_gap_minutes_text">Si dos dispositivos graban el mismo trayecto, el servidor los une si la pausa entre ambos es como máximo esta. 0 = solo grabaciones solapadas. Predeterminado: 2.</string>
+    <string name="trip_merge_gap_minutes_label">Pausa hasta fin del trayecto (min)</string>
+    <string name="trip_merge_gap_minutes_text">Si no se produce una nueva conexión Bluetooth con el vehículo dentro de este tiempo, el trayecto termina en el momento de la desconexión; de lo contrario continúa. Predeterminado: 0 (desactivado).</string>
     <string name="trip_merge_gap_minutes_invalid">Introduce un número entero de 0 a 15.</string>
     <string name="sign_in_google">Iniciar sesión con Google</string>
     <string name="sign_in_microsoft">Iniciar sesión con Microsoft</string>

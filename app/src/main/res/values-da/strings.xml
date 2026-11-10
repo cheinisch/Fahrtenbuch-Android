@@ -433,8 +433,8 @@
     <string name="map_matching_title">Brug kortmatchning</string>
     <string name="map_matching_text">Tilpasser uploadede ture til vejnettet og viser dem langs vejen. Fra: kun GPS-rute. Allerede anvendte afstande bevares.</string>
     <string name="map_matching_unavailable">Kortmatchning er ikke opsat på denne server.</string>
-    <string name="trip_merge_gap_minutes_label">Sammenlæg op til pause på (minutter)</string>
-    <string name="trip_merge_gap_minutes_text">Optager to enheder den samme tur, slår serveren dem sammen, hvis pausen mellem dem højst er så lang. 0 = kun overlappende optagelser. Standard: 2.</string>
+    <string name="trip_merge_gap_minutes_label">Pause til turen slutter (minutter)</string>
+    <string name="trip_merge_gap_minutes_text">Hvis der ikke kommer en ny Bluetooth-forbindelse til køretøjet inden for denne tid, slutter turen ved afbrydelsen; ellers fortsætter den. Standard: 0 (fra).</string>
     <string name="trip_merge_gap_minutes_invalid">Angiv et helt tal fra 0 til 15.</string>
     <string name="sign_in_google">Log ind med Google</string>
     <string name="sign_in_microsoft">Log ind med Microsoft</string>

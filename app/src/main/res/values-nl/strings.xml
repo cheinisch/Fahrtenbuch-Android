@@ -433,8 +433,8 @@
     <string name="map_matching_title">Map matching gebruiken</string>
     <string name="map_matching_text">Lijnt geüploade ritten uit op het wegennet en toont ze langs de weg. Uit: alleen gps-route. Al toegepaste afstanden blijven behouden.</string>
     <string name="map_matching_unavailable">Map matching is op deze server niet ingesteld.</string>
-    <string name="trip_merge_gap_minutes_label">Samenvoegen tot pauze van (minuten)</string>
-    <string name="trip_merge_gap_minutes_text">Nemen twee apparaten dezelfde rit op, dan voegt de server ze samen als de pauze ertussen hooguit zo lang is. 0 = alleen overlappende opnamen. Standaard: 2.</string>
+    <string name="trip_merge_gap_minutes_label">Pauze tot einde rit (minuten)</string>
+    <string name="trip_merge_gap_minutes_text">Komt er binnen deze tijd geen nieuwe Bluetooth-verbinding met het voertuig, dan eindigt de rit op het moment van de verbreking; anders gaat de rit verder. Standaard: 0 (uit).</string>
     <string name="trip_merge_gap_minutes_invalid">Voer een geheel getal van 0 tot 15 in.</string>
     <string name="sign_in_google">Inloggen met Google</string>
     <string name="sign_in_microsoft">Inloggen met Microsoft</string>

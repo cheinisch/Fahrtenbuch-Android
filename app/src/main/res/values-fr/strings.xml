@@ -439,8 +439,8 @@
     <string name="map_matching_title">Utiliser le recalage cartographique</string>
     <string name="map_matching_text">Recale les trajets envoyés sur le réseau routier et les affiche le long de la route. Désactivé : tracé GPS uniquement. Les distances déjà appliquées sont conservées.</string>
     <string name="map_matching_unavailable">Le recalage cartographique n\'est pas configuré sur ce serveur.</string>
-    <string name="trip_merge_gap_minutes_label">Fusionner jusqu\'à une pause de (min)</string>
-    <string name="trip_merge_gap_minutes_text">Si deux appareils enregistrent le même trajet, le serveur les fusionne lorsque la pause entre eux est au plus de cette durée. 0 = uniquement les enregistrements qui se chevauchent. Par défaut : 2.</string>
+    <string name="trip_merge_gap_minutes_label">Pause avant fin du trajet (minutes)</string>
+    <string name="trip_merge_gap_minutes_text">Si aucune nouvelle connexion Bluetooth au véhicule n\'a lieu dans ce délai, le trajet se termine au moment de la déconnexion ; sinon il continue. Par défaut : 0 (désactivé).</string>
     <string name="trip_merge_gap_minutes_invalid">Saisissez un nombre entier de 0 à 15.</string>
     <string name="sign_in_google">Se connecter avec Google</string>
     <string name="sign_in_microsoft">Se connecter avec Microsoft</string>

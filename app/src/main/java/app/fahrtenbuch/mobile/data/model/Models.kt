@@ -375,7 +375,7 @@ data class UserPreferences(
     /** False, wenn auf dem Server kein Map-Matching eingerichtet ist (API: mapMatchingAvailable). */
     val mapMatchingAvailable: Boolean = true,
     /** Max. Pause in Sekunden, bis zu der der Server Aufzeichnungen verschiedener Geräte zu einer Fahrt zusammenführt (API: tripMergeGapSeconds, 0–900). */
-    val tripMergeGapSeconds: Int = 120
+    val tripMergeGapSeconds: Int = 0
 ) {
     /** Gravatar tatsächlich verwenden: Nutzer und Server erlauben es. */
     val useGravatar: Boolean get() = gravatarEnabled && gravatarAvailable
@@ -401,7 +401,7 @@ data class UserPreferences(
             gravatarAvailable: Boolean = true,
             mapMatchingEnabled: Boolean = true,
             mapMatchingAvailable: Boolean = true,
-            tripMergeGapSeconds: Int = 120
+            tripMergeGapSeconds: Int = 0
         ) = UserPreferences(
             distanceUnit = DistanceUnit.entries.firstOrNull { it.apiValue == distance } ?: DistanceUnit.KM,
             speedUnit = SpeedUnit.entries.firstOrNull { it.apiValue == speed } ?: SpeedUnit.KMH,
