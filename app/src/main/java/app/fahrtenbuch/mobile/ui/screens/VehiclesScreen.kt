@@ -1,7 +1,10 @@
 package app.fahrtenbuch.mobile.ui.screens
 
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import app.fahrtenbuch.mobile.ui.common.LocalWindowLayout
@@ -53,6 +56,7 @@ import app.fahrtenbuch.mobile.ui.AppViewModel
 
 data class PairedBluetoothDevice(val name: String, val address: String)
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VehiclesScreen(viewModel: AppViewModel) {
     val state by viewModel.state.collectAsState()
@@ -131,7 +135,10 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     vehicle.name,
+                                    modifier = Modifier.weight(1f, fill = false),
                                     fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                     color = if (inactive) MaterialTheme.colorScheme.onSurfaceVariant else LocalContentColor.current
                                 )
                                 if (vehicle.isDefault) {
@@ -144,6 +151,8 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                                             Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                                             Text(
                                                 stringResource(R.string.vehicles_default),
+                                                maxLines = 1,
+                                                softWrap = false,
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.primary
@@ -246,7 +255,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                     }
                     if (!vehicle.isOwner) {
                         // Geteilte Fahrzeuge: nur Bluetooth und Freigabe entfernen, alles andere gehört dem Besitzer.
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(onClick = { openBluetoothDialog(vehicle) }, enabled = !state.loading) {
                                 Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))
@@ -260,7 +269,7 @@ fun VehiclesScreen(viewModel: AppViewModel) {
                         }
                     }
                     if (vehicle.isOwner) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             if (inactive) {
                                 OutlinedButton(
                                     onClick = { viewModel.setVehicleRegistered(vehicle.id, registered = true) },
