@@ -527,4 +527,31 @@
     <string name="vehicles_included_km_needs_period">A mileage limit needs a contract period.</string>
     <string name="vehicles_contract_period_needs_km">A contract period needs a mileage limit.</string>
     <string name="statistics_contract_limit">Monthly limit: %1$s</string>
+    <string name="settings_gps_debug_title">GPS debug mode</string>
+    <string name="settings_gps_debug_text">GPS status notification and a log file per trip.</string>
+    <string name="gps_debug_channel">GPS debug</string>
+    <string name="gps_debug_title">GPS status (debug)</string>
+    <string name="gps_debug_provider">Provider: %1$s</string>
+    <string name="gps_debug_gps_on">GPS enabled: yes</string>
+    <string name="gps_debug_gps_off">GPS enabled: no</string>
+    <string name="gps_debug_fix_yes">Fix: yes, %1$d s ago, accuracy %2$s</string>
+    <string name="gps_debug_fix_stale">Fix: no, last position %1$d s ago</string>
+    <string name="gps_debug_fix_none">Fix: no position yet</string>
+    <string name="gps_debug_accuracy" translatable="false">±%1$d m</string>
+    <string name="gps_debug_accuracy_unknown">unknown</string>
+    <string name="gps_debug_no_permission">GNSS status: no precise location permission</string>
+    <string name="gps_debug_no_status">GNSS status: no data yet</string>
+    <string name="gps_debug_sats">Satellites: %1$d visible, %2$d in fix</string>
+    <string name="gps_debug_const" translatable="false">%1$s %2$d/%3$d</string>
+    <string name="gps_debug_dialog_title">GPS debug</string>
+    <string name="gps_debug_dialog_toggle">Debug mode</string>
+    <string name="gps_debug_dialog_toggle_text">During a trip, a second notification shows provider, GPS status, fix and satellites. Every trip is recorded in a log file on this device.</string>
+    <string name="gps_debug_logs_title">Log files</string>
+    <string name="gps_debug_logs_empty">No log files yet. They are created on the next trip with debug mode on.</string>
+    <string name="gps_debug_log_download">Download</string>
+    <string name="gps_debug_log_delete">Delete</string>
+    <string name="gps_debug_log_export_failed">The log file could not be saved.</string>
+    <string name="gps_no_fix_channel">GPS reception</string>
+    <string name="gps_no_fix_title">No GPS reception</string>
+    <string name="gps_no_fix_text">The trip is being recorded, but no position has been received yet. Check that location is on and the app has precise location access.</string>
 </resources>

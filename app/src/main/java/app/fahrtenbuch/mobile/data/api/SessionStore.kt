@@ -201,6 +201,11 @@ class SessionStore(context: Context) {
         get() = prefs.getBoolean("trip_end_notification_enabled", true)
         set(value) { prefs.edit().putBoolean("trip_end_notification_enabled", value).apply() }
 
+    /** Debug-Modus: zeigt während einer Fahrt eine zweite Benachrichtigung mit GPS-Status (Standard aus). */
+    var gpsDebugMode: Boolean
+        get() = prefs.getBoolean("gps_debug_mode", false)
+        set(value) { prefs.edit().putBoolean("gps_debug_mode", value).apply() }
+
     var activeVehicleId: String?
         get() = device.getString("active_vehicle_id", null)
         set(value) { device.edit().putString("active_vehicle_id", value).apply() }

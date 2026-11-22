@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- GPS debug mode (Settings → Notifications → "GPS debug mode"), opened as its own dialog. While a trip is recorded, a second notification shows the provider of the last position, whether GPS is enabled, whether there is a current fix (age and accuracy) and the satellites visible and used in the fix per constellation. Every trip with debug mode on is written to a log file on the device: when the Bluetooth device connects, a diagnostics block (app/Android version, device, Play services, location permissions, location and GNSS provider state, GNSS chip, power saving and location power saving mode, battery optimization, Doze, background restriction, standby bucket, battery, app settings), then every fix, fix lost/regained, a status snapshot every 10 s, Bluetooth disconnect and a summary (duration, fixes, time to first fix). The dialog lists the log files (newest first, up to 50 kept) to download or delete. Log files stay on the device.
+
+### Fixed
+
+- Trips could be saved without any GPS points when the first fix never arrived: the app waited for an accurate location even when only approximate location was granted, and kept polling every second for the whole trip. It now only waits for an accurate location with precise location access, switches to the normal interval after 60 s without a first fix (later fixes are still recorded), and shows a "No GPS reception" notification if no position has arrived after 3 minutes.
+
 ## [0.7.0] - 2026-11-10
 
 ### Added
