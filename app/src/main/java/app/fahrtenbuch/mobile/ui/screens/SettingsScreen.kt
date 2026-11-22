@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.LockOpen
@@ -90,10 +91,11 @@ import app.fahrtenbuch.mobile.ui.screens.settings.ServerSettingsDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsCard
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsDivider
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsRow
+import app.fahrtenbuch.mobile.ui.screens.settings.GpsDebugDialog
 import app.fahrtenbuch.mobile.ui.screens.settings.SettingsSectionLabel
 import app.fahrtenbuch.mobile.ui.theme.ThemeMode
 
-private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES, BACKUP, PASSKEYS }
+private enum class SettingsDialog { NONE, PROFILE, SERVER, LOGOUT, PERMISSIONS, FORMAT, ABOUT, LIBRARIES, BACKUP, PASSKEYS, GPS_DEBUG }
 
 private val trackingIntervals = listOf(5, 10, 15, 30, 60)
 
@@ -353,6 +355,13 @@ fun SettingsScreen(
                     )
                 }
             )
+            SettingsDivider()
+            SettingsRow(
+                icon = Icons.Default.LocationOn,
+                title = stringResource(R.string.settings_gps_debug_title),
+                subtitle = stringResource(R.string.settings_gps_debug_text),
+                onClick = { dialog = SettingsDialog.GPS_DEBUG }
+            )
         }
 
         SettingsSectionLabel(stringResource(R.string.permissions_settings_title))
@@ -437,6 +446,10 @@ fun SettingsScreen(
         SettingsDialog.BACKUP -> BackupDialog(
             store = sessionStore,
             serverMode = isServerMode,
+            onDismiss = { dialog = SettingsDialog.NONE }
+        )
+        SettingsDialog.GPS_DEBUG -> GpsDebugDialog(
+            store = sessionStore,
             onDismiss = { dialog = SettingsDialog.NONE }
         )
         SettingsDialog.PROFILE -> ProfileEditDialog(

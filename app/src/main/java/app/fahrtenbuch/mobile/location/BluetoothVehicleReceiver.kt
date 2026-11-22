@@ -72,6 +72,7 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
         // Offene Pause: gleiches Fahrzeug innerhalb der Zeit setzt die Fahrt fort, sonst endet sie jetzt
         if (TripPauseManager.resumeOrFinish(context, mac)) {
             Log.i(TAG, "BT verbunden: Pause war offen, Fahrt wird fortgesetzt")
+            debugTripStart(context, mac, "Fortsetzung nach Pause")
             startTracking(context)
             return
         }
@@ -105,7 +106,21 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
         store.activeBluetoothMac = mac
         store.activeTripId = localId
 
+        debugTripStart(context, mac, "neue Fahrt, Fahrzeug ${vehicle.id}")
         startTracking(context)
+    }
+
+    /** Debug-Modus: Logdatei öffnen und Bluetooth-Ereignis plus Gerätediagnose hineinschreiben. */
+    private fun debugTripStart(context: Context, mac: String, reason: String) {
+        val store = SessionStore(context)
+        val tripId = store.activeTripId ?: return
+        if (!store.gpsDebugMode) return
+        runCatching {
+            GpsDebugLog.open(context, tripId)
+            GpsDebugLog.log("BT verbunden: mac=$mac ($reason)")
+            GpsDebugLog.logBlock(GpsDebugDiagnostics.snapshot(context))
+            GpsDebugMonitor.diagnosticsWritten(tripId)
+        }.onFailure { Log.w(TAG, "Debug-Log beim BT-Start fehlgeschlagen: ${it.message}") }
     }
 
     private fun startTracking(context: Context) {
@@ -126,6 +141,9 @@ class BluetoothVehicleReceiver : BroadcastReceiver() {
         if (localId == null) {
             Log.i(TAG, "BT getrennt: keine aktive Fahrt vorhanden")
             return
+        }
+        if (store.gpsDebugMode) {
+            GpsDebugLog.log("BT getrennt: mac=$mac, Pause=${store.tripMergeGapSeconds} s")
         }
         val dao = OfflineDatabase.get(context).dao()
         val trip = dao.trip(localId)
