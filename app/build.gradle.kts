@@ -19,7 +19,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        buildConfigField("String", "DEFAULT_API_URL", "\"http://10.0.2.2:3000/api/v1/\"")
+        buildConfigField("String", "DEFAULT_API_URL", "\"http://fahrtenbuch:3000/api/v1/\"")
     }
 
     buildTypes {
